@@ -1,0 +1,130 @@
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <a href="/vehicles/<%= vehicle.id %>" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 transition font-medium">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+    Araç Detayı
+  </a>
+
+  <div class="bg-white rounded-3xl shadow-soft-lg ring-1 ring-slate-900/5 p-6 sm:p-8">
+    <div class="mb-8">
+      <div class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-sky-700 text-white mb-4 shadow-lg shadow-sky-500/25">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-6 w-6"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+      </div>
+      <p class="text-xs font-bold uppercase tracking-widest text-sky-600 mb-2">Araç Düzenle</p>
+      <h2 class="text-3xl font-bold text-slate-900 tracking-tight">
+        <span class="font-mono"><%= vehicle.plate_number %></span> <span class="font-serif italic text-slate-500">bilgileri.</span>
+      </h2>
+      <p class="text-slate-500 mt-2 text-sm">Notlar anında değişir. Plaka, marka/model, yıl, tip, kapasite değişiklikleri <strong>SuperAdmin onayı</strong> ister.</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="flex items-start gap-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0 mt-0.5"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+        <span><%= error %></span>
+      </div>
+    <% } %>
+
+    <% if (pendingRequest) { %>
+      <div class="flex items-start gap-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0 mt-0.5"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+        <span>
+          Bu araç için bekleyen hassas alan değişiklik talebin var. Yeni bir talep göndermek için önce onu iptal et.
+          <form action="/vehicles/<%= vehicle.id %>/updates/<%= pendingRequest.id %>/cancel" method="POST" class="inline"
+                data-confirm="Bekleyen talebini iptal etmek üzeresin."
+                data-confirm-button="Evet, iptal et" data-confirm-danger>
+            <button type="submit" class="underline font-semibold ml-1">Talebi iptal et</button>
+          </form>
+        </span>
+      </div>
+    <% } %>
+
+    <form action="/vehicles/<%= vehicle.id %>/edit" method="POST" class="space-y-8">
+
+      <!-- SIRADAN -->
+      <div>
+        <div class="flex items-center gap-2 mb-4">
+          <div class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+          </div>
+          <h3 class="text-sm font-bold text-slate-900">Sıradan Bilgiler <span class="text-slate-400 font-normal">— anında kaydedilir</span></h3>
+        </div>
+        <div class="pl-9">
+          <label for="notes" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Notlar</label>
+          <textarea id="notes" name="notes" rows="3"
+                    class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 resize-none focus:ring-2 focus:ring-slate-900 focus:outline-none transition"><%= formData.notes || '' %></textarea>
+        </div>
+      </div>
+
+      <!-- HASSAS -->
+      <div class="pt-6 border-t border-slate-100">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>
+          </div>
+          <h3 class="text-sm font-bold text-slate-900">Hassas Bilgiler <span class="text-slate-400 font-normal">— admin onayı ister</span></h3>
+        </div>
+        <p class="text-xs text-slate-500 mb-4 pl-9">Değiştirdiğin alanlar için <strong>talep</strong> oluşturulur. SuperAdmin inceleyip onayladığında araç bilgileri güncellenir.</p>
+
+        <div class="space-y-4 pl-9 <%= pendingRequest ? 'opacity-50 pointer-events-none' : '' %>">
+          <div>
+            <label for="plate_number" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Plaka</label>
+            <input type="text" id="plate_number" name="plate_number" value="<%= formData.plate_number || '' %>"
+                   class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 font-mono uppercase tracking-wider focus:ring-2 focus:ring-amber-500 focus:outline-none transition">
+            <p class="text-[10px] text-slate-400 mt-1">Mevcut: <%= vehicle.plate_number %></p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="brand" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Marka</label>
+              <input type="text" id="brand" name="brand" value="<%= formData.brand || '' %>"
+                     class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none transition">
+              <p class="text-[10px] text-slate-400 mt-1">Mevcut: <%= vehicle.brand %></p>
+            </div>
+            <div>
+              <label for="model" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Model</label>
+              <input type="text" id="model" name="model" value="<%= formData.model || '' %>"
+                     class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none transition">
+              <p class="text-[10px] text-slate-400 mt-1">Mevcut: <%= vehicle.model %></p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label for="year" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Yıl</label>
+              <input type="number" id="year" name="year" value="<%= formData.year || '' %>"
+                     min="1980" max="<%= new Date().getFullYear() + 1 %>"
+                     class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none transition">
+              <p class="text-[10px] text-slate-400 mt-1">Mevcut: <%= vehicle.year %></p>
+            </div>
+            <div class="col-span-2">
+              <label for="vehicle_type" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Tip</label>
+              <select id="vehicle_type" name="vehicle_type"
+                      class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none transition">
+                <% [['minibus','Minibüs'],['midibus','Midibüs'],['otobus','Otobüs'],['van','Van'],['binek','Binek Araç']].forEach(function(opt) { %>
+                  <option value="<%= opt[0] %>" <%= (formData.vehicle_type || vehicle.vehicle_type) === opt[0] ? 'selected' : '' %>><%= opt[1] %></option>
+                <% }); %>
+              </select>
+              <p class="text-[10px] text-slate-400 mt-1">Mevcut: <%= vehicle.vehicle_type %></p>
+            </div>
+          </div>
+
+          <div>
+            <label for="capacity" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Kapasite</label>
+            <input type="number" id="capacity" name="capacity" value="<%= formData.capacity || '' %>" min="1" max="100"
+                   class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none transition">
+            <p class="text-[10px] text-slate-400 mt-1">Mevcut: <%= vehicle.capacity %> kişi</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 pt-3">
+        <button type="submit"
+                class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/25">
+          Kaydet
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+        </button>
+        <a href="/vehicles/<%= vehicle.id %>" class="text-sm text-slate-500 hover:text-slate-900 transition font-medium">Vazgeç</a>
+      </div>
+    </form>
+  </div>
+</div>

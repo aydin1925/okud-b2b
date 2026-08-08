@@ -1,0 +1,64 @@
+<%
+  const isKvkk = t.type.endsWith('_kvkk');
+  const iconColor = isKvkk
+    ? 'bg-amber-100 text-amber-600'
+    : (t.type === 'partnership' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600');
+%>
+<div class="bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 p-5 flex flex-col hover:shadow-soft-lg transition">
+  <div class="flex items-start justify-between gap-3 mb-3">
+    <div class="flex items-start gap-3">
+      <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg <%= iconColor %> flex-shrink-0">
+        <% if (isKvkk) { %>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+          </svg>
+        <% } else { %>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 12l1.5 1.5 3-3M8.25 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+          </svg>
+        <% } %>
+      </div>
+      <div>
+        <h4 class="text-sm font-bold text-slate-800 leading-tight"><%= typeLabels[t.type] %></h4>
+        <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mt-0.5">
+          <%= isKvkk ? 'Aydınlatma' : 'Sözleşme' %>
+        </p>
+      </div>
+    </div>
+    <% if (t.source === 'custom') { %>
+      <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">Özel</span>
+    <% } else { %>
+      <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Standart</span>
+    <% } %>
+  </div>
+
+  <p class="text-sm font-medium text-slate-700 mb-1 line-clamp-1"><%= t.title %></p>
+  <p class="text-xs text-slate-500 mb-4 line-clamp-3 whitespace-pre-line flex-1 leading-relaxed">
+    <%= t.content.slice(0, 180) %><%= t.content.length > 180 ? '…' : '' %>
+  </p>
+
+  <% if (t.source === 'custom' && t.updated_at) { %>
+    <p class="text-[10px] text-slate-400 mb-3 uppercase tracking-wide">Son güncelleme · <%= t.updated_at %></p>
+  <% } %>
+
+  <div class="flex items-center gap-3 mt-auto pt-3 border-t border-slate-100">
+    <a href="/company/contracts/<%= t.type %>/edit"
+       class="inline-flex items-center gap-1 rounded-lg bg-slate-900 text-white px-3 py-1.5 text-xs font-semibold hover:bg-slate-800 transition">
+      Düzenle
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+      </svg>
+    </a>
+    <% if (t.source === 'custom') { %>
+      <form action="/company/contracts/<%= t.type %>/reset" method="POST" class="inline"
+            data-confirm="Bu metni varsayılana sıfırlamak üzeresin. Kurumuna özel yazdığın versiyon silinecek."
+            data-confirm-title="Varsayılana Sıfırla"
+            data-confirm-button="Evet, sıfırla"
+            data-confirm-danger>
+        <button type="submit" class="text-xs text-slate-500 hover:text-red-600 transition font-medium">
+          Sıfırla
+        </button>
+      </form>
+    <% } %>
+  </div>
+</div>

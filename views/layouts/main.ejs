@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> — OKUD</title>
+
+  <!-- Fonts: Manrope (UI) + Instrument Serif (accents) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans:  ['Manrope', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+          },
+          boxShadow: {
+            'soft':    '0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06)',
+            'soft-lg': '0 4px 6px -1px rgb(15 23 42 / 0.05), 0 2px 4px -2px rgb(15 23 42 / 0.04)',
+            'soft-xl': '0 10px 15px -3px rgb(15 23 42 / 0.06), 0 4px 6px -4px rgb(15 23 42 / 0.05)',
+            'glow-blue':   '0 0 40px -10px rgb(59 130 246 / 0.5)',
+            'glow-purple': '0 0 40px -10px rgb(168 85 247 / 0.5)',
+          },
+          animation: {
+            'blob':      'blob 20s infinite',
+            'fade-up':   'fade-up 0.5s ease-out',
+            'shimmer':   'shimmer 2s linear infinite',
+          },
+          keyframes: {
+            blob: {
+              '0%, 100%': { transform: 'translate(0px, 0px) scale(1)' },
+              '33%':      { transform: 'translate(30px, -50px) scale(1.1)' },
+              '66%':      { transform: 'translate(-20px, 20px) scale(0.9)' },
+            },
+            'fade-up': {
+              '0%':   { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            shimmer: {
+              '0%':   { backgroundPosition: '-1000px 0' },
+              '100%': { backgroundPosition: '1000px 0' },
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    /* SweetAlert Manrope + rounded */
+    .swal2-popup { font-family: 'Manrope', system-ui, sans-serif !important; border-radius: 20px !important; padding: 1.75rem !important; }
+    .swal2-title { font-weight: 800 !important; font-size: 1.25rem !important; }
+    .swal2-html-container { color: rgb(71 85 105) !important; font-size: 0.95rem !important; }
+    .swal2-confirm, .swal2-cancel { border-radius: 12px !important; font-weight: 600 !important; padding: 0.6rem 1.25rem !important; font-size: 0.9rem !important; }
+    .swal2-styled.swal2-confirm { background-color: #dc2626 !important; box-shadow: 0 8px 20px -6px rgba(220, 38, 38, 0.5) !important; }
+    .swal2-styled.swal2-confirm.confirm-blue { background-color: #0f172a !important; box-shadow: 0 8px 20px -6px rgba(15, 23, 42, 0.5) !important; }
+    .swal2-styled.swal2-cancel { background-color: rgb(241 245 249) !important; color: rgb(51 65 85) !important; }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgb(203 213 225); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgb(148 163 184); }
+
+    /* Noise texture overlay */
+    .noise {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      opacity: 0.015; mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* Body içerik z-index */
+    main, header, footer { position: relative; z-index: 1; }
+
+    /* Dialog soft-open animasyonu — sadece <dialog> elementleri için */
+    dialog {
+      opacity: 0;
+      transform: scale(0.96) translateY(8px);
+      transition:
+        opacity 200ms ease,
+        transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+        overlay 200ms ease allow-discrete,
+        display 200ms ease allow-discrete;
+    }
+    dialog[open] {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+    @starting-style {
+      dialog[open] {
+        opacity: 0;
+        transform: scale(0.96) translateY(8px);
+      }
+    }
+    dialog::backdrop {
+      background: rgba(15, 23, 42, 0);
+      backdrop-filter: blur(0px);
+      transition:
+        background 220ms ease,
+        backdrop-filter 220ms ease,
+        overlay 220ms ease allow-discrete,
+        display 220ms ease allow-discrete;
+    }
+    dialog[open]::backdrop {
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+    }
+    @starting-style {
+      dialog[open]::backdrop {
+        background: rgba(15, 23, 42, 0);
+        backdrop-filter: blur(0px);
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 antialiased flex flex-col selection:bg-slate-900 selection:text-white overflow-x-hidden">
+
+  <!-- Subtle animated background mesh -->
+  <div class="fixed inset-0 -z-0 overflow-hidden pointer-events-none">
+    <div class="absolute top-0 -left-20 w-96 h-96 bg-blue-200/30 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+    <div class="absolute top-1/3 -right-20 w-96 h-96 bg-purple-200/30 rounded-full mix-blend-multiply filter blur-3xl animate-blob" style="animation-delay: 4s;"></div>
+    <div class="absolute bottom-0 left-1/3 w-96 h-96 bg-emerald-200/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob" style="animation-delay: 8s;"></div>
+  </div>
+  <div class="noise"></div>
+
+  <header class="sticky top-3 sm:top-4 z-30 mx-3 sm:mx-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center gap-2 sm:gap-3 rounded-2xl bg-white/70 backdrop-blur-2xl ring-1 ring-slate-900/5 shadow-soft-lg px-3 sm:px-4 py-2 sm:py-2.5">
+        <!-- LOGO -->
+        <a href="/" class="flex items-center gap-2 group flex-shrink-0">
+          <span class="relative inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-sm font-black text-white shadow-lg shadow-slate-900/30 group-hover:scale-105 group-hover:rotate-3 transition-transform ring-1 ring-white/10">
+            <span class="relative">O</span>
+            <span class="absolute -inset-px rounded-xl bg-gradient-to-t from-white/0 via-white/0 to-white/20"></span>
+          </span>
+          <span class="text-base sm:text-lg font-black tracking-tight text-slate-900 hidden xs:inline sm:inline">OKUD</span>
+        </a>
+
+        <div class="w-px h-6 bg-slate-200 hidden md:block"></div>
+
+        <!-- DESKTOP NAV — orta -->
+        <nav class="hidden md:flex items-center gap-0.5 text-sm mr-auto">
+          <% if (currentUser) { %>
+            <a href="/dashboard" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition font-semibold">Dashboard</a>
+            <% if (currentCompany) { %>
+              <a href="/company/fleet/drivers" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition font-semibold">Filo</a>
+              <a href="/company/contracts" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition font-semibold">Sözleşmeler</a>
+            <% } %>
+          <% } else { %>
+            <a href="/" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition font-semibold">Anasayfa</a>
+          <% } %>
+        </nav>
+
+        <!-- Aktif kurum pill (sadece geniş) -->
+        <% if (currentUser && currentCompany) { %>
+          <span class="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-slate-50 ring-1 ring-slate-200/60 px-3 py-1 text-xs text-slate-700 font-semibold max-w-[200px]">
+            <span class="relative flex h-2 w-2 flex-shrink-0">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="truncate"><%= currentCompany.name %></span>
+          </span>
+        <% } %>
+
+        <!-- SAĞ: Auth actions (desktop) -->
+        <div class="flex items-center gap-2 ml-auto md:ml-0">
+          <% if (currentUser) { %>
+            <% if (currentUser.isSuperadmin) { %>
+              <a href="/admin" class="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 text-white px-3 py-1.5 font-semibold transition text-xs shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5">
+                  <path fill-rule="evenodd" d="M11.484 2.17a.75.75 0 011.032 0 11.209 11.209 0 007.877 3.08.75.75 0 01.722.515 12.74 12.74 0 01.635 3.985c0 5.942-4.064 10.933-9.563 12.348a.75.75 0 01-.374 0C6.314 20.683 2.25 15.692 2.25 9.75c0-1.39.223-2.73.635-3.985a.75.75 0 01.722-.516l.143.001c2.996 0 5.718-1.17 7.734-3.08z" clip-rule="evenodd" />
+                </svg>
+                Admin
+              </a>
+            <% } %>
+
+            <!-- Bildirim zili (desktop) -->
+            <a href="/notifications" title="Bildirimler"
+               class="relative hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100/60 text-slate-600 hover:text-slate-900 hover:bg-white transition">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4.5 w-4.5" style="width:18px;height:18px">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+              </svg>
+              <% if (notificationUnreadCount > 0) { %>
+                <span class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black leading-none ring-2 ring-white">
+                  <%= notificationUnreadCount > 9 ? '9+' : notificationUnreadCount %>
+                </span>
+                <span class="absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] rounded-full bg-red-500/60 animate-ping"></span>
+              <% } %>
+            </a>
+
+            <!-- User avatar + isim (desktop) + Çıkış (desktop) -->
+            <div class="hidden sm:flex items-center gap-2 rounded-full bg-slate-100/60 pr-1 pl-1 py-1">
+              <a href="/profile" title="Profilim" class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-slate-900 to-slate-700 text-white text-[11px] font-bold hover:ring-2 hover:ring-slate-900 hover:ring-offset-1 hover:ring-offset-slate-100 transition">
+                <%= currentUser.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() %>
+              </a>
+              <a href="/profile" class="text-xs font-semibold text-slate-700 hover:text-slate-900 transition hidden lg:inline pr-1"><%= currentUser.name.split(' ')[0] %></a>
+              <form action="/logout" method="POST" class="inline">
+                <button type="submit" title="Çıkış" class="inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:text-slate-900 hover:bg-white transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                  </svg>
+                </button>
+              </form>
+            </div>
+
+            <!-- MOBIL: hamburger butonu -->
+            <button type="button" id="mobile-menu-btn" aria-label="Menü"
+                    class="relative md:hidden inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+              <% if (notificationUnreadCount > 0) { %>
+                <span class="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-slate-100"></span>
+              <% } %>
+            </button>
+          <% } else { %>
+            <a href="/register" class="hidden sm:inline-block px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition font-semibold text-sm">Kayıt Ol</a>
+            <a href="/login" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3 sm:px-4 py-2 text-white font-semibold hover:bg-slate-800 transition shadow-lg shadow-slate-900/25 text-sm">
+              Giriş
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-3.5 w-3.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </a>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- MOBIL MENÜ (hamburger açınca gelir) -->
+      <% if (currentUser) { %>
+        <div id="mobile-menu" class="hidden md:hidden mt-2 rounded-2xl bg-white ring-1 ring-slate-900/5 shadow-soft-lg overflow-hidden">
+          <!-- Kullanıcı bilgi çubuğu -->
+          <div class="px-4 py-3 bg-slate-50/60 border-b border-slate-100 flex items-center gap-3">
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-slate-900 to-slate-700 text-white text-xs font-bold flex-shrink-0">
+              <%= currentUser.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() %>
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-bold text-slate-900 truncate"><%= currentUser.name %></p>
+              <% if (currentCompany) { %>
+                <p class="text-[11px] text-slate-500 truncate flex items-center gap-1">
+                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                  <%= currentCompany.name %>
+                </p>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Nav linkleri -->
+          <nav class="p-2 flex flex-col gap-0.5">
+            <a href="/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+              Dashboard
+            </a>
+            <a href="/profile" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+              Profilim
+            </a>
+            <% if (currentCompany) { %>
+              <a href="/company/fleet/drivers" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+                Filo Paneli
+              </a>
+              <a href="/company/contracts" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+                Sözleşmeler
+              </a>
+            <% } %>
+            <a href="/driver/profile" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              Şoför Profilim
+            </a>
+            <a href="/vehicles" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
+              Araçlarım
+            </a>
+            <a href="/notifications" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
+              Bildirimlerim
+              <% if (notificationUnreadCount > 0) { %>
+                <span class="ml-auto inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-[11px] font-black">
+                  <%= notificationUnreadCount > 99 ? '99+' : notificationUnreadCount %>
+                </span>
+              <% } %>
+            </a>
+            <% if (currentUser.isSuperadmin) { %>
+              <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-violet-700 bg-violet-50 hover:bg-violet-100 transition font-semibold text-sm mt-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5"><path fill-rule="evenodd" d="M11.484 2.17a.75.75 0 011.032 0 11.209 11.209 0 007.877 3.08.75.75 0 01.722.515 12.74 12.74 0 01.635 3.985c0 5.942-4.064 10.933-9.563 12.348a.75.75 0 01-.374 0C6.314 20.683 2.25 15.692 2.25 9.75c0-1.39.223-2.73.635-3.985a.75.75 0 01.722-.516l.143.001c2.996 0 5.718-1.17 7.734-3.08z" clip-rule="evenodd" /></svg>
+                Admin Panel
+              </a>
+            <% } %>
+            <form action="/logout" method="POST" class="mt-1 border-t border-slate-100 pt-2">
+              <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 transition font-semibold text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
+                Çıkış
+              </button>
+            </form>
+          </nav>
+        </div>
+      <% } %>
+    </div>
+  </header>
+
+  <main class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 flex-1 animate-fade-up">
+    <%- body %>
+  </main>
+
+  <footer class="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 mt-4 sm:mt-8">
+    <div class="flex items-center justify-center gap-3 text-xs text-slate-400">
+      <span class="inline-flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-br from-slate-900 to-slate-700 text-[10px] font-black text-white shadow-md shadow-slate-900/20">O</span>
+      <span>OKUD</span>
+      <span class="text-slate-300">·</span>
+      <span>Kurumsal Ulaşım ve Belge Denetim</span>
+      <span class="text-slate-300">·</span>
+      <span class="font-serif italic text-slate-500">v0.1</span>
+    </div>
+  </footer>
+
+  <script>
+    // ─────────────────────────────────────────
+    // SweetAlert2 helpers — data-confirm pattern
+    // ─────────────────────────────────────────
+    (function () {
+      document.addEventListener('submit', function (e) {
+        const form = e.target;
+        if (!form.dataset || !form.dataset.confirm) return;
+        if (form.dataset._confirmed === '1') return;
+        e.preventDefault();
+
+        const isDanger = form.dataset.confirmDanger !== undefined;
+        Swal.fire({
+          title: form.dataset.confirmTitle || 'Emin misin?',
+          text: form.dataset.confirm,
+          icon: isDanger ? 'warning' : 'question',
+          showCancelButton: true,
+          confirmButtonText: form.dataset.confirmButton || (isDanger ? 'Evet, onaylıyorum' : 'Evet'),
+          cancelButtonText: 'Vazgeç',
+          reverseButtons: true,
+          customClass: { confirmButton: isDanger ? '' : 'confirm-blue' },
+          buttonsStyling: true,
+        }).then(function (result) {
+          if (result.isConfirmed) {
+            form.dataset._confirmed = '1';
+            form.submit();
+          }
+        });
+      });
+
+      window.toast = function (message, icon) {
+        Swal.fire({
+          toast: true, position: 'top-end',
+          icon: icon || 'success', title: message,
+          showConfirmButton: false, timer: 2500, timerProgressBar: true,
+        });
+      };
+
+      // MOBIL MENÜ toggle
+      const menuBtn = document.getElementById('mobile-menu-btn');
+      const menu = document.getElementById('mobile-menu');
+      if (menuBtn && menu) {
+        menuBtn.addEventListener('click', function () {
+          menu.classList.toggle('hidden');
+        });
+        // Bir link tıklanırsa menüyü kapat (SPA hissi)
+        menu.querySelectorAll('a').forEach(function (a) {
+          a.addEventListener('click', function () { menu.classList.add('hidden'); });
+        });
+      }
+    })();
+  </script>
+
+</body>
+</html>

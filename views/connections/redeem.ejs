@@ -1,0 +1,99 @@
+<div class="min-h-[calc(100vh-24rem)] sm:min-h-[calc(100vh-20rem)] grid lg:grid-cols-[1.1fr_1fr] gap-8 items-center">
+
+  <!-- SOL: Görsel/anlatı -->
+  <div class="hidden lg:block relative">
+    <div class="relative rounded-[2rem] overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-10 min-h-[560px] shadow-2xl ring-1 ring-slate-900/10">
+      <!-- Dekoratif -->
+      <div class="absolute -top-20 -right-20 w-80 h-80 bg-indigo-500/30 rounded-full blur-3xl"></div>
+      <div class="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl"></div>
+
+      <!-- Grid pattern overlay -->
+      <div class="absolute inset-0 opacity-[0.04]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+      <div class="relative h-full flex flex-col">
+        <div class="inline-flex items-center gap-2 self-start rounded-full bg-white/10 backdrop-blur ring-1 ring-white/20 px-3 py-1">
+          <span class="h-1.5 w-1.5 rounded-full bg-indigo-300 animate-pulse"></span>
+          <span class="text-xs font-semibold text-indigo-100 uppercase tracking-widest">Filo Katılımı</span>
+        </div>
+
+        <div class="flex-1 flex flex-col justify-center py-16">
+          <h1 class="text-white text-5xl font-bold leading-[1.05] tracking-tighter">
+            8 karakter,<br>
+            <span class="font-serif italic text-indigo-300">bir adım.</span>
+          </h1>
+          <p class="text-slate-300/90 mt-5 text-lg leading-relaxed max-w-md">
+            Kurumun sana ilettiği kodu gir, karşı taraf kim göreceksin. Sözleşmeyi okuyacak, kabul edeceksin. Sen istemedikçe hiçbir bilgin paylaşılmaz.
+          </p>
+        </div>
+
+        <!-- Adım göstergesi -->
+        <div class="grid grid-cols-3 gap-2 mt-auto">
+          <div class="rounded-2xl bg-white/10 backdrop-blur ring-1 ring-white/20 p-4">
+            <div class="text-indigo-300 text-xs font-bold uppercase tracking-widest">1</div>
+            <div class="text-white text-sm font-semibold mt-1">Kodu gir</div>
+          </div>
+          <div class="rounded-2xl bg-white/5 backdrop-blur ring-1 ring-white/10 p-4">
+            <div class="text-slate-400 text-xs font-bold uppercase tracking-widest">2</div>
+            <div class="text-slate-300 text-sm font-semibold mt-1">Kurumu gör</div>
+          </div>
+          <div class="rounded-2xl bg-white/5 backdrop-blur ring-1 ring-white/10 p-4">
+            <div class="text-slate-400 text-xs font-bold uppercase tracking-widest">3</div>
+            <div class="text-slate-300 text-sm font-semibold mt-1">Onayla</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAĞ: Kod input alanı -->
+  <div class="max-w-md w-full mx-auto">
+    <div class="mb-8">
+      <a href="/dashboard" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 transition font-medium mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+        Dashboard
+      </a>
+      <p class="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-2">Davet Kodu</p>
+      <h2 class="text-4xl font-bold text-slate-900 tracking-tighter">Kodu <span class="font-serif italic text-slate-500">buraya.</span></h2>
+    </div>
+
+    <% if (error) { %>
+      <div class="flex items-start gap-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0 mt-0.5"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+        <span><%= error %></span>
+      </div>
+    <% } %>
+
+    <form action="/connections/redeem" method="POST" class="space-y-5">
+      <!-- Büyük kod alanı -->
+      <div>
+        <div class="relative">
+          <input type="text" id="code" name="code" value="<%= code %>" required autocomplete="off" spellcheck="false"
+                 maxlength="10"
+                 placeholder="XXXXXXXX"
+                 class="w-full rounded-3xl border-0 ring-2 ring-slate-200 bg-white px-6 py-8 text-center text-5xl font-black font-mono uppercase tracking-[0.4em] text-slate-900 placeholder:text-slate-200 focus:ring-4 focus:ring-slate-900 focus:outline-none transition shadow-soft-lg">
+          <div class="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            8 karakter
+          </div>
+        </div>
+        <p class="text-xs text-slate-400 mt-2 text-center">Büyük/küçük harf farkı yok · Karışan karakterler yok (0, O, 1, I)</p>
+      </div>
+
+      <button type="submit"
+              class="group w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-6 py-4 text-base font-bold text-white hover:bg-slate-800 transition shadow-xl shadow-slate-900/30">
+        Devam Et
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-5 w-5 group-hover:translate-x-0.5 transition">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+        </svg>
+      </button>
+    </form>
+
+    <div class="mt-8 rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-4 text-xs text-slate-600 leading-relaxed">
+      <p class="font-semibold text-slate-800 mb-1 flex items-center gap-1.5">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 text-slate-400"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+        Kod nereden geliyor?
+      </p>
+      Kurumun sana <strong>WhatsApp / SMS / e-posta</strong> ile ilettiği kısa alfanumerik dizidir. Devam edince kurumu, KVKK metnini ve sözleşmeyi görebilirsin.
+    </div>
+  </div>
+
+</div>

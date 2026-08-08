@@ -1,0 +1,384 @@
+<div class="max-w-4xl mx-auto space-y-6">
+
+  <!-- Başlık bloğu -->
+  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 sm:p-10 shadow-2xl ring-1 ring-slate-900/10">
+    <div class="absolute -top-24 -right-16 w-72 h-72 bg-amber-400/20 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-24 -left-16 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute inset-0 opacity-[0.04]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+    <div class="relative flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-amber-200 mb-2">Bildirim Merkezi</p>
+        <h1 class="text-white text-3xl sm:text-4xl font-bold tracking-tighter">
+          Filondan <span class="font-serif italic text-amber-200">haberler.</span>
+        </h1>
+        <p class="text-slate-300/80 mt-2 text-sm max-w-lg">
+          Belge süreleri, kurum uyarıları ve önemli olayların tek çatı altında.
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <% if (counts.unread > 0) { %>
+          <form action="/notifications/read-all" method="POST">
+            <button type="submit"
+                    class="inline-flex items-center gap-2 rounded-xl bg-white/10 backdrop-blur ring-1 ring-white/20 text-white px-3.5 py-2 text-xs font-semibold hover:bg-white/20 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+              Hepsini okundu işaretle
+            </button>
+          </form>
+        <% } %>
+
+        <% if (notifications.length > 0) { %>
+          <form action="/notifications/delete-all" method="POST"
+                data-confirm="<%= filter === 'all' ? 'Tüm bildirimlerin silinecek. Bu işlem geri alınamaz.' : 'Bu görünümdeki bildirimlerin silinecek. Bu işlem geri alınamaz.' %>"
+                data-confirm-title="Bildirimleri sil"
+                data-confirm-button="Evet, sil"
+                data-confirm-danger>
+            <input type="hidden" name="filter" value="<%= filter %>">
+            <button type="submit"
+                    class="inline-flex items-center gap-2 rounded-xl bg-red-500/20 backdrop-blur ring-1 ring-red-300/30 text-red-100 px-3.5 py-2 text-xs font-semibold hover:bg-red-500/30 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+              <%= filter === 'all' ? 'Hepsini sil' : 'Bu görünümü sil' %>
+            </button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Özet çubuğu -->
+    <div class="relative grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+      <div class="rounded-2xl bg-white/10 backdrop-blur ring-1 ring-white/20 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-300">Toplam</p>
+        <p class="text-2xl font-black text-white mt-1"><%= counts.total %></p>
+      </div>
+      <div class="rounded-2xl bg-white/10 backdrop-blur ring-1 ring-white/20 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-amber-200">Okunmamış</p>
+        <p class="text-2xl font-black text-white mt-1"><%= counts.unread %></p>
+      </div>
+      <div class="rounded-2xl bg-white/10 backdrop-blur ring-1 ring-white/20 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-200">Belgelerim</p>
+        <p class="text-2xl font-black text-white mt-1"><%= counts.personal %></p>
+      </div>
+      <div class="rounded-2xl bg-white/10 backdrop-blur ring-1 ring-white/20 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-indigo-200">Filom</p>
+        <p class="text-2xl font-black text-white mt-1"><%= counts.company %></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtre chip'leri -->
+  <div class="flex items-center gap-2 flex-wrap">
+    <% const chips = [
+      { key: 'all',      label: 'Hepsi',      count: counts.total    },
+      { key: 'unread',   label: 'Okunmamış',  count: counts.unread   },
+      { key: 'personal', label: 'Belgelerim', count: counts.personal },
+      { key: 'company',  label: 'Filom',      count: counts.company  },
+    ]; %>
+    <% chips.forEach(function(chip) { %>
+      <a href="/notifications?filter=<%= chip.key %>"
+         class="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold transition
+                <%= filter === chip.key
+                    ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/25'
+                    : 'bg-white ring-1 ring-slate-200 text-slate-700 hover:ring-slate-900 hover:text-slate-900' %>">
+        <%= chip.label %>
+        <span class="inline-flex items-center justify-center min-w-[1.25rem] h-4 px-1 rounded-full text-[10px] font-bold
+                     <%= filter === chip.key ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500' %>">
+          <%= chip.count %>
+        </span>
+      </a>
+    <% }); %>
+  </div>
+
+  <!-- Bildirim listesi (kompakt) -->
+  <% if (notifications.length === 0) { %>
+    <div class="bg-white rounded-3xl ring-1 ring-slate-200 p-12 text-center">
+      <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-7 w-7">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+        </svg>
+      </div>
+      <p class="text-slate-500 font-medium">
+        <% if (filter === 'unread') { %>
+          Okunmamış bildirimin yok.
+        <% } else if (filter === 'company') { %>
+          Kurum bildirimlerin yok.
+        <% } else if (filter === 'personal') { %>
+          Kişisel belge bildirimlerin yok.
+        <% } else { %>
+          Henüz bildirimin yok.
+        <% } %>
+      </p>
+    </div>
+  <% } else { %>
+    <div class="space-y-2.5">
+      <% notifications.forEach(function(n) {
+        const isCompany = !!n.company_id;
+        const isExpired = n.type === 'doc_expired';
+        const isUrgent  = !isExpired && n.threshold_days !== null && n.threshold_days <= 7;
+        const isSoon    = !isExpired && !isUrgent && n.threshold_days !== null;
+
+        // Accent bar (unread için)
+        let accentBar = 'bg-blue-500';
+        if (isExpired)     accentBar = 'bg-red-500';
+        else if (isUrgent) accentBar = 'bg-amber-500';
+        else if (isSoon)   accentBar = 'bg-yellow-400';
+
+        // İkon disk gradient — kaynağa göre
+        const iconGradient = isCompany
+          ? 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600'
+          : 'bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600';
+
+        // Snippet — mesajın ilk anlamlı satırı
+        const snippet = (n.message || '').split('\n').map(s => s.trim()).find(s => s.length > 0) || '';
+      %>
+
+        <article class="notif-card relative group">
+          <!-- Ana tıklanabilir gövde -->
+          <button type="button"
+                  class="notif-row relative w-full flex items-start gap-4 pl-5 pr-14 py-4 text-left
+                         bg-white rounded-2xl ring-1 ring-slate-200/80 hover:ring-slate-300
+                         shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:shadow-[0_8px_24px_-8px_rgba(15,23,42,0.12)]
+                         transition-all duration-200 overflow-hidden"
+                  data-notif-id="<%= n.id %>"
+                  data-title="<%= n.title %>"
+                  data-message="<%= n.message %>"
+                  data-created="<%= n.created_at %>"
+                  data-email-sent="<%= n.email_sent_at ? '1' : '' %>"
+                  data-source="<%= isCompany ? 'company' : 'personal' %>"
+                  data-company-name="<%= n.company_name || '' %>"
+                  data-is-read="<%= n.read_at ? '1' : '' %>"
+                  data-severity="<%= isExpired ? 'expired' : (isUrgent ? 'urgent' : (isSoon ? 'soon' : 'info')) %>"
+                  data-threshold="<%= n.threshold_days !== null ? n.threshold_days : '' %>">
+
+            <!-- Sol accent şerit — sadece okunmamışta -->
+            <% if (!n.read_at) { %>
+              <span class="absolute left-2 top-4 bottom-4 w-1 rounded-full <%= accentBar %>"></span>
+            <% } %>
+
+            <!-- İkon disk (gradientli, büyük) -->
+            <div class="relative inline-flex h-12 w-12 items-center justify-center rounded-2xl flex-shrink-0 shadow-lg
+                        <%= iconGradient %>
+                        <%= isCompany ? 'shadow-indigo-500/25' : 'shadow-emerald-500/25' %>">
+              <% if (isCompany) { %>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg>
+              <% } else { %>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5 text-white"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+              <% } %>
+              <% if (!n.read_at) { %>
+                <span class="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white"></span>
+              <% } %>
+            </div>
+
+            <!-- İçerik -->
+            <div class="flex-1 min-w-0">
+              <!-- Üst meta satırı -->
+              <div class="flex items-center gap-2 mb-1 flex-wrap">
+                <% if (isCompany) { %>
+                  <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider truncate max-w-[180px]">
+                    <%= n.company_name || 'Filom' %>
+                  </span>
+                <% } else { %>
+                  <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">
+                    Kişisel
+                  </span>
+                <% } %>
+                <span class="text-slate-300 text-[10px]">●</span>
+                <span class="text-[11px] text-slate-400 font-medium"><%= n.created_at %></span>
+
+                <% if (isExpired) { %>
+                  <span class="ml-auto inline-flex items-center gap-1 rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest">
+                    Süresi doldu
+                  </span>
+                <% } else if (isUrgent) { %>
+                  <span class="ml-auto inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest">
+                    <%= n.threshold_days %> gün · acil
+                  </span>
+                <% } else if (isSoon) { %>
+                  <span class="ml-auto inline-flex items-center gap-1 rounded-full bg-yellow-50 text-yellow-800 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest">
+                    <%= n.threshold_days %> gün
+                  </span>
+                <% } %>
+              </div>
+
+              <!-- Başlık -->
+              <p class="font-bold text-slate-900 text-sm leading-snug truncate">
+                <%= n.title %>
+              </p>
+
+              <!-- Snippet -->
+              <p class="text-xs text-slate-500 mt-1 truncate">
+                <%= snippet %>
+              </p>
+            </div>
+          </button>
+
+          <!-- Silme — sağda dikey ortalanmış minimal yuvarlak buton -->
+          <form action="/notifications/<%= n.id %>/delete" method="POST"
+                class="absolute right-3 top-1/2 -translate-y-1/2"
+                data-confirm="Bu bildirimi silmek istediğine emin misin?"
+                data-confirm-title="Bildirimi sil"
+                data-confirm-button="Evet, sil"
+                data-confirm-danger
+                onclick="event.stopPropagation()">
+            <button type="submit"
+                    title="Bildirimi sil"
+                    onclick="event.stopPropagation()"
+                    class="inline-flex items-center justify-center h-8 w-8 rounded-full
+                           bg-slate-50 text-slate-400 opacity-60
+                           hover:opacity-100 hover:bg-red-50 hover:text-red-600
+                           group-hover:opacity-100
+                           transition-all duration-150">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </form>
+        </article>
+      <% }); %>
+    </div>
+  <% } %>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     Detay modal (tıklayınca açılır) — tek instance, JS ile dolar
+     ══════════════════════════════════════════════════════════ -->
+<dialog id="notifDialog" class="rounded-3xl p-0 w-full max-w-lg backdrop:bg-slate-900/60">
+  <div class="bg-white rounded-3xl overflow-hidden">
+
+    <!-- Header -->
+    <div class="relative px-6 pt-6 pb-4 border-b border-slate-100">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3 min-w-0 flex-1">
+          <span id="notifDlgIcon" class="inline-flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0">
+            <!-- ikon JS ile doldurulacak -->
+          </span>
+          <div class="min-w-0">
+            <div id="notifDlgBadges" class="flex items-center gap-1.5 flex-wrap mb-1">
+              <!-- rozetler JS ile doldurulacak -->
+            </div>
+            <h3 id="notifDlgTitle" class="text-lg font-bold text-slate-900 leading-snug"></h3>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('notifDialog').close()"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-5 max-h-[50vh] overflow-auto">
+      <p id="notifDlgMessage" class="text-sm text-slate-700 leading-relaxed whitespace-pre-line"></p>
+    </div>
+
+    <!-- Meta bar -->
+    <div class="px-6 py-3 border-t border-slate-100 flex items-center gap-3 text-xs text-slate-400">
+      <span id="notifDlgCreated"></span>
+      <span id="notifDlgEmail" class="inline-flex items-center gap-1 hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-3.5 w-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+        e-posta gönderildi
+      </span>
+    </div>
+
+    <!-- Actions -->
+    <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between gap-3">
+      <form id="notifDlgReadForm" method="POST" class="flex-shrink-0">
+        <button type="submit"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-white ring-1 ring-slate-200 text-slate-700 hover:bg-slate-100 px-3.5 py-2 text-xs font-semibold transition">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+          Okundu işaretle
+        </button>
+      </form>
+      <form id="notifDlgDeleteForm" method="POST" class="flex-shrink-0"
+            data-confirm="Bu bildirimi silmek istediğine emin misin?"
+            data-confirm-title="Bildirimi sil"
+            data-confirm-button="Evet, sil"
+            data-confirm-danger>
+        <button type="submit"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-red-50 ring-1 ring-red-200 text-red-600 hover:bg-red-100 px-3.5 py-2 text-xs font-semibold transition">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+          Sil
+        </button>
+      </form>
+    </div>
+
+  </div>
+</dialog>
+
+<script>
+  (function () {
+    const dialog = document.getElementById('notifDialog');
+    if (!dialog) return;
+
+    const el = {
+      icon:    document.getElementById('notifDlgIcon'),
+      badges:  document.getElementById('notifDlgBadges'),
+      title:   document.getElementById('notifDlgTitle'),
+      message: document.getElementById('notifDlgMessage'),
+      created: document.getElementById('notifDlgCreated'),
+      email:   document.getElementById('notifDlgEmail'),
+      readForm:   document.getElementById('notifDlgReadForm'),
+      deleteForm: document.getElementById('notifDlgDeleteForm'),
+    };
+
+    const ICON_COMPANY = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg>';
+    const ICON_PERSONAL = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>';
+
+    function badge(cls, text) {
+      const s = document.createElement('span');
+      s.className = 'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ' + cls;
+      s.textContent = text;
+      return s;
+    }
+
+    document.querySelectorAll('.notif-row').forEach(function (row) {
+      row.addEventListener('click', function () {
+        const d = row.dataset;
+        const isCompany = d.source === 'company';
+
+        el.icon.className = 'inline-flex h-10 w-10 items-center justify-center rounded-xl flex-shrink-0 ' +
+          (isCompany ? 'bg-indigo-100 text-indigo-600' : 'bg-emerald-100 text-emerald-600');
+        el.icon.innerHTML = isCompany ? ICON_COMPANY : ICON_PERSONAL;
+
+        el.badges.innerHTML = '';
+        if (isCompany) {
+          el.badges.appendChild(badge('bg-indigo-100 text-indigo-700', 'Filom · ' + (d.companyName || '—')));
+        } else {
+          el.badges.appendChild(badge('bg-emerald-100 text-emerald-700', 'Kişisel'));
+        }
+        if (d.severity === 'expired') {
+          el.badges.appendChild(badge('bg-red-100 text-red-700', 'Süresi doldu'));
+        } else if (d.severity === 'urgent') {
+          el.badges.appendChild(badge('bg-amber-100 text-amber-800', d.threshold + ' gün · acil'));
+        } else if (d.severity === 'soon') {
+          el.badges.appendChild(badge('bg-yellow-50 text-yellow-800', d.threshold + ' gün kaldı'));
+        }
+        if (!d.isRead) {
+          el.badges.appendChild(badge('bg-slate-900 text-white', 'yeni'));
+        }
+
+        el.title.textContent   = d.title;
+        el.message.textContent = d.message;
+        el.created.textContent = d.created;
+        if (d.emailSent) el.email.classList.remove('hidden');
+        else             el.email.classList.add('hidden');
+
+        el.readForm.action   = '/notifications/' + d.notifId + '/read';
+        el.deleteForm.action = '/notifications/' + d.notifId + '/delete';
+
+        // Okunmuşsa "Okundu işaretle" butonunu gizle
+        if (d.isRead) el.readForm.classList.add('hidden');
+        else          el.readForm.classList.remove('hidden');
+
+        dialog.showModal();
+      });
+    });
+
+    // Backdrop tıklaması = kapat
+    dialog.addEventListener('click', function (e) {
+      const r = dialog.getBoundingClientRect();
+      const inside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+      if (!inside) dialog.close();
+    });
+  })();
+</script>

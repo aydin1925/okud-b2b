@@ -1,0 +1,89 @@
+<div class="max-w-xl mx-auto space-y-6">
+
+  <a href="/dashboard" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 transition font-medium">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+    </svg>
+    Dashboard
+  </a>
+
+  <div class="bg-white rounded-3xl shadow-soft-lg ring-1 ring-slate-900/5 p-6 sm:p-8">
+    <div class="mb-8">
+      <div class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white mb-4 shadow-lg shadow-emerald-500/25">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-6 w-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      <p class="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-2">Şoför Profili</p>
+      <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Kimlik bilgilerin, <span class="font-serif italic text-slate-500">bir kere.</span></h2>
+      <p class="text-slate-500 mt-2 text-sm">Bu bilgiler kurumlara sadece davetini kabul ettikten sonra ve senin onayınla gösterilir.</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="flex items-start gap-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0 mt-0.5">
+          <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+        </svg>
+        <span><%= error %></span>
+      </div>
+    <% } %>
+
+    <form action="/driver/profile/create" method="POST" class="space-y-5">
+      <div>
+        <label for="national_id" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">TC Kimlik No</label>
+        <input type="text" id="national_id" name="national_id" value="<%= formData.national_id || '' %>"
+               minlength="11" maxlength="11" required placeholder="11 haneli"
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 focus:outline-none transition font-mono tracking-wider">
+      </div>
+
+      <div>
+        <label for="phone" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Telefon</label>
+        <input type="tel" id="phone" name="phone" value="<%= formData.phone || '' %>" required
+               placeholder="+90 555 000 00 00"
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="birth_date" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Doğum Tarihi</label>
+          <input type="date" id="birth_date" name="birth_date" value="<%= formData.birth_date || '' %>" required
+                 class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+        </div>
+        <div>
+          <label for="license_class" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Ehliyet Sınıfı</label>
+          <select id="license_class" name="license_class" required
+                  class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+            <option value="">Seçiniz</option>
+            <% ['B','C','D','D1','E'].forEach(function(cls) { %>
+              <option value="<%= cls %>" <%= formData.license_class === cls ? 'selected' : '' %>><%= cls %></option>
+            <% }); %>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label for="notes" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Notlar <span class="text-slate-400 font-normal normal-case">(opsiyonel)</span></label>
+        <textarea id="notes" name="notes" rows="3" placeholder="Kendinle ilgili not eklemek istersen..."
+                  class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 resize-none focus:ring-2 focus:ring-slate-900 focus:outline-none transition"><%= formData.notes || '' %></textarea>
+      </div>
+
+      <div class="flex items-center gap-3 pt-3">
+        <button type="submit"
+                class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/25">
+          Profili Oluştur
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </button>
+        <a href="/dashboard" class="text-sm text-slate-500 hover:text-slate-900 transition font-medium">Vazgeç</a>
+      </div>
+    </form>
+
+    <div class="mt-8 pt-6 border-t border-slate-100 flex items-start gap-2 text-xs text-slate-500">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 text-slate-300 flex-shrink-0 mt-0.5">
+        <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+      </svg>
+      Profil oluşturulduktan sonra <strong>Ehliyet</strong> ve <strong>SRC</strong> belgelerini yüklemen gerekecek. Belgeler onaylanana kadar profilin "belge bekleniyor" durumunda olacak.
+    </div>
+  </div>
+</div>

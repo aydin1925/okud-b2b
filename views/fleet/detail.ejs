@@ -1,0 +1,246 @@
+<%
+  const isDriver = detail.type === 'driver';
+  const backUrl  = isDriver ? '/company/fleet/drivers' : '/company/fleet/vehicles';
+  const backText = isDriver ? 'Şoförler' : 'Araçlar';
+  const heading  = isDriver ? (detail.profile.national_id) : detail.profile.plate_number;
+  const stMap = {
+    ready:   { label: 'Hazır',    dot: 'bg-emerald-400', text: 'text-emerald-300', ring: 'ring-emerald-400/40', bg: 'bg-emerald-500/10' },
+    warning: { label: 'Yaklaşan', dot: 'bg-amber-400',   text: 'text-amber-300',   ring: 'ring-amber-400/40',   bg: 'bg-amber-500/10' },
+    problem: { label: 'Sorunlu',  dot: 'bg-red-400',     text: 'text-red-300',     ring: 'ring-red-400/40',     bg: 'bg-red-500/10' },
+  };
+  const st = stMap[detail.status];
+  const accentColor = isDriver ? 'emerald' : 'sky';
+  const avatarChar = isDriver
+    ? ((detail.profile.national_id || '?').trim()[0] || '?').toUpperCase()
+    : detail.profile.plate_number.trim()[0].toUpperCase();
+%>
+
+<div class="space-y-6">
+
+  <a href="<%= backUrl %>" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 transition font-medium">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+    <%= backText %>
+  </a>
+
+  <!-- HERO -->
+  <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 shadow-2xl ring-1 ring-slate-900/10">
+    <div class="absolute -top-32 -right-32 w-96 h-96 <%= isDriver ? 'bg-emerald-500/20' : 'bg-sky-500/20' %> rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 40px 40px;"></div>
+
+    <div class="relative p-8">
+      <div class="flex items-start justify-between gap-4 flex-wrap mb-6">
+        <div class="flex items-start gap-4">
+          <!-- Büyük avatar -->
+          <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br <%= isDriver ? 'from-emerald-400 to-emerald-600' : 'from-sky-400 to-sky-600' %> text-white text-2xl font-black shadow-xl <%= isDriver ? 'shadow-emerald-500/30' : 'shadow-sky-500/30' %> ring-1 ring-white/20 flex-shrink-0 <%= isDriver ? '' : 'font-mono' %>">
+            <%= avatarChar %>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest <%= isDriver ? 'text-emerald-300' : 'text-sky-300' %> mb-1"><%= isDriver ? 'Şoför' : 'Araç' %></p>
+            <h1 class="text-white text-3xl sm:text-4xl font-bold tracking-tighter <%= isDriver ? '' : 'font-mono tracking-wider' %>"><%= heading %></h1>
+            <p class="text-slate-300 mt-1.5">
+              <% if (isDriver) { %>
+                <%= detail.profile.license_class %> sınıfı ehliyet · <%= detail.profile.phone %>
+              <% } else { %>
+                <%= detail.profile.brand %> <span class="font-serif italic text-slate-400"><%= detail.profile.model %></span> · <%= detail.profile.year %>
+              <% } %>
+            </p>
+          </div>
+        </div>
+        <div class="inline-flex items-center gap-2 rounded-full <%= st.bg %> backdrop-blur ring-1 <%= st.ring %> px-4 py-1.5">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full <%= st.dot %> opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 <%= st.dot %>"></span>
+          </span>
+          <span class="text-xs font-bold <%= st.text %> uppercase tracking-widest"><%= st.label %></span>
+        </div>
+      </div>
+
+      <!-- Alt strip: metrikler -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div class="rounded-xl bg-white/5 backdrop-blur ring-1 ring-white/10 p-3">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Filoya Katılma</p>
+          <p class="text-white font-semibold text-sm mt-1"><%= detail.connection.connected_at %></p>
+        </div>
+        <div class="rounded-xl bg-white/5 backdrop-blur ring-1 ring-white/10 p-3">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Profil Durumu</p>
+          <p class="text-white font-semibold text-sm mt-1"><%= detail.profile.status %></p>
+        </div>
+        <% if (isDriver) { %>
+          <div class="rounded-xl bg-white/5 backdrop-blur ring-1 ring-white/10 p-3">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">TC</p>
+            <p class="text-white font-semibold text-sm mt-1 font-mono"><%= detail.profile.national_id %></p>
+          </div>
+          <div class="rounded-xl bg-white/5 backdrop-blur ring-1 ring-white/10 p-3">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Doğum</p>
+            <p class="text-white font-semibold text-sm mt-1"><%= detail.profile.birth_date %></p>
+          </div>
+        <% } else { %>
+          <div class="rounded-xl bg-white/5 backdrop-blur ring-1 ring-white/10 p-3">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Tip</p>
+            <p class="text-white font-semibold text-sm mt-1"><%= detail.profile.vehicle_type %></p>
+          </div>
+          <div class="rounded-xl bg-white/5 backdrop-blur ring-1 ring-white/10 p-3">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Kapasite</p>
+            <p class="text-white font-semibold text-sm mt-1"><%= detail.profile.capacity %> yolcu</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- İlgili kişi/varlık bağlantıları -->
+  <% if (detail.type === 'vehicle' && detail.related.owner) { %>
+    <div class="bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        </div>
+        <h3 class="text-sm font-bold text-slate-900">Sahibi</h3>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 font-black text-sm flex-shrink-0">
+          <%= detail.related.owner.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() %>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-slate-900 truncate"><%= detail.related.owner.name %></p>
+          <p class="text-xs text-slate-500 truncate"><%= detail.related.owner.email %></p>
+        </div>
+        <% if (detail.related.ownerDriverProfileId) { %>
+          <a href="/company/fleet/drivers/<%= detail.related.ownerDriverProfileId %>"
+             class="inline-flex items-center gap-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3 py-1.5 text-xs font-bold transition">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-3.5 w-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            Şoför Profiline Git
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-3.5 w-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </a>
+        <% } else if (detail.related.ownerDriverExists) { %>
+          <span class="inline-flex items-center gap-1 rounded-lg bg-slate-100 text-slate-500 px-3 py-1.5 text-xs font-semibold" title="Şoför profili var ama bu filoda değil">
+            Şoförlük · bu filoda yok
+          </span>
+        <% } else { %>
+          <span class="inline-flex items-center gap-1 rounded-lg bg-slate-100 text-slate-500 px-3 py-1.5 text-xs font-semibold">
+            Şoförlüğü yok
+          </span>
+        <% } %>
+      </div>
+    </div>
+  <% } %>
+
+  <% if (detail.type === 'driver' && detail.related.driverUser) { %>
+    <div class="bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 p-5">
+      <div class="flex items-center gap-2 mb-3">
+        <div class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-slate-900 text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
+        </div>
+        <h3 class="text-sm font-bold text-slate-900">Sahip olduğu araçlar <span class="text-slate-400 font-normal">(bu filoda)</span></h3>
+      </div>
+      <% if (detail.related.ownedVehiclesInFleet && detail.related.ownedVehiclesInFleet.length > 0) { %>
+        <div class="grid sm:grid-cols-2 gap-2">
+          <% detail.related.ownedVehiclesInFleet.forEach(function(v) { %>
+            <a href="/company/fleet/vehicles/<%= v.id %>"
+               class="group flex items-center gap-3 rounded-xl bg-slate-50 hover:bg-white hover:ring-1 hover:ring-slate-300 hover:shadow-soft p-3 transition">
+              <div class="inline-flex items-stretch rounded-md overflow-hidden shadow-sm ring-1 ring-slate-900/10 flex-shrink-0">
+                <div class="w-4 bg-gradient-to-b from-blue-600 to-blue-800 flex items-center justify-center">
+                  <span class="text-white text-[8px] font-black tracking-widest">TR</span>
+                </div>
+                <div class="bg-white px-2 py-1">
+                  <span class="text-slate-900 text-xs font-black tracking-wider font-mono"><%= v.plate_number %></span>
+                </div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-slate-800 truncate"><%= v.brand %> <%= v.model %></p>
+                <p class="text-[11px] text-slate-500"><%= v.status %></p>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-slate-300 group-hover:text-slate-900 transition flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+            </a>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <p class="text-sm text-slate-500 pl-1">Bu şoförün adına bu filoda kayıtlı araç yok.</p>
+      <% } %>
+    </div>
+  <% } %>
+
+  <!-- Issues bandı -->
+  <% if (detail.issues.length > 0) { %>
+    <div class="relative overflow-hidden rounded-2xl <%= detail.status === 'problem' ? 'bg-gradient-to-br from-red-50 to-rose-50 ring-red-200' : 'bg-gradient-to-br from-amber-50 to-orange-50 ring-amber-200' %> ring-1 p-5">
+      <div class="flex items-start gap-3">
+        <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg <%= detail.status === 'problem' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600' %> flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-bold <%= detail.status === 'problem' ? 'text-red-800' : 'text-amber-800' %>">
+            <%= detail.status === 'problem' ? 'Dikkat gereken sorunlar' : 'Yaklaşan süreler' %>
+          </p>
+          <div class="mt-2 flex flex-wrap gap-1.5">
+            <% detail.issues.forEach(function(iss) { %>
+              <span class="inline-flex items-center gap-1 rounded-md <%= detail.status === 'problem' ? 'bg-white/60 text-red-700' : 'bg-white/60 text-amber-800' %> px-2 py-1 text-xs font-medium">
+                <%= iss %>
+              </span>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Belgeler grid -->
+  <div>
+    <div class="flex items-center gap-2 mb-4">
+      <div class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
+      </div>
+      <h3 class="text-lg font-bold text-slate-900">Belge Durumu</h3>
+    </div>
+    <div class="grid md:grid-cols-2 gap-3">
+      <% detail.docStatuses.forEach(function(s) { %>
+        <%
+          let barColor = 'from-red-400 to-red-600', stLabel = 'Yüklenmedi', stBg = 'bg-red-50 text-red-700', stDot = 'bg-red-500';
+          if (s.doc) {
+            if (s.doc.verification_status === 'pending')  { barColor = 'from-amber-400 to-amber-600'; stLabel = 'Onay bekliyor'; stBg = 'bg-amber-50 text-amber-700'; stDot = 'bg-amber-500'; }
+            if (s.doc.verification_status === 'verified') {
+              if (s.daysLeft !== null && s.daysLeft < 0) { barColor = 'from-red-400 to-red-600'; stLabel = 'Süresi doldu'; stBg = 'bg-red-50 text-red-700'; stDot = 'bg-red-500'; }
+              else if (s.expiring)                         { barColor = 'from-amber-400 to-amber-600'; stLabel = 'Süre yaklaşıyor'; stBg = 'bg-amber-50 text-amber-700'; stDot = 'bg-amber-500'; }
+              else                                          { barColor = 'from-emerald-400 to-emerald-600'; stLabel = 'Onaylı'; stBg = 'bg-emerald-50 text-emerald-700'; stDot = 'bg-emerald-500'; }
+            }
+            if (s.doc.verification_status === 'rejected') { barColor = 'from-red-400 to-red-600'; stLabel = 'Reddedildi'; stBg = 'bg-red-50 text-red-700'; stDot = 'bg-red-500'; }
+          }
+        %>
+        <div class="relative overflow-hidden bg-white rounded-2xl ring-1 ring-slate-900/5 p-5">
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b <%= barColor %>"></div>
+          <div class="pl-4">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <p class="font-bold text-slate-900"><%= s.label %></p>
+              <span class="inline-flex items-center gap-1 rounded-full <%= stBg %> px-2.5 py-0.5 text-[11px] font-bold">
+                <span class="h-1.5 w-1.5 rounded-full <%= stDot %>"></span>
+                <%= stLabel %>
+              </span>
+            </div>
+            <% if (s.doc && s.doc.expires_at) { %>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Son Geç.</p>
+                  <p class="text-slate-700 font-semibold mt-0.5"><%= s.doc.expires_at %></p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Kalan</p>
+                  <p class="text-slate-700 font-semibold mt-0.5">
+                    <% if (s.daysLeft === null) { %>—<% } else if (s.daysLeft < 0) { %>
+                      <span class="text-red-600"><%= Math.abs(s.daysLeft) %> gün geçmiş</span>
+                    <% } else { %>
+                      <%= s.daysLeft %> gün
+                    <% } %>
+                  </p>
+                </div>
+              </div>
+            <% } else if (!s.doc) { %>
+              <p class="text-xs text-slate-500">Bu belge yüklenmemiş</p>
+            <% } else { %>
+              <p class="text-xs text-slate-500">Süre belirtilmemiş · Yüklendi: <%= s.doc.created_at %></p>
+            <% } %>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+</div>

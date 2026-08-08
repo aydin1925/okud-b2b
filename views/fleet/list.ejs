@@ -1,0 +1,222 @@
+<%
+  const readyPct   = stats.total > 0 ? Math.round((stats.ready / stats.total) * 100) : 0;
+  const warningPct = stats.total > 0 ? Math.round((stats.warning / stats.total) * 100) : 0;
+  const problemPct = stats.total > 0 ? Math.round((stats.problem / stats.total) * 100) : 0;
+%>
+
+<div class="space-y-8">
+
+  <!-- HERO — dashboard style -->
+  <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 p-6 sm:p-8 shadow-2xl ring-1 ring-slate-900/10">
+    <div class="absolute -top-20 -right-20 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-500/15 rounded-full blur-3xl"></div>
+    <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 40px 40px;"></div>
+
+    <div class="relative grid lg:grid-cols-[2fr_1fr] gap-8">
+      <div>
+        <div class="flex items-center gap-2 mb-3">
+          <span class="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-300">Canlı</p>
+          <span class="text-slate-500 text-xs">·</span>
+          <p class="text-xs text-slate-400"><%= currentCompany.name %></p>
+        </div>
+        <h1 class="text-white text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter leading-[1.05]">
+          <%= activeTab === 'drivers' ? 'Şoförlerin' : 'Araçların' %><br>
+          <span class="font-serif italic text-slate-400">tek bakışta.</span>
+        </h1>
+        <div class="mt-6 flex items-center gap-3">
+          <div class="flex items-baseline gap-2">
+            <span class="text-white text-4xl sm:text-5xl md:text-6xl font-black tabular-nums tracking-tighter"><%= stats.total %></span>
+            <span class="text-slate-400 text-sm font-semibold">toplam</span>
+          </div>
+          <% if (stats.problem > 0) { %>
+            <div class="inline-flex items-center gap-1.5 rounded-full bg-red-500/20 backdrop-blur ring-1 ring-red-400/30 px-3 py-1 text-xs font-bold text-red-300">
+              <span class="h-1.5 w-1.5 rounded-full bg-red-400"></span>
+              <%= stats.problem %> acil sorun
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Sağ: yatay progress bar (yeşil/sarı/kırmızı oran) -->
+      <div class="flex flex-col justify-end">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Durum Dağılımı</p>
+        <% if (stats.total === 0) { %>
+          <div class="h-3 rounded-full bg-white/5"></div>
+          <p class="text-slate-500 text-xs mt-3">Henüz üye yok</p>
+        <% } else { %>
+          <div class="flex h-3 rounded-full overflow-hidden bg-white/5 ring-1 ring-white/10">
+            <% if (stats.ready > 0)   { %><div class="bg-emerald-500" style="width:<%= readyPct %>%"></div><% } %>
+            <% if (stats.warning > 0) { %><div class="bg-amber-500" style="width:<%= warningPct %>%"></div><% } %>
+            <% if (stats.problem > 0) { %><div class="bg-red-500" style="width:<%= problemPct %>%"></div><% } %>
+          </div>
+          <div class="mt-3 flex items-center gap-4 flex-wrap">
+            <div class="flex items-center gap-1.5">
+              <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+              <span class="text-xs text-slate-300"><strong class="text-white"><%= stats.ready %></strong> hazır</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+              <span class="text-xs text-slate-300"><strong class="text-white"><%= stats.warning %></strong> yaklaşan</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="h-2 w-2 rounded-full bg-red-500"></span>
+              <span class="text-xs text-slate-300"><strong class="text-white"><%= stats.problem %></strong> sorunlu</span>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <%- include('_tabs', { activeTab }) %>
+
+  <% if (members.length > 0) { %>
+    <div class="bg-white rounded-2xl ring-1 ring-slate-200 p-3 flex items-center gap-2 flex-wrap">
+      <div class="flex gap-1 flex-wrap" id="filter-chips">
+        <button data-filter="all"     class="chip chip-active inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white transition">
+          Tümü <span class="rounded-full bg-white/20 px-1.5 text-[10px]"><%= stats.total %></span>
+        </button>
+        <button data-filter="problem" class="chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-50 text-red-700 hover:bg-red-100 transition">
+          Sorunlu <span class="rounded-full bg-red-200 px-1.5 text-[10px]"><%= stats.problem %></span>
+        </button>
+        <button data-filter="warning" class="chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 transition">
+          Yaklaşan <span class="rounded-full bg-amber-200 px-1.5 text-[10px]"><%= stats.warning %></span>
+        </button>
+        <button data-filter="ready"   class="chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition">
+          Hazır <span class="rounded-full bg-emerald-200 px-1.5 text-[10px]"><%= stats.ready %></span>
+        </button>
+      </div>
+      <div class="relative w-full sm:w-auto sm:ml-auto">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+        <input type="text" id="search-input" placeholder="İsim, plaka..."
+               class="w-full sm:w-56 rounded-lg border-0 ring-1 ring-slate-200 bg-white pl-9 pr-3 py-1.5 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+      </div>
+    </div>
+  <% } %>
+
+  <% if (members.length === 0) { %>
+    <div class="relative overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 border border-slate-200 rounded-3xl p-16 text-center">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-blue-200/30 rounded-full blur-3xl"></div>
+      <div class="relative">
+        <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-lg text-slate-400 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-8 w-8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664" /></svg>
+        </div>
+        <p class="text-xl font-bold text-slate-800">Bu kategoride üye yok</p>
+        <p class="text-slate-600 mt-1">OTP kod üreterek davet gönder, filon dolsun.</p>
+        <a href="/company/connections/create" class="inline-flex items-center gap-1.5 mt-5 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/25">
+          Yeni Davet Kodu
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+        </a>
+      </div>
+    </div>
+  <% } else { %>
+    <div id="member-list" class="grid gap-3">
+      <% members.forEach(function(m) { %>
+        <%
+          const barColor  = m.status === 'ready' ? 'from-emerald-400 to-emerald-600' : m.status === 'warning' ? 'from-amber-400 to-amber-600' : 'from-red-400 to-red-600';
+          const stBg      = m.status === 'ready' ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : m.status === 'warning' ? 'bg-amber-50 text-amber-700 ring-amber-200' : 'bg-red-50 text-red-700 ring-red-200';
+          const stLabel   = m.status === 'ready' ? 'Hazır' : m.status === 'warning' ? 'Yaklaşan' : 'Sorunlu';
+          const stDot     = m.status === 'ready' ? 'bg-emerald-500' : m.status === 'warning' ? 'bg-amber-500' : 'bg-red-500';
+          const detailUrl = activeTab === 'drivers' ? `/company/fleet/drivers/${m.profileId}` : `/company/fleet/vehicles/${m.profileId}`;
+          const avatarChar = (m.name || '?').trim()[0].toUpperCase();
+        %>
+        <a href="<%= detailUrl %>"
+           class="fleet-item group relative overflow-hidden bg-white rounded-2xl ring-1 ring-slate-900/5 hover:ring-slate-900/15 hover:shadow-soft-lg transition"
+           data-status="<%= m.status %>"
+           data-search="<%= (m.name + ' ' + m.subtext).toLowerCase() %>">
+          <!-- Sol dikey gradient bar -->
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b <%= barColor %>"></div>
+
+          <div class="flex items-center gap-4 pl-6 pr-5 py-4">
+            <!-- Avatar -->
+            <div class="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 font-black text-lg flex-shrink-0 <%= activeTab === 'vehicles' ? 'font-mono text-sm' : '' %>">
+              <%= avatarChar %>
+            </div>
+
+            <!-- İçerik -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-bold text-slate-900 text-base <%= activeTab === 'vehicles' ? 'font-mono tracking-wide' : '' %>"><%= m.name %></span>
+                <span class="inline-flex items-center gap-1 rounded-full ring-1 <%= stBg %> px-2 py-0.5 text-[11px] font-bold">
+                  <span class="h-1.5 w-1.5 rounded-full <%= stDot %>"></span>
+                  <%= stLabel %>
+                </span>
+              </div>
+              <p class="text-sm text-slate-500 mt-0.5 truncate"><%= m.subtext %></p>
+              <% if (m.issues.length > 0) { %>
+                <div class="mt-2 flex items-center gap-1.5 flex-wrap">
+                  <% m.issues.slice(0, 2).forEach(function(iss) { %>
+                    <span class="inline-flex items-center gap-1 rounded-md <%= m.status === 'problem' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700' %> px-2 py-0.5 text-[11px] font-medium">
+                      <%= iss %>
+                    </span>
+                  <% }); %>
+                  <% if (m.issues.length > 2) { %>
+                    <span class="text-[11px] text-slate-400 font-semibold">+<%= m.issues.length - 2 %></span>
+                  <% } %>
+                </div>
+              <% } %>
+            </div>
+
+            <!-- Katılım tarihi + arrow -->
+            <div class="hidden sm:flex flex-col items-end gap-1 flex-shrink-0">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Katılım</p>
+              <p class="text-xs font-semibold text-slate-700"><%= m.connectedAt %></p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5 text-slate-300 group-hover:text-slate-900 group-hover:translate-x-0.5 transition flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </div>
+        </a>
+      <% }); %>
+      <p id="empty-filter" class="hidden text-center text-slate-500 py-10">Bu filtreye uyan üye yok.</p>
+    </div>
+  <% } %>
+</div>
+
+<script>
+(function () {
+  const chips = document.querySelectorAll('#filter-chips .chip');
+  const items = document.querySelectorAll('.fleet-item');
+  const searchInput = document.getElementById('search-input');
+  const emptyEl = document.getElementById('empty-filter');
+  let activeFilter = 'all';
+
+  const chipDefaults = {
+    all:     { on: ['bg-slate-900','text-white'],     off: ['bg-slate-900','text-white'] },
+    problem: { on: ['bg-red-600','text-white'],       off: ['bg-red-50','text-red-700'] },
+    warning: { on: ['bg-amber-500','text-white'],     off: ['bg-amber-50','text-amber-700'] },
+    ready:   { on: ['bg-emerald-600','text-white'],   off: ['bg-emerald-50','text-emerald-700'] },
+  };
+
+  function apply() {
+    const q = (searchInput.value || '').toLowerCase().trim();
+    let visible = 0;
+    items.forEach(function (el) {
+      const matchStatus = activeFilter === 'all' || el.dataset.status === activeFilter;
+      const matchSearch = !q || el.dataset.search.includes(q);
+      const show = matchStatus && matchSearch;
+      el.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    if (emptyEl) emptyEl.classList.toggle('hidden', visible > 0);
+  }
+
+  chips.forEach(function (chip) {
+    chip.addEventListener('click', function () {
+      activeFilter = chip.dataset.filter;
+      chips.forEach(function (c) {
+        const d = chipDefaults[c.dataset.filter];
+        c.classList.remove(...d.on, ...d.off);
+        c.classList.add(...d.off);
+        c.classList.remove('chip-active');
+      });
+      const d = chipDefaults[chip.dataset.filter];
+      chip.classList.remove(...d.off);
+      chip.classList.add(...d.on, 'chip-active');
+      apply();
+    });
+  });
+
+  if (searchInput) searchInput.addEventListener('input', apply);
+})();
+</script>

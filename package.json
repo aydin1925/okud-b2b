@@ -1,0 +1,30 @@
+{
+  "name": "okud",
+  "version": "0.1.0",
+  "description": "Kurumsal ulaşım ve belge denetim sistemi",
+  "license": "ISC",
+  "author": "Aydın ŞAHİN <info@aydinsahin.dev>",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "migrate": "node scripts/migrate.js",
+    "scan":    "node scripts/run-scan.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.4.2",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-ejs-layouts": "^2.5.1",
+    "express-session": "^1.19.0",
+    "multer": "^2.2.0",
+    "mysql2": "^3.23.2",
+    "node-cron": "^4.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

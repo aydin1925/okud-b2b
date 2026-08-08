@@ -1,0 +1,92 @@
+<div class="max-w-lg mx-auto space-y-5">
+
+  <a href="/partnerships/redeem" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 transition font-medium">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+    </svg>
+    Farklı kod
+  </a>
+
+  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-900/10">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"></div>
+    <div class="relative">
+      <p class="text-[10px] font-bold uppercase tracking-widest text-purple-300 mb-3">İş Ortaklığı Daveti</p>
+      <h2 class="text-2xl font-bold text-white tracking-tight leading-tight">
+        <span class="font-serif italic text-purple-200"><%= preview.initiatorCompany.name %></span><br>seninle iş ortaklığı kurmak istiyor.
+      </h2>
+      <div class="flex items-center gap-2 mt-4 flex-wrap">
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur ring-1 ring-white/20 px-3 py-1 text-xs font-semibold text-white">
+          Karşı: <%= preview.initiatorCompany.company_type === 'provider' ? 'Hizmet Sağlayıcı' : 'Hizmet Alan' %>
+        </span>
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur ring-1 ring-white/20 px-3 py-1 text-xs font-semibold text-white">
+          Sen: <%= preview.currentCompany.name %>
+        </span>
+      </div>
+      <% if (preview.invitation.label) { %>
+        <p class="text-slate-400 text-xs mt-3">Kurum notu: <em class="text-slate-300"><%= preview.invitation.label %></em></p>
+      <% } %>
+    </div>
+  </div>
+
+  <form action="/partnerships/redeem/confirm" method="POST" class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-6 space-y-5">
+    <input type="hidden" name="code" value="<%= preview.invitation.code %>">
+
+    <p class="text-sm text-slate-600">
+      Onaylamak için iş ortaklığı sözleşmesini aç, oku, kutuyu işaretle.
+    </p>
+
+    <div class="rounded-2xl ring-1 ring-slate-200 p-4">
+      <button type="button"
+              onclick="document.getElementById('contractDialog').showModal()"
+              class="group w-full flex items-center justify-between gap-3 text-left">
+        <div class="flex items-center gap-3">
+          <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100 text-purple-600 flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <p class="font-bold text-slate-900 truncate"><%= preview.contract.title %></p>
+            <p class="text-xs text-slate-500">Aç, oku, kutuyu işaretle</p>
+          </div>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-slate-400 group-hover:text-slate-900 transition flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+      </button>
+      <label class="flex items-start gap-2 text-sm text-slate-700 mt-3 pt-3 border-t border-slate-100">
+        <input type="checkbox" name="contract_consent" class="mt-0.5 accent-slate-900">
+        <span>Sözleşmeyi okudum ve kurumum adına kabul ediyorum.</span>
+      </label>
+    </div>
+
+    <button type="submit"
+            class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3.5 text-sm font-bold text-white hover:bg-emerald-500 transition shadow-lg shadow-emerald-500/25">
+      Onayla ve İş Ortaklığı Kur
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      </svg>
+    </button>
+  </form>
+
+  <form action="/partnerships/redeem/reject" method="POST"
+        data-confirm="Bu iş ortaklığı davetini reddetmek üzeresin. Kod bir daha kullanılamaz."
+        data-confirm-title="Daveti Reddet"
+        data-confirm-button="Evet, reddet"
+        data-confirm-danger>
+    <input type="hidden" name="code" value="<%= preview.invitation.code %>">
+    <button type="submit" class="w-full inline-flex items-center justify-center gap-1 rounded-xl bg-white ring-1 ring-red-200 text-red-600 hover:bg-red-50 px-5 py-3 text-sm font-semibold transition">
+      Daveti Reddet
+    </button>
+  </form>
+</div>
+
+<dialog id="contractDialog" class="rounded-3xl p-0 w-full max-w-2xl backdrop:bg-slate-900/60">
+  <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 sticky top-0 bg-white rounded-t-3xl">
+    <h3 class="text-lg font-bold text-slate-900"><%= preview.contract.title %></h3>
+    <button type="button" onclick="document.getElementById('contractDialog').close()" class="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+    </button>
+  </div>
+  <div class="px-6 py-5 max-h-[70vh] overflow-auto whitespace-pre-line text-sm text-slate-700 leading-relaxed font-serif">
+<%= preview.contract.content %>
+  </div>
+</dialog>

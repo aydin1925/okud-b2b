@@ -1,0 +1,64 @@
+<div class="space-y-6">
+
+  <div class="flex items-start justify-between flex-wrap gap-4">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-widest text-purple-600 mb-2">İş Ortaklığı Davetleri</p>
+      <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+        Bekleyen <span class="font-serif italic text-slate-500">kodlar</span>
+      </h1>
+      <p class="text-slate-500 mt-2"><%= currentCompany.name %> · karşı kuruma ilettiğin, henüz kabul edilmemiş kodlar</p>
+    </div>
+    <a href="/company/partnerships/invitations/create"
+       class="group inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/25">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+      Yeni Davet
+    </a>
+  </div>
+
+  <% if (invitations.length === 0) { %>
+    <div class="relative overflow-hidden bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-3xl p-12 text-center">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-purple-300/30 rounded-full blur-3xl"></div>
+      <div class="relative">
+        <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-lg text-purple-600 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-7 w-7"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21" /></svg>
+        </div>
+        <p class="text-xl font-bold text-slate-800">Bekleyen davet yok</p>
+        <p class="text-slate-600 mt-1">Karşı bir kuruma iş ortaklığı önermek için yeni davet üret.</p>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="grid md:grid-cols-2 gap-3">
+      <% invitations.forEach(function(inv) { %>
+        <div class="relative overflow-hidden bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 p-5">
+          <div class="flex items-start justify-between gap-3 mb-4">
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Kod</p>
+              <code class="text-2xl font-black tracking-widest text-slate-900 font-mono"><%= inv.code %></code>
+            </div>
+            <span class="inline-flex items-center gap-1 rounded-full bg-purple-100 text-purple-700 px-2.5 py-1 text-[11px] font-semibold">
+              <%= targetTypeLabels[inv.target_company_type] || inv.target_company_type %>
+            </span>
+          </div>
+          <% if (inv.label) { %>
+            <p class="text-sm text-slate-600 mb-3 line-clamp-1"><em class="text-slate-400">Not:</em> <%= inv.label %></p>
+          <% } %>
+          <div class="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
+            <span class="text-xs text-slate-500 inline-flex items-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-3.5 w-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <%= inv.expires_at %>
+            </span>
+            <form action="/company/partnerships/invitations/<%= inv.id %>/cancel" method="POST" class="inline"
+                  data-confirm="Bu iş ortaklığı davet kodunu iptal etmek üzeresin. Karşı tarafa iletildiyse artık geçersiz olacak."
+                  data-confirm-title="Daveti İptal Et"
+                  data-confirm-button="Evet, iptal et"
+                  data-confirm-danger>
+              <button type="submit" class="rounded-lg bg-white ring-1 ring-red-200 text-red-600 hover:bg-red-50 px-3 py-1 text-xs font-semibold transition">
+                İptal
+              </button>
+            </form>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</div>

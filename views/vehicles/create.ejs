@@ -1,0 +1,103 @@
+<div class="max-w-xl mx-auto space-y-6">
+
+  <a href="/vehicles" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 transition font-medium">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+    </svg>
+    Araçlarım
+  </a>
+
+  <div class="bg-white rounded-3xl shadow-soft-lg ring-1 ring-slate-900/5 p-6 sm:p-8">
+    <div class="mb-8">
+      <div class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-sky-700 text-white mb-4 shadow-lg shadow-sky-500/25">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-6 w-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+        </svg>
+      </div>
+      <p class="text-xs font-bold uppercase tracking-widest text-sky-600 mb-2">Yeni Araç</p>
+      <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Aracını sisteme <span class="font-serif italic text-slate-500">tanıt.</span></h2>
+      <p class="text-slate-500 mt-2 text-sm">Plaka + belge yükleme sonrası araç filoya katılabilir hale gelir.</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="flex items-start gap-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0 mt-0.5">
+          <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+        </svg>
+        <span><%= error %></span>
+      </div>
+    <% } %>
+
+    <form action="/vehicles/create" method="POST" class="space-y-5">
+      <div>
+        <label for="plate_number" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Plaka</label>
+        <input type="text" id="plate_number" name="plate_number" value="<%= formData.plate_number || '' %>"
+               placeholder="34 ABC 123" required
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 focus:outline-none transition font-mono uppercase tracking-widest text-center text-lg">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label for="brand" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Marka</label>
+          <input type="text" id="brand" name="brand" value="<%= formData.brand || '' %>" required placeholder="Mercedes"
+                 class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+        </div>
+        <div>
+          <label for="model" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Model</label>
+          <input type="text" id="model" name="model" value="<%= formData.model || '' %>" required placeholder="Sprinter"
+                 class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3">
+        <div>
+          <label for="year" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Yıl</label>
+          <input type="number" id="year" name="year" value="<%= formData.year || '' %>"
+                 min="1980" max="<%= new Date().getFullYear() + 1 %>" required placeholder="2020"
+                 class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+        </div>
+        <div class="col-span-2">
+          <label for="vehicle_type" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Araç Tipi</label>
+          <select id="vehicle_type" name="vehicle_type" required
+                  class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+            <option value="">Seçiniz</option>
+            <% [['minibus','Minibüs'],['midibus','Midibüs'],['otobus','Otobüs'],['van','Van'],['binek','Binek Araç']].forEach(function(opt) { %>
+              <option value="<%= opt[0] %>" <%= formData.vehicle_type === opt[0] ? 'selected' : '' %>><%= opt[1] %></option>
+            <% }); %>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label for="capacity" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Kapasite <span class="text-slate-400 font-normal normal-case">(yolcu sayısı)</span></label>
+        <input type="number" id="capacity" name="capacity" value="<%= formData.capacity || '' %>"
+               min="1" max="100" required placeholder="19"
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+      </div>
+
+      <div>
+        <label for="notes" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Notlar <span class="text-slate-400 font-normal normal-case">(opsiyonel)</span></label>
+        <textarea id="notes" name="notes" rows="3" placeholder="Araçla ilgili not..."
+                  class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 resize-none focus:ring-2 focus:ring-slate-900 focus:outline-none transition"><%= formData.notes || '' %></textarea>
+      </div>
+
+      <div class="flex items-center gap-3 pt-3">
+        <button type="submit"
+                class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/25">
+          Aracı Kaydet
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </button>
+        <a href="/vehicles" class="text-sm text-slate-500 hover:text-slate-900 transition font-medium">Vazgeç</a>
+      </div>
+    </form>
+
+    <div class="mt-8 pt-6 border-t border-slate-100 flex items-start gap-2 text-xs text-slate-500">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 text-slate-300 flex-shrink-0 mt-0.5">
+        <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+      </svg>
+      Aracı ekledikten sonra <strong>Ruhsat</strong> ve <strong>Sigorta</strong> belgelerini yüklemen gerekecek.
+    </div>
+  </div>
+</div>

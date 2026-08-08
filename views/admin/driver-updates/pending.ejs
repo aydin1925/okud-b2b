@@ -1,0 +1,105 @@
+<div class="space-y-6">
+
+  <a href="/admin" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 transition font-medium">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+    Admin Panel
+  </a>
+
+  <div class="flex items-start justify-between flex-wrap gap-4">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-2">Profil Değişiklikleri</p>
+      <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+        Bekleyen <span class="font-serif italic text-slate-500">değişiklik</span> talepleri
+      </h1>
+      <p class="text-slate-500 mt-2">Şoförlerin TC, doğum tarihi, ehliyet sınıfı değişikliği için gönderdiği talepler.</p>
+    </div>
+    <% if (requests.length > 0) { %>
+      <div class="inline-flex items-center gap-2 rounded-2xl bg-emerald-50 border border-emerald-200 px-4 py-2">
+        <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-white text-sm font-bold"><%= requests.length %></span>
+        <span class="text-sm font-semibold text-emerald-800">talep bekliyor</span>
+      </div>
+    <% } %>
+  </div>
+
+  <% if (requests.length === 0) { %>
+    <div class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-16 text-center">
+      <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-8 w-8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      </div>
+      <p class="text-xl font-bold text-slate-800">Hepsi temiz</p>
+      <p class="text-slate-500 mt-1">Şu an bekleyen değişiklik talebi yok.</p>
+    </div>
+  <% } else { %>
+    <div class="space-y-4">
+      <% requests.forEach(function(r) { %>
+        <div class="bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 hover:ring-slate-900/10 hover:shadow-soft-lg transition overflow-hidden">
+          <!-- Üst: kim, ne zaman -->
+          <div class="p-5 border-b border-slate-100 flex items-start gap-3 flex-wrap justify-between">
+            <div class="flex items-start gap-3">
+              <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 text-slate-700 font-black text-sm flex-shrink-0">
+                <%= (r.first_name + ' ' + r.last_name).trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() %>
+              </div>
+              <div>
+                <p class="font-bold text-slate-900"><%= r.first_name %> <%= r.last_name %></p>
+                <p class="text-xs text-slate-500"><%= r.email %></p>
+                <p class="text-[11px] text-slate-400 mt-1">Talep #<%= r.id %> · <%= r.created_at %></p>
+              </div>
+            </div>
+            <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-widest">Bekliyor</span>
+          </div>
+
+          <!-- Değişiklik farkları -->
+          <div class="p-5">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Talep Edilen Değişiklikler</p>
+            <div class="space-y-2">
+              <% if (r.requested_national_id) { %>
+                <div class="flex items-center gap-3 rounded-xl bg-slate-50 ring-1 ring-slate-200 p-3">
+                  <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 w-20 flex-shrink-0">TC</span>
+                  <span class="font-mono text-sm text-slate-500 line-through"><%= r.current_national_id %></span>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-slate-400"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" /></svg>
+                  <span class="font-mono text-sm text-slate-900 font-bold"><%= r.requested_national_id %></span>
+                </div>
+              <% } %>
+              <% if (r.requested_birth_date) { %>
+                <div class="flex items-center gap-3 rounded-xl bg-slate-50 ring-1 ring-slate-200 p-3">
+                  <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 w-20 flex-shrink-0">Doğum</span>
+                  <span class="text-sm text-slate-500 line-through"><%= r.current_birth_date %></span>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-slate-400"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" /></svg>
+                  <span class="text-sm text-slate-900 font-bold"><%= r.requested_birth_date %></span>
+                </div>
+              <% } %>
+              <% if (r.requested_license_class) { %>
+                <div class="flex items-center gap-3 rounded-xl bg-slate-50 ring-1 ring-slate-200 p-3">
+                  <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 w-20 flex-shrink-0">Ehliyet</span>
+                  <span class="text-sm text-slate-500 line-through"><%= r.current_license_class %></span>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-slate-400"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" /></svg>
+                  <span class="text-sm text-slate-900 font-bold"><%= r.requested_license_class %></span>
+                </div>
+              <% } %>
+            </div>
+          </div>
+
+          <!-- Aksiyonlar -->
+          <div class="p-5 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center gap-3">
+            <form action="/admin/driver-updates/<%= r.id %>/approve" method="POST" class="inline">
+              <button type="submit"
+                      class="w-full sm:w-auto inline-flex items-center justify-center gap-1 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-500 transition shadow-lg shadow-emerald-500/25">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-3.5 w-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                Onayla
+              </button>
+            </form>
+            <form action="/admin/driver-updates/<%= r.id %>/reject" method="POST" class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-1.5 w-full sm:w-auto">
+              <input type="text" name="reason" placeholder="Red gerekçesi" required
+                     class="rounded-lg border-0 ring-1 ring-slate-200 bg-white px-3 py-2 text-xs w-full sm:w-52 focus:ring-2 focus:ring-red-500 focus:outline-none transition">
+              <button type="submit"
+                      class="w-full sm:w-auto inline-flex items-center justify-center gap-1 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-500 transition shadow-lg shadow-red-500/25">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-3.5 w-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                Reddet
+              </button>
+            </form>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</div>

@@ -1,0 +1,200 @@
+<%
+  const initials = (currentUser.name || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const flashMap = {
+    'name-ok':  'Ad ve soyad güncellendi.',
+    'email-ok': 'E-posta adresi güncellendi.',
+    'pw-ok':    'Şifre güncellendi.',
+  };
+  const flashMessage = flash ? flashMap[flash] : null;
+%>
+
+<div class="max-w-4xl mx-auto space-y-6">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       HERO — hesap özeti
+       ═══════════════════════════════════════════════════════════ -->
+  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 sm:p-10 shadow-2xl ring-1 ring-slate-900/10">
+    <div class="absolute -top-24 -right-16 w-72 h-72 bg-blue-500/25 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-24 -left-16 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl"></div>
+    <div class="absolute inset-0 opacity-[0.04]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 32px 32px;"></div>
+
+    <div class="relative flex items-start gap-5 flex-wrap">
+      <!-- Avatar -->
+      <div class="inline-flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-white/20 to-white/5 backdrop-blur ring-1 ring-white/20 text-white text-2xl font-black shadow-xl">
+        <%= initials %>
+      </div>
+
+      <div class="flex-1 min-w-0">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-blue-200 mb-1.5">Hesabım</p>
+        <h1 class="text-white text-3xl sm:text-4xl font-bold tracking-tighter truncate">
+          <%= user.first_name %> <span class="font-serif italic text-blue-200"><%= user.last_name %>.</span>
+        </h1>
+        <p class="text-slate-300/85 text-sm mt-1 truncate"><%= user.email %></p>
+        <p class="text-slate-400/70 text-xs mt-2">
+          <%= stats.accountAgeDays %> gün önce katıldı
+          <% if (user.is_superadmin) { %>
+            <span class="ml-2 inline-flex items-center gap-1 rounded-full bg-violet-500/20 text-violet-200 ring-1 ring-violet-300/30 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest">SuperAdmin</span>
+          <% } %>
+        </p>
+      </div>
+    </div>
+
+    <!-- İstatistik kartları -->
+    <div class="relative grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
+      <div class="rounded-2xl bg-white/10 backdrop-blur ring-1 ring-white/20 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-blue-200">Bağlı Kurum</p>
+        <p class="text-2xl font-black text-white mt-1"><%= stats.companyCount %></p>
+      </div>
+      <div class="rounded-2xl bg-white/10 backdrop-blur ring-1 ring-white/20 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-amber-200">Okunmamış Bildirim</p>
+        <p class="text-2xl font-black text-white mt-1"><%= stats.unreadCount %></p>
+      </div>
+      <div class="rounded-2xl bg-white/10 backdrop-blur ring-1 ring-white/20 p-4">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-200">Hesap Yaşı</p>
+        <p class="text-2xl font-black text-white mt-1"><%= stats.accountAgeDays %> <span class="text-sm text-slate-300 font-semibold">gün</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flash başarı mesajı -->
+  <% if (flashMessage) { %>
+    <div class="flex items-center gap-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" /></svg>
+      <%= flashMessage %>
+    </div>
+  <% } %>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       FORM 1 — Ad / Soyad
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-6 sm:p-7">
+    <div class="mb-5">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+        </span>
+        <h2 class="text-lg font-bold text-slate-900">Ad ve Soyad</h2>
+      </div>
+      <p class="text-xs text-slate-500">İsim değişiklikleri anında yansır.</p>
+    </div>
+
+    <% if (errorSection === 'name') { %>
+      <div class="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+        <%= error %>
+      </div>
+    <% } %>
+
+    <form action="/profile/name" method="POST" class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Ad</label>
+        <input type="text" name="first_name" required maxlength="100"
+               value="<%= (errorSection === 'name' ? (formData.first_name || '') : user.first_name) %>"
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Soyad</label>
+        <input type="text" name="last_name" required maxlength="100"
+               value="<%= (errorSection === 'name' ? (formData.last_name || '') : user.last_name) %>"
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+      </div>
+      <div class="sm:col-span-2 flex justify-end">
+        <button type="submit"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 text-white px-5 py-2.5 text-sm font-semibold hover:bg-slate-800 transition shadow-lg shadow-slate-900/20">
+          Kaydet
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       FORM 2 — E-posta
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-6 sm:p-7">
+    <div class="mb-5">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
+        </span>
+        <h2 class="text-lg font-bold text-slate-900">E-posta</h2>
+      </div>
+      <p class="text-xs text-slate-500">Şu an: <strong class="text-slate-700"><%= user.email %></strong> · değişiklik için mevcut şifreni onayla.</p>
+    </div>
+
+    <% if (errorSection === 'email') { %>
+      <div class="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+        <%= error %>
+      </div>
+    <% } %>
+
+    <form action="/profile/email" method="POST" class="grid sm:grid-cols-2 gap-4">
+      <div class="sm:col-span-2">
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Yeni e-posta</label>
+        <input type="email" name="new_email" required autocomplete="email"
+               value="<%= errorSection === 'email' ? (formData.new_email || '') : '' %>"
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+      </div>
+      <div class="sm:col-span-2">
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Mevcut şifre</label>
+        <input type="password" name="current_password" required autocomplete="current-password"
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+      </div>
+      <div class="sm:col-span-2 flex justify-end">
+        <button type="submit"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 text-white px-5 py-2.5 text-sm font-semibold hover:bg-slate-800 transition shadow-lg shadow-slate-900/20">
+          E-postayı Güncelle
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       FORM 3 — Şifre
+       ═══════════════════════════════════════════════════════════ -->
+  <section class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-6 sm:p-7">
+    <div class="mb-5">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+        </span>
+        <h2 class="text-lg font-bold text-slate-900">Şifre</h2>
+      </div>
+      <p class="text-xs text-slate-500">En az 8 karakter · mevcut şifren ile onaylanır.</p>
+    </div>
+
+    <% if (errorSection === 'password') { %>
+      <div class="flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+        <%= error %>
+      </div>
+    <% } %>
+
+    <form action="/profile/password" method="POST" class="grid sm:grid-cols-2 gap-4">
+      <div class="sm:col-span-2">
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Mevcut şifre</label>
+        <input type="password" name="current_password" required autocomplete="current-password"
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Yeni şifre</label>
+        <input type="password" name="new_password" required minlength="8" autocomplete="new-password"
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+      </div>
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5">Yeni şifre (tekrar)</label>
+        <input type="password" name="new_password_confirm" required minlength="8" autocomplete="new-password"
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-2.5 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+      </div>
+      <div class="sm:col-span-2 flex justify-end">
+        <button type="submit"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 text-white px-5 py-2.5 text-sm font-semibold hover:bg-slate-800 transition shadow-lg shadow-slate-900/20">
+          Şifreyi Güncelle
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" /></svg>
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

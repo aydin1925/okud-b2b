@@ -1,0 +1,18 @@
+<div class="max-w-md mx-auto">
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
+    <div class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-7 w-7">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+      </svg>
+    </div>
+    <h2 class="text-2xl font-bold text-slate-800 mb-2">İş Ortaklığı Kuruldu</h2>
+    <p class="text-slate-500 mb-6"><strong><%= result.initiator.name %></strong> ile aktif iş ortaklığın başladı. İki taraf da artık ortak operasyonlar tanımlayabilir.</p>
+    <div class="flex items-center justify-center gap-3">
+      <a href="/company/partnerships"
+         class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition">
+        İş Birliklerim
+      </a>
+      <a href="/dashboard" class="text-sm text-slate-500 hover:underline">Dashboard'a dön</a>
+    </div>
+  </div>
+</div>

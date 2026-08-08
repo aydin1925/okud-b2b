@@ -1,0 +1,137 @@
+<%
+  const active   = vehicles.filter(v => v.status === 'active').length;
+  const pending  = vehicles.filter(v => v.status === 'pending_docs').length;
+  const inactive = vehicles.filter(v => v.status === 'inactive').length;
+  const vehicleTypeLabels = { minibus: 'Minibüs', midibus: 'Midibüs', otobus: 'Otobüs', van: 'Van', binek: 'Binek' };
+%>
+
+<div class="space-y-8">
+
+  <!-- HERO -->
+  <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 sm:p-8 shadow-2xl ring-1 ring-slate-900/10">
+    <div class="absolute -top-32 -right-32 w-96 h-96 bg-sky-500/25 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl"></div>
+    <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 40px 40px;"></div>
+
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="absolute -top-4 -right-4 h-56 w-56 text-white/5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+    </svg>
+
+    <div class="relative grid lg:grid-cols-[2fr_1fr] gap-8 items-end">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-widest text-sky-300 mb-2">Filom</p>
+        <h1 class="text-white text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter leading-[1.05]">
+          Araçlarım<br>
+          <span class="font-serif italic text-slate-400">tek panelde.</span>
+        </h1>
+        <p class="text-slate-300 mt-4 text-base max-w-md">Kayıtlı araçlarını yönet, belge yükle, kurumlara filo katılımı için hazırla.</p>
+      </div>
+
+      <!-- Stat mini grid -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="rounded-2xl bg-white/10 backdrop-blur ring-1 ring-white/20 p-4 text-center">
+          <p class="text-3xl font-black text-white tabular-nums"><%= vehicles.length %></p>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-slate-300 mt-1">Toplam</p>
+        </div>
+        <div class="rounded-2xl bg-emerald-500/10 backdrop-blur ring-1 ring-emerald-400/30 p-4 text-center">
+          <p class="text-3xl font-black text-emerald-300 tabular-nums"><%= active %></p>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-200 mt-1">Aktif</p>
+        </div>
+        <div class="rounded-2xl bg-amber-500/10 backdrop-blur ring-1 ring-amber-400/30 p-4 text-center">
+          <p class="text-3xl font-black text-amber-300 tabular-nums"><%= pending %></p>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-amber-200 mt-1">Bekliyor</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <p class="text-sm text-slate-500"><%= vehicles.length %> araç kayıtlı</p>
+    <a href="/vehicles/create"
+       class="group inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/25">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+      Yeni Araç Ekle
+    </a>
+  </div>
+
+  <% if (vehicles.length === 0) { %>
+    <div class="relative overflow-hidden bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 rounded-3xl p-16 text-center">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-sky-300/30 rounded-full blur-3xl"></div>
+      <div class="relative">
+        <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-xl text-sky-600 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-8 w-8"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
+        </div>
+        <p class="text-xl font-bold text-slate-800">Henüz araç eklemedin</p>
+        <p class="text-slate-600 mt-1">İlk aracını ekle, belgelerini yükle, filoya katılmaya hazır ol.</p>
+        <a href="/vehicles/create" class="inline-flex items-center gap-1.5 mt-5 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/25">
+          İlk Aracımı Ekle
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+        </a>
+      </div>
+    </div>
+  <% } else { %>
+    <div class="grid md:grid-cols-2 gap-4">
+      <% vehicles.forEach(function(v) { %>
+        <%
+          const stMap = {
+            pending_docs: { label: 'Belge bekliyor', bar: 'from-amber-400 to-amber-600', pill: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
+            active:       { label: 'Aktif',         bar: 'from-emerald-400 to-emerald-600', pill: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
+            inactive:     { label: 'Pasif',         bar: 'from-slate-400 to-slate-500', pill: 'bg-slate-100 text-slate-600', dot: 'bg-slate-400' },
+          };
+          const st = stMap[v.status] || stMap.inactive;
+          const tipLabel = vehicleTypeLabels[v.vehicle_type] || v.vehicle_type;
+        %>
+        <a href="/vehicles/<%= v.id %>" class="group block relative overflow-hidden bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 hover:ring-slate-900/15 hover:shadow-soft-lg transition">
+          <!-- Sol dikey bar -->
+          <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b <%= st.bar %>"></div>
+
+          <div class="pl-6 pr-5 py-5">
+            <!-- Üst: plaka + status -->
+            <div class="flex items-start justify-between gap-3 mb-4">
+              <!-- Mini TR plakası -->
+              <div class="inline-flex items-stretch rounded-lg overflow-hidden shadow-md ring-1 ring-slate-900/10">
+                <div class="w-5 bg-gradient-to-b from-blue-600 to-blue-800 flex items-center justify-center">
+                  <span class="text-white text-[9px] font-black tracking-widest">TR</span>
+                </div>
+                <div class="bg-white px-3 py-1.5">
+                  <span class="text-slate-900 text-lg font-black tracking-widest font-mono"><%= v.plate_number %></span>
+                </div>
+              </div>
+              <span class="inline-flex items-center gap-1 rounded-full <%= st.pill %> px-2.5 py-0.5 text-[11px] font-bold flex-shrink-0">
+                <span class="h-1.5 w-1.5 rounded-full <%= st.dot %>"></span>
+                <%= st.label %>
+              </span>
+            </div>
+
+            <!-- Marka model -->
+            <div class="flex items-baseline gap-2">
+              <span class="text-lg font-bold text-slate-900"><%= v.brand %></span>
+              <span class="text-lg font-serif italic text-slate-500"><%= v.model %></span>
+            </div>
+
+            <!-- Detay chips -->
+            <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+              <span class="inline-flex items-center gap-1 rounded-md bg-slate-100 text-slate-700 px-2 py-0.5 text-[11px] font-semibold">
+                <%= v.year %>
+              </span>
+              <span class="inline-flex items-center gap-1 rounded-md bg-slate-100 text-slate-700 px-2 py-0.5 text-[11px] font-semibold">
+                <%= tipLabel %>
+              </span>
+              <span class="inline-flex items-center gap-1 rounded-md bg-slate-100 text-slate-700 px-2 py-0.5 text-[11px] font-semibold">
+                <%= v.capacity %> kişi
+              </span>
+            </div>
+
+            <!-- Alt: detay linki -->
+            <div class="flex items-center justify-end mt-4 pt-3 border-t border-slate-100">
+              <span class="inline-flex items-center gap-1 text-xs font-bold text-slate-500 group-hover:text-slate-900 group-hover:translate-x-0.5 transition">
+                Detay
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+              </span>
+            </div>
+          </div>
+        </a>
+      <% }); %>
+    </div>
+  <% } %>
+</div>
