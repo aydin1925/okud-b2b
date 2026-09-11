@@ -1,0 +1,142 @@
+<div class="max-w-4xl mx-auto space-y-5">
+
+  <a href="/company/partnerships/<%= scope.partnership.id %>" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 transition font-medium">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+    </svg>
+    Ortaklık detayına dön
+  </a>
+
+  <!-- Başlık -->
+  <div>
+    <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Ortaklık #<%= scope.partnership.id %></p>
+    <h1 class="text-2xl sm:text-4xl font-bold text-slate-900 tracking-tighter">
+      Filo <span class="font-serif italic text-slate-500">seçimi.</span>
+    </h1>
+    <p class="text-sm text-slate-500 mt-2 max-w-2xl">
+      Bu ortaklığa hangi şoför ve araçların dahil olacağını seç.
+      <strong class="text-slate-700">Yeni eklediğin filo üyeleri buraya otomatik girmez</strong> —
+      birden fazla müşteri ile çalışırken karışıklık olmasın diye elle işaretlemen gerekir.
+    </p>
+  </div>
+
+  <form method="POST" action="/company/partnerships/<%= scope.partnership.id %>/fleet-scope" class="space-y-5">
+
+    <!-- Araçlar -->
+    <div class="bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-3">
+          <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-800">Araçlar</h3>
+            <p class="text-xs text-slate-500">
+              <%= scope.counts.vehiclesIncluded %> / <%= scope.counts.vehiclesTotal %> dahil
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-semibold">
+          <button type="button" data-toggle-all="vehicle_ids" data-mode="all"  class="text-slate-500 hover:text-slate-900 transition">Tümü</button>
+          <span class="text-slate-300">·</span>
+          <button type="button" data-toggle-all="vehicle_ids" data-mode="none" class="text-slate-500 hover:text-slate-900 transition">Hiçbiri</button>
+        </div>
+      </div>
+
+      <div class="p-3">
+        <% if (scope.vehicles.length === 0) { %>
+          <p class="text-sm text-slate-400 text-center py-8">Filonda araç yok.</p>
+        <% } %>
+        <% scope.vehicles.forEach(function(v) { %>
+          <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition <%= v.disabled ? 'opacity-50 cursor-not-allowed' : '' %>">
+            <input type="checkbox" name="vehicle_ids" value="<%= v.profile_id %>"
+                   <%= v.included ? 'checked' : '' %>
+                   <%= v.disabled ? 'disabled' : '' %>
+                   class="h-5 w-5 rounded border-slate-300 text-slate-900 focus:ring-slate-500">
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-slate-900 text-sm font-mono"><%= v.name %></p>
+              <p class="text-xs text-slate-500 mt-0.5"><%= v.subtext %></p>
+            </div>
+            <% if (v.disabledNote) { %>
+              <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 flex-shrink-0"><%= v.disabledNote %></span>
+            <% } %>
+          </label>
+        <% }); %>
+      </div>
+    </div>
+
+    <!-- Şoförler -->
+    <div class="bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white flex items-center justify-between gap-3 flex-wrap">
+        <div class="flex items-center gap-3">
+          <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-800">Şoförler</h3>
+            <p class="text-xs text-slate-500">
+              <%= scope.counts.driversIncluded %> / <%= scope.counts.driversTotal %> dahil
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-semibold">
+          <button type="button" data-toggle-all="driver_ids" data-mode="all"  class="text-slate-500 hover:text-slate-900 transition">Tümü</button>
+          <span class="text-slate-300">·</span>
+          <button type="button" data-toggle-all="driver_ids" data-mode="none" class="text-slate-500 hover:text-slate-900 transition">Hiçbiri</button>
+        </div>
+      </div>
+
+      <div class="p-3">
+        <% if (scope.drivers.length === 0) { %>
+          <p class="text-sm text-slate-400 text-center py-8">Filonda şoför yok.</p>
+        <% } %>
+        <% scope.drivers.forEach(function(d) { %>
+          <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition <%= d.disabled ? 'opacity-50 cursor-not-allowed' : '' %>">
+            <input type="checkbox" name="driver_ids" value="<%= d.profile_id %>"
+                   <%= d.included ? 'checked' : '' %>
+                   <%= d.disabled ? 'disabled' : '' %>
+                   class="h-5 w-5 rounded border-slate-300 text-slate-900 focus:ring-slate-500">
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-slate-900 text-sm"><%= d.name %></p>
+              <p class="text-xs text-slate-500 mt-0.5"><%= d.subtext %></p>
+            </div>
+            <% if (d.disabledNote) { %>
+              <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 flex-shrink-0"><%= d.disabledNote %></span>
+            <% } %>
+          </label>
+        <% }); %>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-3 flex-wrap sticky bottom-4">
+      <p class="text-xs text-slate-500">Değişiklikler kaydedildikten hemen sonra karşı tarafın filo uyumu güncellenir.</p>
+      <button type="submit"
+              class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/25">
+        Değişiklikleri Kaydet
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+          <path fill-rule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // "Tümü" / "Hiçbiri" toggle butonları — disabled olanlar dokunulmaz
+  (function() {
+    document.querySelectorAll('[data-toggle-all]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const name = btn.getAttribute('data-toggle-all');
+        const mode = btn.getAttribute('data-mode');
+        document.querySelectorAll('input[type="checkbox"][name="' + name + '"]').forEach(function(cb) {
+          if (cb.disabled) return;
+          cb.checked = (mode === 'all');
+        });
+      });
+    });
+  })();
+</script>

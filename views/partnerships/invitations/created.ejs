@@ -4,11 +4,11 @@
     <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 mb-3">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-7 w-7"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
     </div>
-    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Kod <span class="font-serif italic text-slate-500">hazır.</span></h2>
+    <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Kod <span class="font-serif italic text-slate-500">hazır.</span></h2>
     <p class="text-slate-500 mt-2 text-sm">Aşağıdaki kodu karşı kurumun yöneticisine (admin) ilet.</p>
   </div>
 
-  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-900/10">
+  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 sm:p-8 shadow-2xl ring-1 ring-slate-900/10">
     <div class="absolute top-0 right-0 w-64 h-64 bg-purple-500/25 rounded-full blur-3xl"></div>
     <div class="relative text-center">
       <p class="text-[10px] font-bold uppercase tracking-widest text-purple-300 mb-3">İş Ortaklığı Davet Kodu</p>
@@ -35,6 +35,13 @@
 
   <% if (result.label) { %>
     <p class="text-center text-sm text-slate-500"><em>Etiket:</em> <strong class="text-slate-700"><%= result.label %></strong></p>
+  <% } %>
+
+  <% if (result.scope && (result.scope.driversCount > 0 || result.scope.vehiclesCount > 0)) { %>
+    <p class="text-center text-sm text-slate-500">
+      <em>Dahil ettiğin filo:</em>
+      <strong class="text-slate-700"><%= result.scope.vehiclesCount %> araç · <%= result.scope.driversCount %> şoför</strong>
+    </p>
   <% } %>
 
   <div class="rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 text-sm text-center">

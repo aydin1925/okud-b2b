@@ -1,38 +1,105 @@
+// Sistem çapında belge tipi kataloğu. Kurumlar bu katalogdan seçim yaparak
+// kendi belge gereksinim şablonlarını oluşturur. Yeni tip eklemek için:
+//   1) Aşağıdaki DOCUMENT_TYPES'a slug ekle
+//   2) DOCUMENT_TYPE_LABELS'a Türkçe etiket ekle
+//   3) İlgili DRIVER_/VEHICLE_/HOSTESS_ listesine dahil et
+// Not: TC Kimlik belge tipi olarak yok — kimlik bilgisi profil oluşturulurken
+// (driver_profiles.national_id, hostess_profiles.national_id) doğrudan alınır.
 const DOCUMENT_TYPES = {
-  DRIVER_LICENSE: 'driver_license',
-  SRC: 'src',
-  VEHICLE_REGISTRATION: 'vehicle_registration',
-  INSURANCE: 'insurance',
+  // Şoför belgeleri
+  DRIVER_LICENSE:           'driver_license',
+  SRC:                      'src',
+  PSYCHOTECHNIC:            'psychotechnic',
+  LIFELONG_LEARNING:        'lifelong_learning',
+  VOCATIONAL_QUALIFICATION: 'vocational_qualification',
+  HEALTH_REPORT:            'health_report',
+  CRIMINAL_RECORD:          'criminal_record',
+
+  // Araç belgeleri
+  VEHICLE_REGISTRATION:     'vehicle_registration',
+  TRAFFIC_INSURANCE:        'traffic_insurance',
+  SEAT_INSURANCE:           'seat_insurance',
+  INSPECTION_REPORT:        'inspection_report',
+  UKOME_PERMIT:             'ukome_permit',
+
+  // Hostes belgeleri (Alt-1b'de hostess_profile owner_type eklendikten sonra kullanılacak)
+  DIPLOMA:                  'diploma',
 };
 
 const DOCUMENT_TYPE_LABELS = {
-  driver_license: 'Ehliyet',
-  src: 'SRC Belgesi',
-  vehicle_registration: 'Ruhsat',
-  insurance: 'Sigorta',
+  // Şoför
+  driver_license:           'Ehliyet',
+  src:                      'SRC Belgesi',
+  psychotechnic:            'Psikoteknik',
+  lifelong_learning:        'Hayat Boyu Öğrenim Belgesi',
+  vocational_qualification: 'Mesleki Yeterlilik',
+  health_report:            'Sağlık Raporu',
+  criminal_record:          'Sabıka Kaydı',
+
+  // Araç
+  vehicle_registration:     'Ruhsat',
+  traffic_insurance:        'Karayolları (Trafik) Sigortası',
+  seat_insurance:           'Koltuk Sigortası',
+  inspection_report:        'Araç Muayene Raporu',
+  ukome_permit:             'İzin Belgesi (UKOME)',
+
+  // Hostes
+  diploma:                  'Diploma',
 };
 
+// Şoför profili için seçilebilir belge tipleri (kurum bunlardan gereksinim listesi kurar)
 const DRIVER_DOCUMENT_TYPES = [
   DOCUMENT_TYPES.DRIVER_LICENSE,
   DOCUMENT_TYPES.SRC,
+  DOCUMENT_TYPES.PSYCHOTECHNIC,
+  DOCUMENT_TYPES.LIFELONG_LEARNING,
+  DOCUMENT_TYPES.VOCATIONAL_QUALIFICATION,
+  DOCUMENT_TYPES.HEALTH_REPORT,
+  DOCUMENT_TYPES.CRIMINAL_RECORD,
 ];
 
+// Araç profili için seçilebilir belge tipleri
 const VEHICLE_DOCUMENT_TYPES = [
   DOCUMENT_TYPES.VEHICLE_REGISTRATION,
-  DOCUMENT_TYPES.INSURANCE,
+  DOCUMENT_TYPES.TRAFFIC_INSURANCE,
+  DOCUMENT_TYPES.SEAT_INSURANCE,
+  DOCUMENT_TYPES.INSPECTION_REPORT,
+  DOCUMENT_TYPES.UKOME_PERMIT,
 ];
 
+// Hostes profili için seçilebilir belge tipleri (Alt-1b'den sonra devreye girer)
+const HOSTESS_DOCUMENT_TYPES = [
+  DOCUMENT_TYPES.DIPLOMA,
+  DOCUMENT_TYPES.HEALTH_REPORT,
+  DOCUMENT_TYPES.CRIMINAL_RECORD,
+];
+
+// Süresi olmayan belgeler — cron kontrol etmez, form tarih inputu gizler.
+// Ruhsat/Diploma doğası gereği süresiz;
+// Hayat Boyu Öğrenim Belgesi de şimdilik süresiz kabul ediliyor.
+const PERPETUAL_DOCUMENT_TYPES = [
+  DOCUMENT_TYPES.VEHICLE_REGISTRATION,
+  DOCUMENT_TYPES.DIPLOMA,
+  DOCUMENT_TYPES.LIFELONG_LEARNING,
+];
+
+function isPerpetual(documentType) {
+  return PERPETUAL_DOCUMENT_TYPES.includes(documentType);
+}
+
 const OWNER_TYPES = {
-  DRIVER_PROFILE: 'driver_profile',
+  DRIVER_PROFILE:  'driver_profile',
   VEHICLE_PROFILE: 'vehicle_profile',
+  HOSTESS_PROFILE: 'hostess_profile',
 };
 
 // target_type, owner_type ile aynı değer setini kullanır (DRY)
 const TARGET_TYPES = OWNER_TYPES;
 
 const TARGET_TYPE_LABELS = {
-  driver_profile: 'Şoför',
+  driver_profile:  'Şoför',
   vehicle_profile: 'Araç',
+  hostess_profile: 'Hostes',
 };
 
 // OTP kod üretimi
@@ -62,8 +129,11 @@ const PARTNERSHIP_INVITATION_EXPIRY_MINUTES = 1440;
 const DOC_EXPIRY_THRESHOLDS_DAYS = [7, 10, 20, 30];
 
 const NOTIFICATION_TYPES = {
-  DOC_EXPIRING: 'doc_expiring',
-  DOC_EXPIRED:  'doc_expired',
+  DOC_EXPIRING:                  'doc_expiring',
+  DOC_EXPIRED:                   'doc_expired',
+  PARTNERSHIP_REJECTED:          'partnership_rejected',
+  PARTNERSHIP_READINESS_ALERT:   'partnership_readiness_alert',
+  PARTNERSHIP_TERMINATED:        'partnership_terminated',
 };
 
 const CONTRACT_TYPES = {
@@ -219,11 +289,29 @@ Verileriniz, araç filo üyeliğiniz süresince ve ilgili mevzuatın öngördü�
 const CONTRACT_TITLE_MAX = 200;
 const CONTRACT_CONTENT_MAX = 20000;
 
+// user_tokens.type — tek tablonun ne için kullanıldığını ayırır.
+// Yeni tür (2FA, magic link, davet) ekleneceği zaman: buraya + ENUM'a satır.
+const TOKEN_TYPES = {
+  PASSWORD_RESET:     'password_reset',
+  EMAIL_VERIFICATION: 'email_verification',
+};
+
+// Token TTL — türe göre.
+// Şifre reset kısa: kullanıcı mail'i açar açmaz kullanır, 1 saat yeterli.
+// E-posta doğrulama uzun: kullanıcı belki sonra bir kahve içerken tıklar; 48 saat.
+const TOKEN_TTL_MINUTES = {
+  password_reset:     60,
+  email_verification: 60 * 48,
+};
+
 module.exports = {
   DOCUMENT_TYPES,
   DOCUMENT_TYPE_LABELS,
   DRIVER_DOCUMENT_TYPES,
   VEHICLE_DOCUMENT_TYPES,
+  HOSTESS_DOCUMENT_TYPES,
+  PERPETUAL_DOCUMENT_TYPES,
+  isPerpetual,
   OWNER_TYPES,
   TARGET_TYPES,
   TARGET_TYPE_LABELS,
@@ -242,4 +330,6 @@ module.exports = {
   DEFAULT_CONTRACT_TEMPLATES,
   CONTRACT_TITLE_MAX,
   CONTRACT_CONTENT_MAX,
+  TOKEN_TYPES,
+  TOKEN_TTL_MINUTES,
 };

@@ -2,6 +2,8 @@ const PartnershipInvitationModel = require('../models/PartnershipInvitationModel
 const CompanyPartnershipModel = require('../models/CompanyPartnershipModel');
 const CompanyModel = require('../models/CompanyModel');
 const ContractTemplateService = require('./ContractTemplateService');
+const FleetReadinessService = require('./FleetReadinessService');
+const NotificationService = require('./NotificationService');
 const { CONTRACT_TYPES } = require('../utils/constants');
 
 function normalizeCode(code) {
@@ -55,11 +57,25 @@ async function loadContext(code, currentCompanyId) {
 
 async function getRedeemPreview(code, currentCompanyId) {
   const ctx = await loadContext(code, currentCompanyId);
+
+  // Karşılaştırma sadece receiver redeem yaparken anlamlı — çünkü şablon receiver'da.
+  // (Provider redeem yaparken karşı taraf receiver, receiver'ın filosu yok.)
+  let fleetReadiness = null;
+  const currentIsReceiver = ctx.current.id === ctx.roles.receiverCompanyId;
+  if (currentIsReceiver) {
+    fleetReadiness = await FleetReadinessService.evaluateProviderAgainstReceiver(
+      ctx.roles.providerCompanyId,
+      ctx.roles.receiverCompanyId,
+      { invitationId: ctx.invitation.id },
+    );
+  }
+
   return {
     invitation: ctx.invitation,
     initiatorCompany: ctx.initiator,
     currentCompany: ctx.current,
     contract: ctx.contract,
+    fleetReadiness,
   };
 }
 
@@ -69,6 +85,26 @@ async function redeem({ code, currentCompanyId, acceptingUserId, contractConsent
   }
 
   const ctx = await loadContext(code, currentCompanyId);
+
+  // Receiver kabul ediyorsa: karşı tarafın filosunun receiver'ın belge şablonuna
+  // uyduğunu doğrula. Uymuyorsa partnership kurulamaz — karşı taraf önce
+  // eksikleri gidermeli.
+  const currentIsReceiver = ctx.current.id === ctx.roles.receiverCompanyId;
+  if (currentIsReceiver) {
+    const readiness = await FleetReadinessService.evaluateProviderAgainstReceiver(
+      ctx.roles.providerCompanyId, ctx.roles.receiverCompanyId,
+      { invitationId: ctx.invitation.id },
+    );
+    if (!readiness.allReady) {
+      const totalMissing = readiness.drivers.missing.length
+                         + readiness.vehicles.missing.length
+                         + readiness.hostesses.missing.length;
+      throw new Error(
+        `Karşı tarafın filosunda ${totalMissing} üyede belge eksik. ` +
+        `Ortaklık kurulamaz — karşı taraf önce eksikleri tamamlamalı.`
+      );
+    }
+  }
 
   const acceptance = {
     contract_type: CONTRACT_TYPES.PARTNERSHIP,
@@ -99,4 +135,40 @@ async function rejectByAdmin({ code, userId }) {
   return { initiator_company_id: invitation.initiator_company_id };
 }
 
-module.exports = { getRedeemPreview, redeem, rejectByAdmin };
+/**
+ * "Reddet + eksik özeti bildir" akışı.
+ * Sadece receiver kullanır: karşı tarafın filosu şablona uymuyorsa, redi
+ * gerekçesini otomatik hazırlanan mesajla provider'a iletir.
+ * Adımlar:
+ *   1) Preview context yükle + readiness hesapla
+ *   2) Daveti reddet
+ *   3) Provider manager'larına bildirim gönder (NotificationService)
+ */
+async function rejectWithReadinessNotice({ code, currentCompanyId, userId }) {
+  const ctx = await loadContext(code, currentCompanyId);
+
+  const currentIsReceiver = ctx.current.id === ctx.roles.receiverCompanyId;
+  if (!currentIsReceiver) {
+    throw new Error('Bu işlem sadece hizmet alan kurumun kullanabileceği bir reddir');
+  }
+
+  const readiness = await FleetReadinessService.evaluateProviderAgainstReceiver(
+    ctx.roles.providerCompanyId, ctx.roles.receiverCompanyId,
+    { invitationId: ctx.invitation.id },
+  );
+
+  // Reddet — mevcut rejectByAdmin akışı
+  const affected = await PartnershipInvitationModel.rejectByAdmin(ctx.invitation.id, userId);
+  if (!affected) throw new Error('Davet artık geçerli değil');
+
+  // Provider manager'larına bildirim gönder — eksik özetiyle beraber
+  await NotificationService.notifyPartnershipRejection(
+    ctx.roles.providerCompanyId,
+    ctx.current,   // receiver company — mesajda "X kurumu davetinizi reddetti" için
+    readiness,
+  );
+
+  return { initiator_company_id: ctx.invitation.initiator_company_id };
+}
+
+module.exports = { getRedeemPreview, redeem, rejectByAdmin, rejectWithReadinessNotice };

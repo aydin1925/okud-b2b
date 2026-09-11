@@ -14,6 +14,9 @@ router.post('/profile/create', DriverController.create);
 router.get('/profile/edit',    DriverController.showEditForm);
 router.post('/profile/edit',   DriverController.updateProfile);
 router.post('/profile/updates/:id/cancel', DriverController.cancelUpdateRequest);
+router.post('/profile/delete',     DriverController.deleteProfile);
+router.post('/profile/activate',   DriverController.setActive);
+router.post('/profile/deactivate', DriverController.setActive);
 
 router.post(
   '/documents/upload',

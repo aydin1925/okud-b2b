@@ -2,11 +2,14 @@ const fs = require('fs');
 const DocumentModel = require('../models/DocumentModel');
 const DriverProfileModel = require('../models/DriverProfileModel');
 const VehicleProfileModel = require('../models/VehicleProfileModel');
+const HostessProfileModel = require('../models/HostessProfileModel');
 const DriverProfileService = require('./DriverProfileService');
 const VehicleProfileService = require('./VehicleProfileService');
+const HostessProfileService = require('./HostessProfileService');
 const {
   DRIVER_DOCUMENT_TYPES,
   VEHICLE_DOCUMENT_TYPES,
+  HOSTESS_DOCUMENT_TYPES,
   OWNER_TYPES,
 } = require('../utils/constants');
 
@@ -76,6 +79,45 @@ async function uploadVehicleDocument({ file, document_type, expires_at, vehicleI
   return { id: documentId };
 }
 
+async function uploadHostessDocument({ file, document_type, expires_at, hostessId }, userId) {
+  if (!file) throw new Error('Dosya seçilmedi');
+
+  if (!HOSTESS_DOCUMENT_TYPES.includes(document_type)) {
+    safeUnlink(file.path);
+    throw new Error('Geçersiz belge türü');
+  }
+
+  const hostess = await HostessProfileModel.findById(hostessId);
+  if (!hostess) {
+    safeUnlink(file.path);
+    throw new Error('Hostes bulunamadı');
+  }
+  if (hostess.managed_by_user_id !== userId) {
+    safeUnlink(file.path);
+    throw new Error('Bu hosteşe belge yükleme yetkin yok');
+  }
+
+  validateExpiresAt(expires_at, file.path);
+
+  const documentId = await DocumentModel.create({
+    owner_type: OWNER_TYPES.HOSTESS_PROFILE,
+    owner_id: hostess.id,
+    document_type,
+    file_path: file.path,
+    original_filename: file.originalname,
+    mime_type: file.mimetype,
+    file_size: file.size,
+    expires_at: expires_at || null,
+    uploaded_by: userId,
+  });
+
+  return { id: documentId };
+}
+
+async function listForHostess(hostessId) {
+  return DocumentModel.findByOwner(OWNER_TYPES.HOSTESS_PROFILE, hostessId);
+}
+
 async function listForDriverByUser(userId) {
   const driverProfile = await DriverProfileModel.findByUserId(userId);
   if (!driverProfile) return [];
@@ -125,6 +167,8 @@ async function triggerOwnerRecompute(doc) {
     await DriverProfileService.recomputeStatus(doc.owner_id);
   } else if (doc.owner_type === OWNER_TYPES.VEHICLE_PROFILE) {
     await VehicleProfileService.recomputeStatus(doc.owner_id);
+  } else if (doc.owner_type === OWNER_TYPES.HOSTESS_PROFILE) {
+    await HostessProfileService.recomputeStatus(doc.owner_id);
   }
 }
 
@@ -150,8 +194,10 @@ function safeUnlink(filePath) {
 module.exports = {
   uploadDriverDocument,
   uploadVehicleDocument,
+  uploadHostessDocument,
   listForDriverByUser,
   listForVehicle,
+  listForHostess,
   listPending,
   verifyDocument,
   rejectDocument,

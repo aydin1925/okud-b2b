@@ -1,0 +1,224 @@
+<%
+  const isManager = currentCompany && (currentCompany.role.name === 'company_admin' || currentCompany.role.name === 'company_moderator');
+  const isAdmin   = currentCompany && currentCompany.role.name === 'company_admin';
+  const partners  = overview.partners;
+  const combined  = overview.combined;
+  const alerts    = overview.alerts;
+
+  const total = combined.total || 0;
+  const ready = combined.ready || 0;
+  const prob  = combined.problem || 0;
+  const pct   = total > 0 ? Math.round((ready / total) * 100) : 0;
+
+  const CIRC = 263.9;
+  const readyDash = total > 0 ? (ready / total) * CIRC : 0;
+  const probDash  = total > 0 ? (prob  / total) * CIRC : 0;
+%>
+
+<div class="user-view">
+
+  <!-- Hero -->
+  <div class="b-hero">
+    <div class="eyebrow">Hizmet alan paneli</div>
+    <h1><%= currentCompany.name %> <em>— tedarikçi uyumu</em></h1>
+    <div class="sub">
+      <span class="pill role"><%= currentCompany.role.display_name %></span>
+      <% if (currentCompany.is_active) { %>
+        <span class="pill status"><span class="d"></span>Onaylı kurum</span>
+      <% } else { %>
+        <span class="pill warn">SuperAdmin onayı bekliyor</span>
+      <% } %>
+      <span><%= partners.length %> tedarikçi · <%= total %> üye taranıyor</span>
+      <form action="/companies/clear" method="POST" style="margin:0;">
+        <button type="submit" class="exit">Alandan çık</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="bento receiver">
+
+    <!-- Compliance ring -->
+    <div class="cell dark compliance">
+      <div class="cell-head">
+        <span class="cell-title">Tedarikçi uyumu</span>
+        <a href="/company/document-requirements" class="cell-action">Şablon →</a>
+      </div>
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="10"/>
+            <% if (readyDash > 0) { %>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#10B981" stroke-width="10"
+                stroke-dasharray="<%= readyDash %> <%= CIRC %>" stroke-dashoffset="0"/>
+            <% } %>
+            <% if (probDash > 0) { %>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#DC2626" stroke-width="10"
+                stroke-dasharray="<%= probDash %> <%= CIRC %>" stroke-dashoffset="<%= -readyDash %>"/>
+            <% } %>
+          </svg>
+          <div class="center">
+            <div class="pct">%<%= pct %></div>
+            <div class="lbl">Uyumlu</div>
+          </div>
+        </div>
+        <div class="ring-side">
+          <div class="ring-row"><span class="swatch" style="background:#10B981;"></span><span class="name">Şablona uygun</span><span class="n"><%= ready %></span></div>
+          <div class="ring-row"><span class="swatch" style="background:#DC2626;"></span><span class="name">Belge eksik</span><span class="n"><%= prob %></span></div>
+        </div>
+      </div>
+      <% if (partners.length > 0) { %>
+        <div class="comp-rows">
+          <% partners.forEach(function(p) { %>
+            <div class="comp-row">
+              <span class="n"><%= p.partnerName %></span>
+              <span class="frac"><%= p.stats.ready %> / <%= p.stats.total %></span>
+              <% if (p.status === 'ready') { %>
+                <span class="state ok"><span class="d" style="background:#10B981;"></span>tamam</span>
+              <% } else { %>
+                <span class="state bad"><span class="d" style="background:#DC2626;"></span><%= p.stats.problem %> eksik</span>
+              <% } %>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- KPI: Aktif tedarikçi -->
+    <div class="cell kpi-partners">
+      <div class="cell-head">
+        <span class="cell-title">Aktif tedarikçi</span>
+      </div>
+      <div class="big-num"><%= partners.length %></div>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11px; color:var(--muted);">
+        senin şablonuna göre taranıyor
+      </div>
+    </div>
+
+    <!-- KPI: Toplam üye -->
+    <div class="cell kpi-members">
+      <div class="cell-head">
+        <span class="cell-title">Toplam üye</span>
+      </div>
+      <div class="big-num"><%= total %></div>
+      <div style="font-family:'JetBrains Mono',ui-monospace,monospace; font-size:11px; color:var(--muted);">
+        <% const totalDrivers = partners.reduce((s, p) => s + (p.driversTotal || 0), 0); %>
+        <% const totalVehicles = partners.reduce((s, p) => s + (p.vehiclesTotal || 0), 0); %>
+        <strong style="color:var(--ink); font-weight:600;"><%= totalDrivers %></strong> şoför ·
+        <strong style="color:var(--ink); font-weight:600;"><%= totalVehicles %></strong> araç
+      </div>
+    </div>
+
+    <!-- Sözleşmeler özet -->
+    <div class="cell contract">
+      <div class="cell-head">
+        <span class="cell-title">Sözleşme şablonların</span>
+        <a href="/company/document-requirements" class="cell-action">Detay →</a>
+      </div>
+      <div class="contract-meta">
+        <div><div class="k">Aktif tedarikçi</div><div class="v"><%= partners.length %></div></div>
+        <div><div class="k">Uyumlu</div><div class="v" style="color:var(--good);"><%= partners.filter(p => p.status === 'ready').length %></div></div>
+        <div><div class="k">Eksik olan</div><div class="v" style="color:var(--bad);"><%= partners.filter(p => p.status !== 'ready').length %></div></div>
+      </div>
+    </div>
+
+    <!-- Partners liste -->
+    <div class="cell partners-cell">
+      <div class="cell-head">
+        <span class="cell-title">Tedarikçi listesi</span>
+        <% if (isAdmin) { %><a href="/company/partnerships" class="cell-action">Tümü →</a><% } %>
+      </div>
+      <% if (partners.length === 0) { %>
+        <div class="empty">
+          <div class="icn" style="background:var(--surface-3); color:var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 18V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9"/></svg></div>
+          <h4>Henüz tedarikçin yok</h4>
+          <% if (isAdmin) { %>
+            <p><a href="/partnerships/redeem" style="color:var(--nav); font-weight:600;">Kod ile katıl</a> ya da <a href="/company/partnerships/invitations" style="color:var(--nav); font-weight:600;">davet üret</a></p>
+          <% } %>
+        </div>
+      <% } else { %>
+        <div class="partners">
+          <% partners.forEach(function(p) { %>
+            <a href="<%= isAdmin ? '/company/partnerships/' + p.id : '#' %>" class="partner">
+              <span class="logo"><%= (p.partnerName || '?').trim()[0].toUpperCase() %></span>
+              <div class="info">
+                <div class="n"><%= p.partnerName %></div>
+                <div class="t">sağlayıcı · <%= p.stats.total %> üye</div>
+              </div>
+              <% if (p.status === 'ready') { %>
+                <span class="status ok"><span class="d"></span>uyumlu</span>
+              <% } else { %>
+                <span class="status bad"><span class="d"></span><%= p.stats.problem %> eksik</span>
+              <% } %>
+            </a>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Eksik belgeler -->
+    <div class="cell alerts-cell">
+      <div class="cell-head">
+        <span class="cell-title">Eksik belgeler<% if (alerts.length > 0) { %> · <%= alerts.length %><% } %></span>
+      </div>
+      <% if (alerts.length === 0) { %>
+        <div class="empty">
+          <div class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h4>Her şey uyumlu</h4>
+          <p>Tedarikçilerinin tüm belgeleri şablonuna uygun.</p>
+        </div>
+      <% } else { %>
+        <div class="alerts">
+          <% alerts.forEach(function(a) { %>
+            <div class="alert crit">
+              <div class="bar"></div>
+              <span class="av"><%= (a.name || '?').trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() %></span>
+              <div class="body">
+                <div class="name">
+                  <%= a.name %>
+                  <span class="type"><%= a.partnerName %></span>
+                </div>
+                <% if (a.issues && a.issues.length > 0) { %>
+                  <div class="msg"><%= a.issues[0] %><% if (a.issues.length > 1) { %> · <span class="m">+<%= a.issues.length - 1 %> daha</span><% } %></div>
+                <% } %>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- Yönetim araçları -->
+    <% if (isManager) { %>
+      <div class="cell tools-cell">
+        <div class="cell-head"><span class="cell-title">Yönetim araçları</span></div>
+        <div class="tools-grid">
+          <a href="/company/document-requirements" class="tool navy">
+            <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+            <div class="l"><div class="t">Belge şablonu</div><div class="d">zorunlu belgeler</div></div>
+          </a>
+          <% if (isAdmin) { %>
+            <a href="/company/partnerships" class="tool blue">
+              <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 18V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9"/></svg></span>
+              <div class="l"><div class="t">Tedarikçilerim</div><div class="d"><%= partners.length %> aktif</div></div>
+            </a>
+          <% } %>
+          <a href="/company/contracts" class="tool green">
+            <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v6H4z"/><path d="M4 14h16v6H4z"/></svg></span>
+            <div class="l"><div class="t">Sözleşmeler</div><div class="d">şablonlar</div></div>
+          </a>
+          <% if (isAdmin) { %>
+            <a href="/partnerships/redeem" class="tool amber">
+              <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M7 8V6a5 5 0 0 1 10 0v2"/></svg></span>
+              <div class="l"><div class="t">Ortaklığa katıl</div><div class="d">yeni tedarikçi</div></div>
+            </a>
+            <a href="/company/partnerships/invitations" class="tool navy">
+              <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
+              <div class="l"><div class="t">Davet üret</div><div class="d">tedarikçi çağır</div></div>
+            </a>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+
+  </div>
+</div>

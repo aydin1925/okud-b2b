@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> · OKUD SuperAdmin</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/superadmin.css">
+  <% if (typeof extraCss !== 'undefined' && extraCss) { %>
+    <style><%- extraCss %></style>
+  <% } %>
+
+  <!-- SweetAlert2 (form confirm için) -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .swal2-popup { font-family: 'Inter', system-ui, sans-serif !important; border-radius: 10px !important; padding: 1.5rem !important; }
+    .swal2-title { font-weight: 600 !important; font-size: 1.05rem !important; letter-spacing: -0.02em !important; }
+    .swal2-html-container { color: #5A5A5D !important; font-size: 0.9rem !important; }
+    .swal2-confirm, .swal2-cancel { border-radius: 6px !important; font-weight: 500 !important; padding: 0.55rem 1rem !important; font-size: 0.85rem !important; }
+    .swal2-styled.swal2-confirm { background-color: #DC2626 !important; }
+    .swal2-styled.swal2-confirm.confirm-ink { background-color: #0F0F10 !important; }
+    .swal2-styled.swal2-cancel { background-color: #F0F0F2 !important; color: #202024 !important; }
+  </style>
+</head>
+<body class="sa">
+
+<%
+  const path = (typeof currentPath !== 'undefined' && currentPath) ? currentPath : '';
+  const isActive = (p) => path === p || (p !== '/admin' && path.startsWith(p));
+  const counts = (typeof pendingCounts !== 'undefined' && pendingCounts) ? pendingCounts : { total: 0 };
+  const initials = currentUser && currentUser.name
+    ? currentUser.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase()
+    : 'AŞ';
+%>
+
+<div class="app">
+
+  <aside class="sidebar" id="sa-sidebar">
+    <div class="sb-brand">
+      <a href="/admin" style="display:flex; align-items:center; gap:10px;">
+        <span class="sb-logo">O</span>
+        <div class="sb-brand-text">
+          <div class="name">OKUD</div>
+          <div class="role">SuperAdmin</div>
+        </div>
+      </a>
+      <button class="sb-close" id="sa-sidebar-close" aria-label="Kapat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="sb-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Ara veya komut…">
+      <span class="kbd">⌘K</span>
+    </div>
+
+    <div class="sb-group">Genel</div>
+    <nav class="sb-nav">
+      <a href="/admin" class="sb-link<%= path === '/admin' ? ' active' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Kontrol Paneli
+      </a>
+      <a href="/admin/approvals" class="sb-link<%= isActive('/admin/approvals') ? ' active' : '' %><%= counts.total > 0 ? ' alert' : '' %>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Onay Merkezi
+        <% if (counts.total > 0) { %><span class="badge"><%= counts.total %></span><% } %>
+      </a>
+      <a href="/mockup/activity.html" class="sb-link" target="_self">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Etkinlik Akışı
+        <span class="badge mock">Mock</span>
+      </a>
+      <a href="/mockup/ai-rapor.html" class="sb-link" target="_self">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+        Aylık Rapor
+        <span class="badge mock">Mock</span>
+      </a>
+    </nav>
+
+    <div class="sb-group">Yönetim</div>
+    <nav class="sb-nav">
+      <a class="sb-link disabled">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 18V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9M9 22V12M15 22V12"/></svg>
+        Kurumlar
+      </a>
+      <a class="sb-link disabled">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Kullanıcılar
+      </a>
+      <a class="sb-link disabled">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        İş Ortaklıkları
+      </a>
+    </nav>
+
+    <div class="sb-group">Sistem</div>
+    <nav class="sb-nav">
+      <a class="sb-link disabled">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Sağlık
+      </a>
+      <a class="sb-link disabled">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25M21 5.25V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25"/></svg>
+        Denetim İzleri
+      </a>
+      <a class="sb-link disabled">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 10 4.09V4a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Ayarlar
+      </a>
+    </nav>
+
+    <div class="sb-foot">
+      <a href="/profile" title="Profilim" style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+        <span class="sb-avatar"><%= initials %></span>
+        <div class="info">
+          <div class="n"><%= currentUser ? currentUser.name : 'SuperAdmin' %></div>
+          <div class="s">Çevrimiçi</div>
+        </div>
+      </a>
+      <form action="/logout" method="POST" style="margin:0;">
+        <button type="submit" class="sb-logout" title="Çıkış">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  <button class="sb-backdrop" id="sa-sidebar-backdrop" aria-label="Kapat" tabindex="-1"></button>
+
+  <main class="sa-main">
+
+    <div class="topbar">
+      <div class="tb-left">
+        <button class="sb-open-btn" id="sa-sidebar-open" aria-label="Menü">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="breadcrumb">
+          <span>Panel</span>
+          <span class="sep">/</span>
+          <span class="current"><%= (typeof breadcrumb !== 'undefined' && breadcrumb) ? breadcrumb : title %></span>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <span class="topbar-time" id="sa-clock"></span>
+        <span class="status-pill"><span class="dot"></span><span>Operasyonel</span></span>
+        <a href="/notifications" class="icon-btn" title="Bildirimler">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <% if (typeof notificationUnreadCount !== 'undefined' && notificationUnreadCount > 0) { %>
+            <span class="badge-num"><%= notificationUnreadCount > 9 ? '9+' : notificationUnreadCount %></span>
+          <% } %>
+        </a>
+      </div>
+    </div>
+
+    <div class="content">
+      <% if (typeof flash !== 'undefined' && flash) { %>
+        <div class="flash <%= flash.kind %>">
+          <% if (flash.kind === 'ok') { %>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <% } else { %>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <% } %>
+          <%= flash.message %>
+        </div>
+      <% } %>
+
+      <%- body %>
+    </div>
+  </main>
+</div>
+
+<script>
+  // Mobil sidebar drawer
+  (function () {
+    var sb = document.getElementById('sa-sidebar');
+    var bd = document.getElementById('sa-sidebar-backdrop');
+    var openBtn = document.getElementById('sa-sidebar-open');
+    var closeBtn = document.getElementById('sa-sidebar-close');
+    function open() { sb.classList.add('open'); bd.classList.add('show'); document.body.style.overflow = 'hidden'; }
+    function close() { sb.classList.remove('open'); bd.classList.remove('show'); document.body.style.overflow = ''; }
+    if (openBtn) openBtn.addEventListener('click', open);
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    if (bd) bd.addEventListener('click', close);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+    // Link tıklanınca kapat (mobil)
+    sb.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () {
+        if (window.innerWidth <= 900) close();
+      });
+    });
+  })();
+
+  // Canlı saat (topbar)
+  (function () {
+    var el = document.getElementById('sa-clock');
+    if (!el) return;
+    function tick() {
+      var d = new Date();
+      var p = function (n) { return n < 10 ? '0' + n : n; };
+      el.textContent = d.getFullYear() + '-' + p(d.getMonth()+1) + '-' + p(d.getDate()) + ' · ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+    tick();
+    setInterval(tick, 30000);
+  })();
+
+  // data-confirm form pattern (SweetAlert)
+  (function () {
+    document.addEventListener('submit', function (e) {
+      var form = e.target;
+      if (!form.dataset || !form.dataset.confirm) return;
+      if (form.dataset._confirmed === '1') return;
+      e.preventDefault();
+      var isDanger = form.dataset.confirmDanger !== undefined;
+      Swal.fire({
+        title: form.dataset.confirmTitle || 'Emin misin?',
+        text: form.dataset.confirm,
+        icon: isDanger ? 'warning' : 'question',
+        showCancelButton: true,
+        confirmButtonText: form.dataset.confirmButton || (isDanger ? 'Evet, reddet' : 'Onayla'),
+        cancelButtonText: 'Vazgeç',
+        reverseButtons: true,
+        customClass: { confirmButton: isDanger ? '' : 'confirm-ink' },
+        input: form.dataset.confirmInput ? 'textarea' : undefined,
+        inputPlaceholder: form.dataset.confirmInputPlaceholder || '',
+        inputValidator: form.dataset.confirmInput ? function (val) {
+          if (!val || !val.trim()) return 'Gerekçe zorunlu';
+        } : undefined,
+      }).then(function (result) {
+        if (result.isConfirmed) {
+          if (form.dataset.confirmInput) {
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = form.dataset.confirmInput;
+            hidden.value = result.value;
+            form.appendChild(hidden);
+          }
+          form.dataset._confirmed = '1';
+          form.submit();
+        }
+      });
+    });
+  })();
+</script>
+
+</body>
+</html>

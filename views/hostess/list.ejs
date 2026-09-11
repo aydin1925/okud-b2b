@@ -1,0 +1,77 @@
+<div class="max-w-4xl mx-auto space-y-6">
+
+  <!-- Başlık + Yeni Hostes butonu -->
+  <div class="flex items-start justify-between flex-wrap gap-4">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Kişisel Alan</p>
+      <h1 class="text-2xl sm:text-4xl font-bold text-slate-900 tracking-tighter">
+        Hosteslerim
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">Aracına bağlı servis ablalarını yönet</p>
+    </div>
+    <a href="/hostess/create"
+       class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/20">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Yeni Hostes
+    </a>
+  </div>
+
+  <% if (hostesses.length === 0) { %>
+    <div class="bg-white rounded-3xl ring-1 ring-slate-200 p-8 sm:p-12 text-center">
+      <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-100 text-pink-600 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-7 w-7">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      <p class="text-slate-800 font-semibold text-lg mb-1">Henüz hostesin yok</p>
+      <p class="text-sm text-slate-500 mb-5 max-w-sm mx-auto">Aracına atadığın hostesi buradan ekleyip belgelerini yükleyebilirsin.</p>
+      <a href="/hostess/create" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-800 transition">
+        İlk hostesini ekle
+      </a>
+    </div>
+  <% } else { %>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <% hostesses.forEach(function(h) {
+        const statusStyle = {
+          active:       { pill: 'bg-emerald-50 text-emerald-700', dot: 'bg-emerald-500', label: 'Aktif' },
+          pending_docs: { pill: 'bg-amber-50 text-amber-800',     dot: 'bg-amber-500',   label: 'Belge bekliyor' },
+          inactive:     { pill: 'bg-slate-100 text-slate-600',    dot: 'bg-slate-400',   label: 'Pasif' },
+        }[h.status] || { pill: 'bg-slate-100 text-slate-600', dot: 'bg-slate-400', label: h.status };
+      %>
+        <a href="/hostess/<%= h.id %>" class="group bg-white rounded-2xl ring-1 ring-slate-200 hover:ring-slate-900 hover:shadow-md transition p-5">
+          <div class="flex items-start gap-4">
+            <div class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-purple-600 text-white flex-shrink-0 font-bold text-base shadow-lg shadow-pink-500/25">
+              <%= h.first_name[0] %><%= h.last_name[0] %>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <p class="font-bold text-slate-900 truncate"><%= h.first_name %> <%= h.last_name %></p>
+                <span class="inline-flex items-center gap-1 rounded-full <%= statusStyle.pill %> px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest">
+                  <span class="h-1.5 w-1.5 rounded-full <%= statusStyle.dot %>"></span>
+                  <%= statusStyle.label %>
+                </span>
+              </div>
+              <% if (h.plate_number) { %>
+                <p class="text-xs text-slate-500 mt-1">
+                  Araç: <span class="font-semibold text-slate-700"><%= h.plate_number %></span> · <%= h.brand %> <%= h.model %>
+                </p>
+              <% } else { %>
+                <p class="text-xs mt-1">
+                  <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-800 px-2 py-0.5 font-semibold">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3 w-3"><path d="M8.25 12a3.75 3.75 0 117.5 0 3.75 3.75 0 01-7.5 0z"/></svg>
+                    Boşta — henüz araca atanmadı
+                  </span>
+                </p>
+              <% } %>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition flex-shrink-0">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </div>
+        </a>
+      <% }); %>
+    </div>
+  <% } %>
+</div>

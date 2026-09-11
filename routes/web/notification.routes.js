@@ -4,6 +4,7 @@ const NotificationController = require('../../controllers/web/NotificationContro
 // Mount: '/notifications' + requireAuth (server.js'te)
 const router = express.Router();
 
+router.get('/recent.json',  NotificationController.recentJson);
 router.get('/',             NotificationController.showList);
 router.post('/read-all',    NotificationController.markAllRead);
 router.post('/delete-all',  NotificationController.deleteAll);

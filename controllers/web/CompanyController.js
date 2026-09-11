@@ -41,4 +41,22 @@ function clearCurrentCompany(req, res) {
   res.redirect('/dashboard');
 }
 
-module.exports = { showCreateForm, create, switchCompany, clearCurrentCompany };
+// Filo üyesi için kurum ilişkisinin salt-okunur özet sayfası.
+// Yönetici de girebilir ama current company'yi değiştirmez — sadece görsel.
+async function showRelationship(req, res) {
+  const companyId = parseInt(req.params.id, 10);
+  if (!companyId) return res.redirect('/dashboard');
+
+  try {
+    const rel = await CompanyService.getRelationshipForUser(req.session.userId, companyId);
+    res.render('companies/relationship', {
+      title: rel.company.name,
+      rel,
+    });
+  } catch (err) {
+    // İlişki yok / kurum yok — dashboard'a döndür
+    res.redirect('/dashboard');
+  }
+}
+
+module.exports = { showCreateForm, create, switchCompany, clearCurrentCompany, showRelationship };

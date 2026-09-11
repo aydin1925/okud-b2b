@@ -50,4 +50,34 @@ async function showVehicleDetail(req, res) {
   }
 }
 
-module.exports = { showDrivers, showVehicles, showDriverDetail, showVehicleDetail };
+// Bir filo üyesini geçici pasife alma / aktifleştirme.
+// Route yapısı: /company/fleet/:type/:id/pause veya /resume
+// (path-to-regexp v6 inline enum regex desteklemediği için pause/resume ayrı endpoints,
+//  type de :type olarak alınır — driver | vehicle bekliyoruz.)
+async function pauseMember(req, res) {
+  const type = req.params.type === 'drivers' ? 'driver' : 'vehicle';
+  const memberId = parseInt(req.params.id, 10);
+  try {
+    await FleetOverviewService.setPaused(
+      res.locals.currentCompany.id, type, memberId, true, req.session.userId
+    );
+    res.redirect(`/company/fleet/${req.params.type}/${memberId}`);
+  } catch (err) {
+    res.status(400).send(`Hata: ${err.message}. <a href="/company/fleet/${req.params.type}">Filoya dön</a>`);
+  }
+}
+
+async function resumeMember(req, res) {
+  const type = req.params.type === 'drivers' ? 'driver' : 'vehicle';
+  const memberId = parseInt(req.params.id, 10);
+  try {
+    await FleetOverviewService.setPaused(
+      res.locals.currentCompany.id, type, memberId, false, req.session.userId
+    );
+    res.redirect(`/company/fleet/${req.params.type}/${memberId}`);
+  } catch (err) {
+    res.status(400).send(`Hata: ${err.message}. <a href="/company/fleet/${req.params.type}">Filoya dön</a>`);
+  }
+}
+
+module.exports = { showDrivers, showVehicles, showDriverDetail, showVehicleDetail, pauseMember, resumeMember };

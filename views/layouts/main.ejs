@@ -5,10 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %> — OKUD</title>
 
-  <!-- Fonts: Manrope (UI) + Instrument Serif (accents) -->
+  <!-- Fonts: Inter (marka fontu) + JetBrains Mono (utility) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Kullanıcı dashboard sistemi (Palet 1 tokens + bento/k-* class'ları — .user-view scope'unda) -->
+  <link rel="stylesheet" href="/css/user.css">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -16,8 +19,9 @@
       theme: {
         extend: {
           fontFamily: {
-            sans:  ['Manrope', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+            sans:  ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+            serif: ['Inter', 'system-ui', 'sans-serif'],
+            mono:  ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
           },
           boxShadow: {
             'soft':    '0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06)',
@@ -51,16 +55,19 @@
     };
   </script>
 
+  <!-- Tabler icons (navbar) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css">
+
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    /* SweetAlert Manrope + rounded */
-    .swal2-popup { font-family: 'Manrope', system-ui, sans-serif !important; border-radius: 20px !important; padding: 1.75rem !important; }
+    /* SweetAlert Inter + rounded */
+    .swal2-popup { font-family: 'Inter', system-ui, sans-serif !important; border-radius: 20px !important; padding: 1.75rem !important; }
     .swal2-title { font-weight: 800 !important; font-size: 1.25rem !important; }
     .swal2-html-container { color: rgb(71 85 105) !important; font-size: 0.95rem !important; }
     .swal2-confirm, .swal2-cancel { border-radius: 12px !important; font-weight: 600 !important; padding: 0.6rem 1.25rem !important; font-size: 0.9rem !important; }
     .swal2-styled.swal2-confirm { background-color: #dc2626 !important; box-shadow: 0 8px 20px -6px rgba(220, 38, 38, 0.5) !important; }
-    .swal2-styled.swal2-confirm.confirm-blue { background-color: #0f172a !important; box-shadow: 0 8px 20px -6px rgba(15, 23, 42, 0.5) !important; }
+    .swal2-styled.swal2-confirm.confirm-blue { background-color: #0f2a4a !important; box-shadow: 0 8px 20px -6px rgba(15, 42, 74, 0.5) !important; }
     .swal2-styled.swal2-cancel { background-color: rgb(241 245 249) !important; color: rgb(51 65 85) !important; }
 
     /* Custom scrollbar */
@@ -69,15 +76,313 @@
     ::-webkit-scrollbar-thumb { background: rgb(203 213 225); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: rgb(148 163 184); }
 
-    /* Noise texture overlay */
-    .noise {
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      opacity: 0.015; mix-blend-mode: multiply;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    /* ═══════ NAVBAR — OKUD (Palet 1) ═══════ */
+    .okud-nav {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 0 0 1px rgba(15,42,74,0.08), 0 1px 3px rgba(15,42,74,0.04);
+      padding: 10px 16px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .okud-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex-shrink: 0; }
+    .okud-brand .logo {
+      position: relative; width: 34px; height: 34px; background: #0F2A4A;
+      border-radius: 9px; color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 15px; letter-spacing: -0.02em;
+    }
+    .okud-brand .logo::after {
+      content: ''; position: absolute; bottom: -2px; right: -2px;
+      width: 9px; height: 9px; background: #F59E0B; border-radius: 50%;
+      box-shadow: 0 0 0 2.5px white;
+    }
+    .okud-brand .name {
+      font-weight: 700; font-size: 17px; letter-spacing: -0.02em; color: #0F2A4A;
+    }
+    .okud-brand:hover .logo { transform: rotate(-3deg); transition: transform 200ms cubic-bezier(0.16,1,0.3,1); }
+
+    .okud-links { display: flex; align-items: center; gap: 2px; }
+    .okud-link {
+      position: relative;
+      padding: 8px 12px; font-size: 13.5px; font-weight: 500;
+      color: #64748B; text-decoration: none;
+      border-radius: 8px; white-space: nowrap;
+      transition: color 150ms ease, background 150ms ease;
+    }
+    .okud-link:hover { color: #0F172A; background: rgba(15,42,74,0.04); }
+    .okud-link.active { color: #0F172A; font-weight: 600; }
+    .okud-link.active::after {
+      content: ''; position: absolute; left: 12px; right: 12px; bottom: 2px;
+      height: 2px; background: #F59E0B; border-radius: 2px;
     }
 
-    /* Body içerik z-index */
-    main, header, footer { position: relative; z-index: 1; }
+    .okud-company-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: #F5F5F3; border: 1px solid rgba(15,42,74,0.08);
+      border-radius: 999px; padding: 5px 12px 5px 5px;
+      cursor: pointer; text-decoration: none;
+      transition: background 150ms ease, border-color 150ms ease;
+    }
+    .okud-company-pill:hover { background: white; border-color: rgba(15,42,74,0.16); }
+    .okud-company-pill .av {
+      width: 22px; height: 22px; border-radius: 50%; background: #0F2A4A;
+      color: white; font-size: 10px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .okud-company-pill .nm {
+      font-size: 12px; font-weight: 600; color: #0F172A;
+      max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .okud-company-pill .ic { font-size: 13px; color: #94A3B8; }
+
+    .okud-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .okud-bell-wrap { position: relative; }
+    .okud-icon-btn {
+      position: relative; width: 36px; height: 36px; border-radius: 9px;
+      background: transparent; border: none; color: #475569;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; text-decoration: none;
+      transition: background 150ms ease, color 150ms ease;
+    }
+    .okud-icon-btn:hover, .okud-icon-btn[aria-expanded="true"] { background: rgba(15,42,74,0.06); color: #0F172A; }
+    .okud-icon-btn .ic { font-size: 18px; }
+    .okud-icon-btn .badge {
+      position: absolute; top: 5px; right: 6px;
+      min-width: 16px; height: 16px; padding: 0 4px;
+      background: #DC2626; color: white; font-size: 10px; font-weight: 700;
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 0 2px white;
+    }
+
+    .okud-avatar-wrap { position: relative; }
+    .okud-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #0F2A4A; color: white; font-weight: 700; font-size: 12px;
+      border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: box-shadow 200ms ease;
+    }
+    .okud-avatar:hover, .okud-avatar[aria-expanded="true"] {
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.20);
+    }
+
+    .okud-dropdown {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      width: 240px; background: white; border-radius: 12px;
+      box-shadow: 0 0 0 1px rgba(15,42,74,0.08), 0 12px 24px -8px rgba(15,42,74,0.18);
+      padding: 6px; z-index: 40;
+      opacity: 0; transform: translateY(-4px); pointer-events: none;
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+    .okud-dropdown.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    /* Bildirim popover */
+    .okud-bell-popover {
+      position: absolute; top: calc(100% + 8px); right: 0;
+      width: 340px; max-width: calc(100vw - 32px);
+      background: white; border-radius: 12px;
+      box-shadow: 0 0 0 1px rgba(15,42,74,0.08), 0 12px 24px -8px rgba(15,42,74,0.18);
+      z-index: 40; overflow: hidden;
+      opacity: 0; transform: translateY(-4px); pointer-events: none;
+      transition: opacity 150ms ease, transform 150ms ease;
+    }
+    .okud-bell-popover.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .okud-bell-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px; border-bottom: 1px solid rgba(15,42,74,0.06);
+    }
+    .okud-bell-head .t { font-size: 13px; font-weight: 700; color: #0F172A; }
+    .okud-bell-head .cnt {
+      font-size: 11px; color: white; background: #DC2626;
+      padding: 2px 7px; border-radius: 999px; font-weight: 700;
+    }
+    .okud-bell-head .cnt.zero { background: rgba(15,42,74,0.08); color: #64748B; }
+    .okud-bell-list { max-height: 380px; overflow-y: auto; }
+    .okud-bell-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 11px 14px; border-bottom: 1px solid rgba(15,42,74,0.04);
+      text-decoration: none; color: inherit;
+    }
+    .okud-bell-item:last-child { border-bottom: none; }
+    .okud-bell-item:hover { background: rgba(15,42,74,0.03); }
+    .okud-bell-item.unread { background: rgba(245, 158, 11, 0.05); }
+    .okud-bell-item .dot {
+      width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0;
+      background: transparent;
+    }
+    .okud-bell-item.unread .dot { background: #F59E0B; box-shadow: 0 0 0 2px rgba(245,158,11,0.20); }
+    .okud-bell-item .info { flex: 1; min-width: 0; }
+    .okud-bell-item .info .tt {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 13px; font-weight: 500; color: #0F172A; line-height: 1.4;
+      overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+      -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    }
+    .okud-bell-item.unread .info .tt { font-weight: 600; }
+    .okud-bell-item .info .mt {
+      font-size: 11px; color: #94A3B8; margin-top: 3px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .okud-bell-item .info .mt .comp {
+      color: #0F2A4A; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .okud-bell-empty {
+      padding: 30px 20px; text-align: center; color: #94A3B8; font-size: 13px;
+    }
+    .okud-bell-empty i { font-size: 28px; color: #CBD5E1; margin-bottom: 8px; display: block; }
+    .okud-bell-loading { padding: 24px; text-align: center; color: #94A3B8; font-size: 12px; }
+    .okud-bell-foot {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 14px; border-top: 1px solid rgba(15,42,74,0.06);
+      background: #FAFAF9;
+      color: #0F2A4A; font-size: 12.5px; font-weight: 600;
+      text-decoration: none;
+    }
+    .okud-bell-foot:hover { background: white; }
+    .okud-bell-foot .ic { font-size: 14px; }
+
+    /* E-posta doğrulama bandı */
+    .okud-verify-wrap { margin-top: 40px; }
+    .okud-verify-banner {
+      padding: 12px 16px;
+      background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 12px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 13px; color: #78350F;
+      box-shadow: 0 1px 2px rgba(15,42,74,0.03);
+    }
+    .okud-verify-banner .ic {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: rgba(180, 83, 9, 0.15); color: #B45309;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-size: 18px;
+    }
+    .okud-verify-banner .msg { flex: 1; min-width: 0; line-height: 1.4; }
+    .okud-verify-banner .msg b { color: #78350F; font-weight: 700; }
+    .okud-verify-banner form { margin: 0; flex-shrink: 0; }
+    .okud-verify-banner button {
+      background: #78350F; color: white; border: none; border-radius: 8px;
+      padding: 8px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+      font-family: inherit; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background 150ms ease;
+    }
+    .okud-verify-banner button:hover { background: #92400E; }
+    .okud-verify-banner button i { font-size: 14px; }
+    .okud-verify-banner .sent {
+      background: rgba(120, 53, 15, 0.10); color: #78350F;
+      padding: 8px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600;
+      white-space: nowrap;
+    }
+    @media (max-width: 640px) {
+      .okud-verify-banner {
+        flex-wrap: wrap; padding: 12px 14px; gap: 10px;
+      }
+      .okud-verify-banner .msg { flex: 1 1 100%; order: 2; }
+      .okud-verify-banner .ic { order: 1; }
+      .okud-verify-banner form,
+      .okud-verify-banner .sent { flex: 1 1 100%; order: 3; }
+      .okud-verify-banner button { width: 100%; justify-content: center; }
+    }
+
+    /* Şifre göster/gizle — global (input[type=password]) */
+    .pw-wrap { position: relative; display: block; }
+    .pw-wrap input { padding-right: 42px; }
+    .pw-toggle {
+      position: absolute; top: 50%; right: 6px;
+      transform: translateY(-50%);
+      width: 30px; height: 30px; border-radius: 7px;
+      background: transparent; border: none; cursor: pointer;
+      color: #94A3B8; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 150ms ease, color 150ms ease;
+    }
+    .pw-toggle:hover { color: #0F2A4A; background: rgba(15,42,74,0.08); }
+    .pw-toggle:focus-visible { outline: 2px solid #0F2A4A; outline-offset: 1px; }
+    .pw-toggle i { font-size: 16px; }
+    .okud-dd-head {
+      padding: 12px 12px 10px;
+      border-bottom: 1px solid rgba(15,42,74,0.06);
+    }
+    .okud-dd-head .n { font-size: 13px; font-weight: 600; color: #0F172A; }
+    .okud-dd-head .m { font-size: 11px; color: #64748B; margin-top: 2px; word-break: break-all; }
+    .okud-dd-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px;
+      font-size: 13px; color: #0F172A; text-decoration: none;
+      background: transparent; border: none; cursor: pointer;
+      width: 100%; text-align: left; font-family: inherit;
+    }
+    .okud-dd-item:hover { background: rgba(15,42,74,0.05); }
+    .okud-dd-item .ic { font-size: 16px; color: #64748B; flex-shrink: 0; }
+    .okud-dd-item.is-admin .ic { color: #7C3AED; }
+    .okud-dd-item.is-danger { color: #DC2626; }
+    .okud-dd-item.is-danger .ic { color: #DC2626; }
+    .okud-dd-sep { height: 1px; background: rgba(15,42,74,0.06); margin: 6px 4px; }
+
+    .okud-burger {
+      display: none;
+      width: 38px; height: 38px; border-radius: 9px;
+      background: rgba(15,42,74,0.06); color: #0F2A4A;
+      border: none; cursor: pointer;
+      align-items: center; justify-content: center;
+      position: relative;
+    }
+    .okud-burger .ic { font-size: 20px; }
+    .okud-burger .badge {
+      position: absolute; top: 6px; right: 6px;
+      width: 8px; height: 8px; background: #DC2626; border-radius: 50%;
+      box-shadow: 0 0 0 2px white;
+    }
+
+    @media (max-width: 900px) {
+      .okud-nav { gap: 12px; padding: 10px 12px; }
+      .okud-links, .okud-company-pill, .okud-actions { display: none; }
+      .okud-burger { display: inline-flex; }
+    }
+
+    /* Mobil menü — sadeleştirilmiş */
+    .okud-mobile-menu {
+      margin-top: 8px; background: white; border-radius: 14px;
+      box-shadow: 0 0 0 1px rgba(15,42,74,0.08), 0 8px 24px -12px rgba(15,42,74,0.14);
+      overflow: hidden;
+    }
+    .okud-mobile-menu.hidden { display: none; }
+    .okud-mobile-head {
+      padding: 14px 16px; background: #F5F5F3;
+      border-bottom: 1px solid rgba(15,42,74,0.06);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .okud-mobile-head .av {
+      width: 38px; height: 38px; border-radius: 50%; background: #0F2A4A;
+      color: white; font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .okud-mobile-head .n { font-size: 14px; font-weight: 700; color: #0F172A; }
+    .okud-mobile-head .m {
+      font-size: 11px; color: #64748B; display: flex; align-items: center; gap: 6px; margin-top: 2px;
+    }
+    .okud-mobile-head .m::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%; background: #F59E0B;
+    }
+    .okud-mobile-links { padding: 6px; display: flex; flex-direction: column; gap: 1px; }
+    .okud-mobile-links a, .okud-mobile-links button {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 12px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: #0F172A;
+      text-decoration: none; background: transparent; border: none;
+      width: 100%; text-align: left; font-family: inherit; cursor: pointer;
+    }
+    .okud-mobile-links a:hover, .okud-mobile-links button:hover { background: rgba(15,42,74,0.05); }
+    .okud-mobile-links .ic { font-size: 18px; color: #64748B; flex-shrink: 0; }
+    .okud-mobile-links .admin { color: #7C3AED; }
+    .okud-mobile-links .admin .ic { color: #7C3AED; }
+    .okud-mobile-links .logout { color: #DC2626; margin-top: 4px; border-top: 1px solid rgba(15,42,74,0.06); border-radius: 0 0 10px 10px; padding-top: 12px; }
+    .okud-mobile-links .logout .ic { color: #DC2626; }
+    .okud-mobile-links .badge {
+      margin-left: auto; min-width: 22px; height: 22px; padding: 0 6px;
+      background: #DC2626; color: white; font-size: 11px; font-weight: 700;
+      border-radius: 11px; display: flex; align-items: center; justify-content: center;
+    }
 
     /* Dialog soft-open animasyonu — sadece <dialog> elementleri için */
     dialog {
@@ -120,205 +425,197 @@
     }
   </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 antialiased flex flex-col selection:bg-slate-900 selection:text-white overflow-x-hidden">
+<body class="min-h-screen text-slate-800 antialiased flex flex-col selection:bg-slate-900 selection:text-white overflow-x-hidden" style="background:#FAFAF9;">
 
-  <!-- Subtle animated background mesh -->
-  <div class="fixed inset-0 -z-0 overflow-hidden pointer-events-none">
-    <div class="absolute top-0 -left-20 w-96 h-96 bg-blue-200/30 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-    <div class="absolute top-1/3 -right-20 w-96 h-96 bg-purple-200/30 rounded-full mix-blend-multiply filter blur-3xl animate-blob" style="animation-delay: 4s;"></div>
-    <div class="absolute bottom-0 left-1/3 w-96 h-96 bg-emerald-200/20 rounded-full mix-blend-multiply filter blur-3xl animate-blob" style="animation-delay: 8s;"></div>
-  </div>
-  <div class="noise"></div>
-
+<% if (!locals.hideChrome) { %>
   <header class="sticky top-3 sm:top-4 z-30 mx-3 sm:mx-4">
     <div class="max-w-6xl mx-auto">
-      <div class="flex items-center gap-2 sm:gap-3 rounded-2xl bg-white/70 backdrop-blur-2xl ring-1 ring-slate-900/5 shadow-soft-lg px-3 sm:px-4 py-2 sm:py-2.5">
-        <!-- LOGO -->
-        <a href="/" class="flex items-center gap-2 group flex-shrink-0">
-          <span class="relative inline-flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 text-sm font-black text-white shadow-lg shadow-slate-900/30 group-hover:scale-105 group-hover:rotate-3 transition-transform ring-1 ring-white/10">
-            <span class="relative">O</span>
-            <span class="absolute -inset-px rounded-xl bg-gradient-to-t from-white/0 via-white/0 to-white/20"></span>
-          </span>
-          <span class="text-base sm:text-lg font-black tracking-tight text-slate-900 hidden xs:inline sm:inline">OKUD</span>
-        </a>
 
-        <div class="w-px h-6 bg-slate-200 hidden md:block"></div>
+      <% if (currentUser) { %>
+        <%
+          const userInitials = currentUser.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase();
+          const companyInitial = currentCompany ? (currentCompany.name || '?').trim()[0].toUpperCase() : '';
+        %>
+        <nav class="okud-nav">
+          <!-- Marka -->
+          <a href="/dashboard" class="okud-brand">
+            <span class="logo">O</span>
+            <span class="name">OKUD</span>
+          </a>
 
-        <!-- DESKTOP NAV — orta -->
-        <nav class="hidden md:flex items-center gap-0.5 text-sm mr-auto">
-          <% if (currentUser) { %>
-            <a href="/dashboard" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition font-semibold">Dashboard</a>
+          <!-- Orta linkler -->
+          <div class="okud-links">
             <% if (currentCompany) { %>
-              <a href="/company/fleet/drivers" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition font-semibold">Filo</a>
-              <a href="/company/contracts" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition font-semibold">Sözleşmeler</a>
+              <a href="/dashboard"          class="okud-link" data-match="/dashboard">Dashboard</a>
+              <a href="/company/fleet/drivers" class="okud-link" data-match="/company/fleet">Filo</a>
+              <a href="/company/contracts"  class="okud-link" data-match="/company/contracts">Sözleşmeler</a>
+              <a href="/notifications"      class="okud-link" data-match="/notifications">Bildirimler</a>
+            <% } else { %>
+              <a href="/dashboard"          class="okud-link" data-match="/dashboard">Dashboard</a>
+              <a href="/profile"            class="okud-link" data-match="/profile">Profilim</a>
+              <a href="/vehicles"           class="okud-link" data-match="/vehicles">Araçlarım</a>
+              <a href="/notifications"      class="okud-link" data-match="/notifications">Bildirimler</a>
             <% } %>
-          <% } else { %>
-            <a href="/" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition font-semibold">Anasayfa</a>
-          <% } %>
-        </nav>
+          </div>
 
-        <!-- Aktif kurum pill (sadece geniş) -->
-        <% if (currentUser && currentCompany) { %>
-          <span class="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-slate-50 ring-1 ring-slate-200/60 px-3 py-1 text-xs text-slate-700 font-semibold max-w-[200px]">
-            <span class="relative flex h-2 w-2 flex-shrink-0">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span class="truncate"><%= currentCompany.name %></span>
-          </span>
-        <% } %>
-
-        <!-- SAĞ: Auth actions (desktop) -->
-        <div class="flex items-center gap-2 ml-auto md:ml-0">
-          <% if (currentUser) { %>
-            <% if (currentUser.isSuperadmin) { %>
-              <a href="/admin" class="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 text-white px-3 py-1.5 font-semibold transition text-xs shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5">
-                  <path fill-rule="evenodd" d="M11.484 2.17a.75.75 0 011.032 0 11.209 11.209 0 007.877 3.08.75.75 0 01.722.515 12.74 12.74 0 01.635 3.985c0 5.942-4.064 10.933-9.563 12.348a.75.75 0 01-.374 0C6.314 20.683 2.25 15.692 2.25 9.75c0-1.39.223-2.73.635-3.985a.75.75 0 01.722-.516l.143.001c2.996 0 5.718-1.17 7.734-3.08z" clip-rule="evenodd" />
-                </svg>
-                Admin
-              </a>
-            <% } %>
-
-            <!-- Bildirim zili (desktop) -->
-            <a href="/notifications" title="Bildirimler"
-               class="relative hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-full bg-slate-100/60 text-slate-600 hover:text-slate-900 hover:bg-white transition">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4.5 w-4.5" style="width:18px;height:18px">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-              </svg>
-              <% if (notificationUnreadCount > 0) { %>
-                <span class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black leading-none ring-2 ring-white">
-                  <%= notificationUnreadCount > 9 ? '9+' : notificationUnreadCount %>
-                </span>
-                <span class="absolute -top-0.5 -right-0.5 inline-flex h-[18px] min-w-[18px] rounded-full bg-red-500/60 animate-ping"></span>
-              <% } %>
+          <!-- Kurum pill (aktif kurum varsa) -->
+          <% if (currentCompany) { %>
+            <a href="/dashboard" class="okud-company-pill" title="Kurumu değiştir">
+              <span class="av"><%= companyInitial %></span>
+              <span class="nm"><%= currentCompany.name %></span>
+              <i class="ti ti-selector ic"></i>
             </a>
+          <% } %>
 
-            <!-- User avatar + isim (desktop) + Çıkış (desktop) -->
-            <div class="hidden sm:flex items-center gap-2 rounded-full bg-slate-100/60 pr-1 pl-1 py-1">
-              <a href="/profile" title="Profilim" class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-slate-900 to-slate-700 text-white text-[11px] font-bold hover:ring-2 hover:ring-slate-900 hover:ring-offset-1 hover:ring-offset-slate-100 transition">
-                <%= currentUser.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() %>
-              </a>
-              <a href="/profile" class="text-xs font-semibold text-slate-700 hover:text-slate-900 transition hidden lg:inline pr-1"><%= currentUser.name.split(' ')[0] %></a>
-              <form action="/logout" method="POST" class="inline">
-                <button type="submit" title="Çıkış" class="inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-400 hover:text-slate-900 hover:bg-white transition">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-3.5 w-3.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                  </svg>
-                </button>
-              </form>
+          <!-- Sağ aksiyonlar -->
+          <div class="okud-actions">
+            <!-- Bildirim + popover -->
+            <div class="okud-bell-wrap">
+              <button type="button" id="bell-btn" class="okud-icon-btn" aria-haspopup="menu" aria-expanded="false" aria-label="Bildirimler">
+                <i class="ti ti-bell ic"></i>
+                <% if (notificationUnreadCount > 0) { %>
+                  <span class="badge" id="bell-badge"><%= notificationUnreadCount > 9 ? '9+' : notificationUnreadCount %></span>
+                <% } %>
+              </button>
+              <div id="bell-popover" class="okud-bell-popover" role="menu">
+                <div class="okud-bell-head">
+                  <span class="t">Bildirimler</span>
+                  <span class="cnt <%= notificationUnreadCount > 0 ? '' : 'zero' %>" id="bell-head-count">
+                    <%= notificationUnreadCount > 99 ? '99+' : notificationUnreadCount %> yeni
+                  </span>
+                </div>
+                <div class="okud-bell-list" id="bell-list">
+                  <div class="okud-bell-loading">Yükleniyor…</div>
+                </div>
+                <a href="/notifications" class="okud-bell-foot">
+                  Tümünü gör
+                  <i class="ti ti-arrow-right ic"></i>
+                </a>
+              </div>
             </div>
 
-            <!-- MOBIL: hamburger butonu -->
-            <button type="button" id="mobile-menu-btn" aria-label="Menü"
-                    class="relative md:hidden inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
-              <% if (notificationUnreadCount > 0) { %>
-                <span class="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-slate-100"></span>
-              <% } %>
-            </button>
-          <% } else { %>
-            <a href="/register" class="hidden sm:inline-block px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 transition font-semibold text-sm">Kayıt Ol</a>
-            <a href="/login" class="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3 sm:px-4 py-2 text-white font-semibold hover:bg-slate-800 transition shadow-lg shadow-slate-900/25 text-sm">
-              Giriş
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-3.5 w-3.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </a>
-          <% } %>
-        </div>
-      </div>
-
-      <!-- MOBIL MENÜ (hamburger açınca gelir) -->
-      <% if (currentUser) { %>
-        <div id="mobile-menu" class="hidden md:hidden mt-2 rounded-2xl bg-white ring-1 ring-slate-900/5 shadow-soft-lg overflow-hidden">
-          <!-- Kullanıcı bilgi çubuğu -->
-          <div class="px-4 py-3 bg-slate-50/60 border-b border-slate-100 flex items-center gap-3">
-            <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-slate-900 to-slate-700 text-white text-xs font-bold flex-shrink-0">
-              <%= currentUser.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase() %>
-            </span>
-            <div class="min-w-0 flex-1">
-              <p class="text-sm font-bold text-slate-900 truncate"><%= currentUser.name %></p>
-              <% if (currentCompany) { %>
-                <p class="text-[11px] text-slate-500 truncate flex items-center gap-1">
-                  <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                  <%= currentCompany.name %>
-                </p>
-              <% } %>
+            <!-- Avatar + dropdown -->
+            <div class="okud-avatar-wrap">
+              <button type="button" id="user-menu-btn" class="okud-avatar" aria-haspopup="menu" aria-expanded="false" aria-label="Kullanıcı menüsü">
+                <%= userInitials %>
+              </button>
+              <div id="user-menu" class="okud-dropdown" role="menu">
+                <div class="okud-dd-head">
+                  <div class="n"><%= currentUser.name %></div>
+                  <div class="m"><%= currentUser.email || '' %></div>
+                </div>
+                <a href="/profile" class="okud-dd-item"><i class="ti ti-user ic"></i>Profilim</a>
+                <a href="/driver/profile" class="okud-dd-item"><i class="ti ti-steering-wheel ic"></i>Şoför Profilim</a>
+                <a href="/vehicles" class="okud-dd-item"><i class="ti ti-car ic"></i>Araçlarım</a>
+                <a href="/hostess" class="okud-dd-item"><i class="ti ti-users ic"></i>Hosteslerim</a>
+                <% if (currentUser.isSuperadmin) { %>
+                  <div class="okud-dd-sep"></div>
+                  <a href="/admin" class="okud-dd-item is-admin"><i class="ti ti-shield ic"></i>Admin Paneli</a>
+                <% } %>
+                <div class="okud-dd-sep"></div>
+                <form action="/logout" method="POST" style="margin:0;">
+                  <button type="submit" class="okud-dd-item is-danger"><i class="ti ti-logout ic"></i>Çıkış</button>
+                </form>
+              </div>
             </div>
           </div>
 
-          <!-- Nav linkleri -->
-          <nav class="p-2 flex flex-col gap-0.5">
-            <a href="/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
-              Dashboard
-            </a>
-            <a href="/profile" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
-              Profilim
-            </a>
+          <!-- Mobil hamburger -->
+          <button type="button" id="mobile-menu-btn" class="okud-burger" aria-label="Menü">
+            <i class="ti ti-menu-2 ic"></i>
+            <% if (notificationUnreadCount > 0) { %><span class="badge"></span><% } %>
+          </button>
+        </nav>
+
+        <!-- MOBIL menü -->
+        <div id="mobile-menu" class="okud-mobile-menu hidden">
+          <div class="okud-mobile-head">
+            <div class="av"><%= userInitials %></div>
+            <div style="min-width:0; flex:1;">
+              <div class="n"><%= currentUser.name %></div>
+              <% if (currentCompany) { %>
+                <div class="m"><%= currentCompany.name %></div>
+              <% } %>
+            </div>
+          </div>
+          <div class="okud-mobile-links">
+            <a href="/dashboard"><i class="ti ti-home ic"></i>Dashboard</a>
+            <a href="/profile"><i class="ti ti-user ic"></i>Profilim</a>
             <% if (currentCompany) { %>
-              <a href="/company/fleet/drivers" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
-                Filo Paneli
-              </a>
-              <a href="/company/contracts" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
-                Sözleşmeler
-              </a>
+              <a href="/company/fleet/drivers"><i class="ti ti-users ic"></i>Filo Paneli</a>
+              <a href="/company/contracts"><i class="ti ti-file-text ic"></i>Sözleşmeler</a>
             <% } %>
-            <a href="/driver/profile" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              Şoför Profilim
-            </a>
-            <a href="/vehicles" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
-              Araçlarım
-            </a>
-            <a href="/notifications" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-700 hover:bg-slate-100 transition font-semibold text-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>
-              Bildirimlerim
+            <a href="/driver/profile"><i class="ti ti-steering-wheel ic"></i>Şoför Profilim</a>
+            <a href="/vehicles"><i class="ti ti-car ic"></i>Araçlarım</a>
+            <a href="/hostess"><i class="ti ti-user-heart ic"></i>Hosteslerim</a>
+            <a href="/notifications">
+              <i class="ti ti-bell ic"></i>Bildirimler
               <% if (notificationUnreadCount > 0) { %>
-                <span class="ml-auto inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full bg-red-500 text-white text-[11px] font-black">
-                  <%= notificationUnreadCount > 99 ? '99+' : notificationUnreadCount %>
-                </span>
+                <span class="badge"><%= notificationUnreadCount > 99 ? '99+' : notificationUnreadCount %></span>
               <% } %>
             </a>
             <% if (currentUser.isSuperadmin) { %>
-              <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-violet-700 bg-violet-50 hover:bg-violet-100 transition font-semibold text-sm mt-1">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5"><path fill-rule="evenodd" d="M11.484 2.17a.75.75 0 011.032 0 11.209 11.209 0 007.877 3.08.75.75 0 01.722.515 12.74 12.74 0 01.635 3.985c0 5.942-4.064 10.933-9.563 12.348a.75.75 0 01-.374 0C6.314 20.683 2.25 15.692 2.25 9.75c0-1.39.223-2.73.635-3.985a.75.75 0 01.722-.516l.143.001c2.996 0 5.718-1.17 7.734-3.08z" clip-rule="evenodd" /></svg>
-                Admin Panel
-              </a>
+              <a href="/admin" class="admin"><i class="ti ti-shield ic"></i>Admin Paneli</a>
             <% } %>
-            <form action="/logout" method="POST" class="mt-1 border-t border-slate-100 pt-2">
-              <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-600 hover:bg-red-50 transition font-semibold text-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
-                Çıkış
-              </button>
+            <form action="/logout" method="POST" style="margin:0;">
+              <button type="submit" class="logout"><i class="ti ti-logout ic"></i>Çıkış</button>
             </form>
-          </nav>
+          </div>
         </div>
+
+      <% } else { %>
+        <!-- Auth öncesi (login/register) -->
+        <nav class="okud-nav">
+          <a href="/" class="okud-brand">
+            <span class="logo">O</span>
+            <span class="name">OKUD</span>
+          </a>
+          <div class="okud-actions">
+            <a href="/register" class="okud-link">Kayıt Ol</a>
+            <a href="/login" style="background:#0F2A4A; color:white; padding:8px 18px; border-radius:9px; font-size:13.5px; font-weight:600; text-decoration:none;">Giriş</a>
+          </div>
+        </nav>
       <% } %>
+
     </div>
   </header>
 
-  <main class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 flex-1 animate-fade-up">
+  <% if (currentUser && !currentUser.emailVerifiedAt) { %>
+    <div class="okud-verify-wrap mx-3 sm:mx-4">
+      <div class="max-w-6xl mx-auto">
+        <div class="okud-verify-banner">
+          <span class="ic"><i class="ti ti-mail-exclamation" aria-hidden="true"></i></span>
+          <div class="msg">
+            <b><%= currentUser.email %></b> adresini henüz doğrulamadın. Doğrulanmış hesap tüm özelliklere erişir.
+          </div>
+          <form action="/verify-email/resend" method="POST">
+            <button type="submit"><i class="ti ti-send"></i>Doğrulama linki gönder</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  <% } %>
+<% } %>
+
+  <main class="<%= locals.hideChrome ? 'w-full flex-1' : 'max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 flex-1' %>">
     <%- body %>
   </main>
 
+<% if (!locals.hideChrome) { %>
   <footer class="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 mt-4 sm:mt-8">
-    <div class="flex items-center justify-center gap-3 text-xs text-slate-400">
-      <span class="inline-flex h-5 w-5 items-center justify-center rounded-md bg-gradient-to-br from-slate-900 to-slate-700 text-[10px] font-black text-white shadow-md shadow-slate-900/20">O</span>
-      <span>OKUD</span>
-      <span class="text-slate-300">·</span>
+    <div class="flex items-center justify-center gap-3 text-xs" style="color:#94A3B8;">
+      <span style="position:relative; display:inline-flex; width:18px; height:18px; background:#0F2A4A; border-radius:5px; color:white; align-items:center; justify-content:center; font-weight:800; font-size:10px;">
+        O
+        <span style="position:absolute; bottom:-2px; right:-2px; width:6px; height:6px; background:#F59E0B; border-radius:50%; box-shadow:0 0 0 1.5px #FAFAF9;"></span>
+      </span>
+      <span style="font-weight:600; color:#0F2A4A;">OKUD</span>
+      <span style="color:#CBD5E1;">·</span>
       <span>Kurumsal Ulaşım ve Belge Denetim</span>
-      <span class="text-slate-300">·</span>
-      <span class="font-serif italic text-slate-500">v0.1</span>
+      <span style="color:#CBD5E1;">·</span>
+      <span>v0.1</span>
     </div>
   </footer>
+<% } %>
 
   <script>
     // ─────────────────────────────────────────
@@ -365,9 +662,195 @@
         menuBtn.addEventListener('click', function () {
           menu.classList.toggle('hidden');
         });
-        // Bir link tıklanırsa menüyü kapat (SPA hissi)
         menu.querySelectorAll('a').forEach(function (a) {
           a.addEventListener('click', function () { menu.classList.add('hidden'); });
+        });
+      }
+
+      // AKTİF LİNK — data-match ile pathname eşleşen linke .active
+      const path = window.location.pathname;
+      document.querySelectorAll('.okud-link[data-match]').forEach(function (a) {
+        const m = a.getAttribute('data-match');
+        if (path === m || path.startsWith(m + '/')) a.classList.add('active');
+      });
+
+      // AVATAR DROPDOWN
+      const avBtn = document.getElementById('user-menu-btn');
+      const avMenu = document.getElementById('user-menu');
+      if (avBtn && avMenu) {
+        avBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          const isOpen = avMenu.classList.toggle('open');
+          avBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          if (isOpen) closeBell();
+        });
+        document.addEventListener('click', function (e) {
+          if (!avMenu.contains(e.target) && e.target !== avBtn) {
+            avMenu.classList.remove('open');
+            avBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') {
+            avMenu.classList.remove('open');
+            avBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      // Doğrulama maili gönderildi bildirimi (banner tarafından tetiklenir)
+      if (window.location.search.indexOf('verifysent=1') !== -1) {
+        window.toast && window.toast('Doğrulama linki e-postana gönderildi', 'success');
+        // URL'i temizle — sayfa yenilenirse tekrar göstermesin
+        if (window.history && window.history.replaceState) {
+          const clean = window.location.pathname +
+            window.location.search.replace(/[?&]verifysent=1/, '').replace(/^&/, '?');
+          window.history.replaceState({}, document.title, clean);
+        }
+      }
+
+      // ŞİFRE GÖSTER/GİZLE — tüm sayfalardaki input[type=password]'e göz butonu ekle
+      (function enhancePasswordInputs() {
+        const inputs = document.querySelectorAll('input[type="password"]');
+        inputs.forEach(function (inp) {
+          if (inp.dataset.pwEnhanced) return;
+          inp.dataset.pwEnhanced = '1';
+
+          const wrap = document.createElement('div');
+          wrap.className = 'pw-wrap';
+          inp.parentNode.insertBefore(wrap, inp);
+          wrap.appendChild(inp);
+
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'pw-toggle';
+          btn.setAttribute('aria-label', 'Şifreyi göster');
+          btn.setAttribute('tabindex', '-1');
+          btn.innerHTML = '<i class="ti ti-eye" aria-hidden="true"></i>';
+          wrap.appendChild(btn);
+
+          btn.addEventListener('click', function () {
+            const isPw = inp.type === 'password';
+            inp.type = isPw ? 'text' : 'password';
+            const icon = btn.querySelector('i');
+            icon.className = isPw ? 'ti ti-eye-off' : 'ti ti-eye';
+            btn.setAttribute('aria-label', isPw ? 'Şifreyi gizle' : 'Şifreyi göster');
+          });
+        });
+      })();
+
+      // BELL POPOVER
+      const bellBtn = document.getElementById('bell-btn');
+      const bellPop = document.getElementById('bell-popover');
+      const bellList = document.getElementById('bell-list');
+      const bellHeadCount = document.getElementById('bell-head-count');
+      let bellLoaded = false;
+
+      function closeBell() {
+        if (!bellPop) return;
+        bellPop.classList.remove('open');
+        if (bellBtn) bellBtn.setAttribute('aria-expanded', 'false');
+      }
+      function closeAvatar() {
+        if (!avMenu) return;
+        avMenu.classList.remove('open');
+        if (avBtn) avBtn.setAttribute('aria-expanded', 'false');
+      }
+
+      function relTime(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        const now = new Date();
+        const diffSec = Math.round((now - d) / 1000);
+        if (diffSec < 60)   return 'az önce';
+        const diffMin = Math.round(diffSec / 60);
+        if (diffMin < 60)   return diffMin + ' dakika önce';
+        const diffH = Math.round(diffMin / 60);
+        if (diffH < 24)     return diffH + ' saat önce';
+        const diffD = Math.round(diffH / 24);
+        if (diffD === 1)    return 'dün';
+        if (diffD < 7)      return diffD + ' gün önce';
+        return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      }
+      function esc(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      }
+
+      function renderBell(data) {
+        const items = (data && data.items) || [];
+        const unread = data ? data.unreadCount : 0;
+
+        // Badge güncelle
+        if (bellHeadCount) {
+          bellHeadCount.textContent = (unread > 99 ? '99+' : unread) + ' yeni';
+          bellHeadCount.classList.toggle('zero', unread === 0);
+        }
+        const oldBadge = document.getElementById('bell-badge');
+        if (unread > 0) {
+          if (oldBadge) {
+            oldBadge.textContent = unread > 9 ? '9+' : unread;
+          } else if (bellBtn) {
+            const b = document.createElement('span');
+            b.id = 'bell-badge'; b.className = 'badge';
+            b.textContent = unread > 9 ? '9+' : unread;
+            bellBtn.appendChild(b);
+          }
+        } else if (oldBadge) {
+          oldBadge.remove();
+        }
+
+        if (items.length === 0) {
+          bellList.innerHTML = '<div class="okud-bell-empty"><i class="ti ti-bell-off"></i>Şu an bildirimin yok.</div>';
+          return;
+        }
+        bellList.innerHTML = items.map(function (n) {
+          const isUnread = !n.read_at;
+          return (
+            '<a href="/notifications" class="okud-bell-item ' + (isUnread ? 'unread' : '') + '">' +
+              '<span class="dot"></span>' +
+              '<div class="info">' +
+                '<div class="tt">' + esc(n.title) + '</div>' +
+                '<div class="mt">' +
+                  '<span>' + esc(relTime(n.created_at)) + '</span>' +
+                  (n.company_name ? '<span>·</span><span class="comp">' + esc(n.company_name) + '</span>' : '') +
+                '</div>' +
+              '</div>' +
+            '</a>'
+          );
+        }).join('');
+      }
+
+      async function loadBell() {
+        try {
+          const r = await fetch('/notifications/recent.json', { credentials: 'same-origin' });
+          if (!r.ok) throw new Error('http ' + r.status);
+          const data = await r.json();
+          renderBell(data);
+          bellLoaded = true;
+        } catch (err) {
+          bellList.innerHTML = '<div class="okud-bell-empty">Bildirimler yüklenemedi.</div>';
+        }
+      }
+
+      if (bellBtn && bellPop) {
+        bellBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          const isOpen = bellPop.classList.toggle('open');
+          bellBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          if (isOpen) {
+            closeAvatar();
+            if (!bellLoaded) loadBell();
+          }
+        });
+        document.addEventListener('click', function (e) {
+          if (!bellPop.contains(e.target) && e.target !== bellBtn && !bellBtn.contains(e.target)) {
+            closeBell();
+          }
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') closeBell();
         });
       }
     })();

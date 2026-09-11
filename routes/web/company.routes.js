@@ -10,4 +10,6 @@ router.post('/create', CompanyController.create);
 router.post('/switch', CompanyController.switchCompany);
 router.post('/clear',  CompanyController.clearCurrentCompany);
 
+router.get('/:id/relationship', CompanyController.showRelationship);
+
 module.exports = router;

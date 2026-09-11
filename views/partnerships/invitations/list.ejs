@@ -3,7 +3,7 @@
   <div class="flex items-start justify-between flex-wrap gap-4">
     <div>
       <p class="text-xs font-bold uppercase tracking-widest text-purple-600 mb-2">İş Ortaklığı Davetleri</p>
-      <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">
+      <h1 class="text-2xl sm:text-4xl font-bold text-slate-900 tracking-tight">
         Bekleyen <span class="font-serif italic text-slate-500">kodlar</span>
       </h1>
       <p class="text-slate-500 mt-2"><%= currentCompany.name %> · karşı kuruma ilettiğin, henüz kabul edilmemiş kodlar</p>
@@ -16,7 +16,7 @@
   </div>
 
   <% if (invitations.length === 0) { %>
-    <div class="relative overflow-hidden bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-3xl p-12 text-center">
+    <div class="relative overflow-hidden bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-3xl p-8 sm:p-12 text-center">
       <div class="absolute top-0 right-0 w-64 h-64 bg-purple-300/30 rounded-full blur-3xl"></div>
       <div class="relative">
         <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-lg text-purple-600 mb-4">

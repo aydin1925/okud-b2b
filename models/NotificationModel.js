@@ -42,19 +42,26 @@ async function create({ user_id, company_id, type, document_id, threshold_days, 
 
 // filter değerleri: 'all' | 'personal' | 'company' | 'unread'
 // Bilinmeyen değerler 'all' gibi davranır.
-async function findByUserId(userId, { filter = 'all' } = {}) {
+async function findByUserId(userId, { filter = 'all', limit = null } = {}) {
   let extra = '';
   if (filter === 'personal')      extra = ' AND n.company_id IS NULL';
   else if (filter === 'company')  extra = ' AND n.company_id IS NOT NULL';
   else if (filter === 'unread')   extra = ' AND n.read_at IS NULL';
+
+  const params = [userId];
+  let limitClause = '';
+  if (Number.isFinite(limit) && limit > 0) {
+    limitClause = ' LIMIT ?';
+    params.push(limit);
+  }
 
   const [rows] = await db.query(
     `SELECT n.*, c.name AS company_name
        FROM notifications n
        LEFT JOIN companies c ON c.id = n.company_id
       WHERE n.user_id = ? AND n.deleted_at IS NULL${extra}
-      ORDER BY n.created_at DESC`,
-    [userId]
+      ORDER BY n.created_at DESC${limitClause}`,
+    params
   );
   return rows;
 }
@@ -137,8 +144,44 @@ async function softDeleteAllForUser(userId, { filter = 'all' } = {}) {
   return result.affectedRows;
 }
 
+/**
+ * Son N saatte aynı (user, type, company_id) kombinasyonu için bildirim var mı?
+ * Partnership readiness alert gibi zaman-bazlı dedup için — belge sayfası bazlı
+ * threshold dedup'undan farklı.
+ */
+async function existsRecentByUserTypeCompany(userId, type, companyId, withinHours) {
+  const [rows] = await db.query(
+    `SELECT id FROM notifications
+      WHERE user_id = ?
+        AND type = ?
+        AND company_id = ?
+        AND created_at >= DATE_SUB(NOW(), INTERVAL ? HOUR)
+        AND deleted_at IS NULL
+      LIMIT 1`,
+    [userId, type, companyId, withinHours]
+  );
+  return rows.length > 0;
+}
+
+/**
+ * Bir kurum + type için (kime düştüğünden bağımsız) en son bildirimin created_at'i.
+ * Cron her manager için ayrı satır oluşturuyor; timeline için "son uyarı ne zaman düştü"
+ * göstermek yeterli — tekilleştirmek için MAX(created_at).
+ */
+async function findLatestByCompanyAndType(companyId, type) {
+  const [rows] = await db.query(
+    `SELECT MAX(created_at) AS latest_at
+       FROM notifications
+      WHERE company_id = ? AND type = ? AND deleted_at IS NULL`,
+    [companyId, type]
+  );
+  return rows[0] && rows[0].latest_at ? rows[0].latest_at : null;
+}
+
 module.exports = {
   existsForDocumentAndTypeAndThresholdAndUser,
+  existsRecentByUserTypeCompany,
+  findLatestByCompanyAndType,
   create,
   findByUserId,
   countUnreadByUserId,

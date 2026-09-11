@@ -1,123 +1,130 @@
-<div class="grid lg:grid-cols-2 gap-8 items-center min-h-[calc(100vh-14rem)]">
+<div class="auth-shell">
 
-  <!-- Sol: Brand paneli -->
-  <div class="hidden lg:block relative">
-    <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900 p-10 min-h-[560px] shadow-2xl ring-1 ring-slate-900/10">
-      <div class="absolute top-0 right-0 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl"></div>
-      <div class="absolute bottom-0 left-0 w-72 h-72 bg-cyan-400/20 rounded-full blur-3xl"></div>
-
-      <div class="relative h-full flex flex-col">
-        <div class="inline-flex items-center gap-2 self-start">
-          <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 backdrop-blur text-white text-sm font-black ring-1 ring-white/20">O</span>
-          <span class="text-white font-bold text-lg">OKUD</span>
-        </div>
-
-        <div class="flex-1 flex flex-col justify-center py-12">
-          <h1 class="text-white text-4xl font-bold leading-tight tracking-tight">
-            <span class="font-serif italic text-blue-200">Bir hesap.</span><br>
-            Tüm operasyon.
-          </h1>
-          <p class="text-blue-100/80 mt-4 text-base leading-relaxed max-w-md">
-            Şoför, araç sahibi, kooperatif yöneticisi — hepsi aynı hesap. İhtiyaç halinde şapkanı değiştir, işine devam et.
-          </p>
-        </div>
-
-        <div class="space-y-3 mt-auto">
-          <div class="flex items-center gap-3 text-white/90 text-sm">
-            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 backdrop-blur ring-1 ring-white/20 flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-white">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-            </span>
-            Ücretsiz, sınırsız kurum
-          </div>
-          <div class="flex items-center gap-3 text-white/90 text-sm">
-            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 backdrop-blur ring-1 ring-white/20 flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-white">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-            </span>
-            KVKK uyumlu belge yönetimi
-          </div>
-          <div class="flex items-center gap-3 text-white/90 text-sm">
-            <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/10 backdrop-blur ring-1 ring-white/20 flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-white">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-              </svg>
-            </span>
-            Otonom süre denetimi + bildirim
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="auth-topbar">
+    <a href="/" class="auth-logo">
+      <span class="box">O</span>
+      <span class="name">OKUD</span>
+    </a>
   </div>
 
-  <!-- Sağ: Form -->
-  <div class="max-w-md mx-auto lg:mx-0 w-full">
-    <div class="mb-8">
-      <p class="text-xs font-bold uppercase tracking-widest text-blue-600 mb-2">Başlayalım</p>
-      <h2 class="text-4xl font-bold text-slate-900 tracking-tight">Hesap oluştur</h2>
-      <p class="text-slate-500 mt-2">30 saniye sürer, hemen kullanmaya başlayabilirsin.</p>
+  <div class="auth-preview">
+
+    <!-- Sol: form -->
+    <div class="form-side">
+      <div class="auth-form-card">
+      <div class="auth-eyebrow">Başlayalım</div>
+      <h1 class="auth-title">Hesap oluştur</h1>
+      <p class="auth-sub">30 saniye sürer. Sonrasında filonu tanımla, davet gönder, işini başlat.</p>
+
+      <% if (error) { %>
+        <div class="auth-alert err">
+          <i class="ti ti-alert-circle"></i>
+          <span><%= error %></span>
+        </div>
+      <% } %>
+
+      <% if (success) { %>
+        <div class="auth-alert ok">
+          <i class="ti ti-mail-check"></i>
+          <span><%= success %></span>
+        </div>
+      <% } %>
+
+      <form action="/register" method="POST" class="auth-fields">
+        <div class="auth-grid-2">
+          <div class="auth-field">
+            <label for="first_name">Ad</label>
+            <div class="input-wrap">
+              <i class="ti ti-user field-icon" aria-hidden="true"></i>
+              <input type="text" id="first_name" name="first_name" value="<%= formData.first_name || '' %>" required maxlength="100" placeholder="Aydın">
+            </div>
+          </div>
+          <div class="auth-field">
+            <label for="last_name">Soyad</label>
+            <div class="input-wrap">
+              <i class="ti ti-user field-icon" aria-hidden="true"></i>
+              <input type="text" id="last_name" name="last_name" value="<%= formData.last_name || '' %>" required maxlength="100" placeholder="Şahin">
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-field">
+          <label for="email">E-posta</label>
+          <div class="input-wrap">
+            <i class="ti ti-mail field-icon" aria-hidden="true"></i>
+            <input type="email" id="email" name="email" value="<%= formData.email || '' %>" required autocomplete="email" placeholder="ornek@mail.com">
+          </div>
+        </div>
+
+        <div class="auth-field">
+          <label for="password">Şifre</label>
+          <div class="input-wrap">
+            <i class="ti ti-lock field-icon" aria-hidden="true"></i>
+            <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password" placeholder="En az 8 karakter">
+          </div>
+          <div class="hint">Güçlü bir şifre seç · büyük harf, sayı, sembol karışsın.</div>
+        </div>
+
+        <button type="submit" class="auth-submit">
+          Hesabı oluştur <i class="ti ti-arrow-right"></i>
+        </button>
+      </form>
+
+      <p class="auth-swap">
+        Zaten hesabın var mı? <a href="/login">Giriş yap</a>
+      </p>
+      </div>
     </div>
 
-    <% if (error) { %>
-      <div class="flex items-start gap-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-5 animate-fade-up">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0 mt-0.5">
-          <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
-        </svg>
-        <span><%= error %></span>
-      </div>
-    <% } %>
-
-    <% if (success) { %>
-      <div class="flex items-start gap-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 text-sm mb-5 animate-fade-up">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0 mt-0.5">
-          <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" />
-        </svg>
-        <span><%= success %></span>
-      </div>
-    <% } %>
-
-    <form action="/register" method="POST" class="space-y-4">
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label for="first_name" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Ad</label>
-          <input type="text" id="first_name" name="first_name" value="<%= formData.first_name || '' %>" required
-                 class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+    <!-- Sağ: ürün önizlemesi -->
+    <div class="preview-side">
+      <div class="auth-preview-card">
+        <div class="auth-preview-chrome">
+          <span class="dot r"></span>
+          <span class="dot y"></span>
+          <span class="dot g"></span>
+          <span class="url">okud.tr/dashboard</span>
         </div>
-        <div>
-          <label for="last_name" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Soyad</label>
-          <input type="text" id="last_name" name="last_name" value="<%= formData.last_name || '' %>" required
-                 class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+        <div class="auth-preview-body">
+          <div class="auth-preview-hi">Bugün · 11 Eylül</div>
+          <div class="auth-preview-name">Merhaba, Aydın 👋</div>
+
+          <div class="auth-preview-stats">
+            <div class="auth-preview-stat ok">
+              <div class="l">Aktif</div>
+              <div class="v">24</div>
+            </div>
+            <div class="auth-preview-stat wt">
+              <div class="l">Yaklaşan</div>
+              <div class="v">3</div>
+            </div>
+            <div class="auth-preview-stat rj">
+              <div class="l">Süresi Doldu</div>
+              <div class="v">1</div>
+            </div>
+          </div>
+
+          <div class="auth-preview-row">
+            <div class="av">MK</div>
+            <div class="text"><b>Mehmet K.</b> · ehliyet 12 gün</div>
+            <div class="tag wt">Süre</div>
+          </div>
+          <div class="auth-preview-row">
+            <div class="plate">
+              <div class="tr">TR</div>
+              <div class="num">33 S 6062</div>
+            </div>
+            <div class="text"><b>Ford Transit</b> · sigorta</div>
+            <div class="tag ok">OK</div>
+          </div>
+          <div class="auth-preview-row" style="margin-bottom:0;">
+            <div class="av" style="background:var(--accent);">EY</div>
+            <div class="text"><b>Elif Y.</b> · sağlık raporu</div>
+            <div class="tag ok">Onaylı</div>
+          </div>
         </div>
       </div>
+    </div>
 
-      <div>
-        <label for="email" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Email</label>
-        <input type="email" id="email" name="email" value="<%= formData.email || '' %>" required
-               placeholder="ornek@mail.com"
-               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
-      </div>
-
-      <div>
-        <label for="password" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Şifre</label>
-        <input type="password" id="password" name="password" required minlength="8"
-               placeholder="••••••••"
-               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
-        <p class="text-xs text-slate-400 mt-1.5 ml-1">En az 8 karakter.</p>
-      </div>
-
-      <button type="submit"
-              class="group w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3.5 text-sm font-semibold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/25 mt-2">
-        Hesabı Oluştur
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4 group-hover:translate-x-0.5 transition">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-        </svg>
-      </button>
-    </form>
-
-    <p class="text-sm text-slate-500 mt-8 text-center">
-      Zaten hesabın var mı? <a href="/login" class="text-slate-900 font-semibold hover:underline underline-offset-4">Giriş yap →</a>
-    </p>
   </div>
 </div>

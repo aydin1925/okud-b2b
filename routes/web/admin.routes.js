@@ -4,12 +4,16 @@ const AdminDocumentController = require('../../controllers/web/AdminDocumentCont
 const AdminDriverUpdateController = require('../../controllers/web/AdminDriverUpdateController');
 const AdminVehicleUpdateController = require('../../controllers/web/AdminVehicleUpdateController');
 const AdminCompanyApprovalController = require('../../controllers/web/AdminCompanyApprovalController');
+const AdminApprovalsController = require('../../controllers/web/AdminApprovalsController');
 
 // Mount: '/admin' + requireSuperAdmin (server.js'te)
 const router = express.Router();
 
 // Hub
 router.get('/', AdminHubController.showHub);
+
+// Birleşik onay merkezi
+router.get('/approvals', AdminApprovalsController.showApprovals);
 
 // Belgeler
 router.get('/documents/pending',     AdminDocumentController.showPending);

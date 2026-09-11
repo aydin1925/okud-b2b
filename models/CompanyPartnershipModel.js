@@ -43,6 +43,40 @@ async function createFromInvitationWithAcceptance({
     );
     const partnershipId = ins.insertId;
 
+    // 3a) Partnership fleet scope — invitation'ın scope'u varsa onu kopyala;
+    // yoksa (eski davetler için defensive fallback) provider'ın mevcut aktif
+    // filosunu auto-include et. Yeni davetlerde scope her zaman set olur (Blok 9),
+    // fallback sadece geçmiş uyumluluğu içindir.
+    const [scopeCountRows] = await conn.query(
+      `SELECT COUNT(*) AS cnt
+         FROM partnership_invitation_fleet_scopes
+        WHERE invitation_id = ?`,
+      [invitation.id]
+    );
+    const invitationHasScope = (scopeCountRows[0] && scopeCountRows[0].cnt > 0);
+
+    if (invitationHasScope) {
+      // Davetteki seçimi partnership'e kopyala
+      await conn.query(
+        `INSERT INTO partnership_fleet_scopes
+           (partnership_id, target_type, target_id, added_by_user_id)
+         SELECT ?, target_type, target_id, ?
+           FROM partnership_invitation_fleet_scopes
+          WHERE invitation_id = ?`,
+        [partnershipId, acceptingUserId, invitation.id]
+      );
+    } else {
+      // Fallback: provider'ın mevcut aktif filosunu auto-include
+      await conn.query(
+        `INSERT INTO partnership_fleet_scopes
+           (partnership_id, target_type, target_id, added_by_user_id)
+         SELECT ?, fc.target_type, fc.target_id, ?
+           FROM fleet_connections fc
+          WHERE fc.company_id = ? AND fc.disconnected_at IS NULL`,
+        [partnershipId, acceptingUserId, providerCompanyId]
+      );
+    }
+
     // 3) contract_acceptances insert — sadece partnership sözleşmesi (KVKK yok)
     // fleet_connection_id NULL, partnership_id = yeni oluşan partnership
     await conn.query(
@@ -91,6 +125,18 @@ async function findActiveByCompany(companyId) {
   return rows;
 }
 
+// Sistemdeki TÜM aktif partnership'ler — cron taraması için.
+// Sadece taban alanları döner (company_id çiftleri + started_at).
+async function findAllActive() {
+  const [rows] = await db.query(
+    `SELECT id, provider_company_id, receiver_company_id, started_at
+       FROM company_partnerships
+      WHERE terminated_at IS NULL
+      ORDER BY started_at DESC`
+  );
+  return rows;
+}
+
 async function findById(id) {
   const [rows] = await db.query(
     `SELECT
@@ -121,6 +167,7 @@ module.exports = {
   existsActive,
   createFromInvitationWithAcceptance,
   findActiveByCompany,
+  findAllActive,
   findById,
   terminate,
 };

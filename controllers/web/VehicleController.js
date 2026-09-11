@@ -1,12 +1,17 @@
 const VehicleProfileService = require('../../services/VehicleProfileService');
 const DocumentService = require('../../services/DocumentService');
-const { VEHICLE_DOCUMENT_TYPES, DOCUMENT_TYPE_LABELS } = require('../../utils/constants');
+const { VEHICLE_DOCUMENT_TYPES, DOCUMENT_TYPE_LABELS, PERPETUAL_DOCUMENT_TYPES } = require('../../utils/constants');
 
 async function showList(req, res) {
-    const vehicles = await VehicleProfileService.listForUser(req.session.userId);
+    const all = await VehicleProfileService.listForUser(req.session.userId);
     res.render('vehicles/list', {
         title: 'Araçlarım',
-        vehicles,
+        vehicles: all,
+        stats: {
+            active:   all.filter(v => v.status === 'active').length,
+            pending:  all.filter(v => v.status === 'pending_docs').length,
+            inactive: all.filter(v => v.status === 'inactive').length,
+        },
     });
 }
 
@@ -53,6 +58,7 @@ async function showDetail(req, res) {
             documentsByType,
             requiredTypes: VEHICLE_DOCUMENT_TYPES,
             typeLabels: DOCUMENT_TYPE_LABELS,
+            perpetualTypes: PERPETUAL_DOCUMENT_TYPES,
             pendingRequest,
         });
     } catch (err) {
@@ -126,4 +132,25 @@ async function cancelUpdateRequest(req, res) {
     }
 }
 
-module.exports = { showList, showCreateForm, create, showDetail, showEditForm, updateVehicle, cancelUpdateRequest };
+async function setActive(req, res) {
+    const vehicleId = parseInt(req.params.id, 10);
+    const active = req.path.endsWith('/activate');
+    try {
+        await VehicleProfileService.setActive(req.session.userId, vehicleId, active);
+        res.redirect(`/vehicles/${vehicleId}`);
+    } catch (err) {
+        res.status(400).send(`Hata: ${err.message}. <a href="/vehicles/${vehicleId}">Geri</a>`);
+    }
+}
+
+async function deleteVehicle(req, res) {
+    const vehicleId = parseInt(req.params.id, 10);
+    try {
+        await VehicleProfileService.softDelete(req.session.userId, vehicleId);
+        res.redirect('/vehicles');
+    } catch (err) {
+        res.status(400).send(`Silme hatası: ${err.message}. <a href="/vehicles/${vehicleId}">Geri</a>`);
+    }
+}
+
+module.exports = { showList, showCreateForm, create, showDetail, showEditForm, updateVehicle, cancelUpdateRequest, deleteVehicle, setActive };

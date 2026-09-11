@@ -1,5 +1,11 @@
 const AdminDriverUpdateService = require('../../services/AdminDriverUpdateService');
 
+function backTo(req, fallback) {
+  const ret = req.body && req.body._return;
+  if (typeof ret === 'string' && ret.startsWith('/admin')) return ret;
+  return fallback;
+}
+
 async function showPending(req, res) {
   const requests = await AdminDriverUpdateService.listPending();
   res.render('admin/driver-updates/pending', {
@@ -15,9 +21,9 @@ async function approve(req, res) {
       req.session.userId,
       req.body.note
     );
-    res.redirect('/admin/driver-updates');
+    res.redirect(backTo(req, '/admin/driver-updates'));
   } catch (err) {
-    res.status(400).send(`Onay hatası: ${err.message}. <a href="/admin/driver-updates">Geri</a>`);
+    res.status(400).send(`Onay hatası: ${err.message}. <a href="/admin/approvals">Geri</a>`);
   }
 }
 
@@ -28,9 +34,9 @@ async function reject(req, res) {
       req.session.userId,
       req.body.reason
     );
-    res.redirect('/admin/driver-updates');
+    res.redirect(backTo(req, '/admin/driver-updates'));
   } catch (err) {
-    res.status(400).send(`Reddetme hatası: ${err.message}. <a href="/admin/driver-updates">Geri</a>`);
+    res.status(400).send(`Reddetme hatası: ${err.message}. <a href="/admin/approvals">Geri</a>`);
   }
 }
 

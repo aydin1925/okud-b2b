@@ -65,4 +65,15 @@ async function applySensitiveFields(id, { national_id, birth_date, license_class
     return result.affectedRows;
 }
 
-module.exports = { findByUserId, findByNationalId, findById, create, updateStatus, updateSafeFields, applySensitiveFields };
+// Soft delete — kullanıcı kendi şoför profilini filodan çıkarır.
+// deleted_at kontrolü ile idempotent (ikinci çağrı 0 affected döner).
+async function softDelete(id) {
+    const [result] = await db.query(
+        `UPDATE driver_profiles SET deleted_at = NOW()
+           WHERE id = ? AND deleted_at IS NULL`,
+        [id]
+    );
+    return result.affectedRows;
+}
+
+module.exports = { findByUserId, findByNationalId, findById, create, updateStatus, updateSafeFields, applySensitiveFields, softDelete };

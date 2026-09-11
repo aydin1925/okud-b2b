@@ -1,5 +1,11 @@
 const AdminVehicleUpdateService = require('../../services/AdminVehicleUpdateService');
 
+function backTo(req, fallback) {
+  const ret = req.body && req.body._return;
+  if (typeof ret === 'string' && ret.startsWith('/admin')) return ret;
+  return fallback;
+}
+
 async function showPending(req, res) {
   const requests = await AdminVehicleUpdateService.listPending();
   res.render('admin/vehicle-updates/pending', {
@@ -13,9 +19,9 @@ async function approve(req, res) {
     await AdminVehicleUpdateService.approve(
       parseInt(req.params.id, 10), req.session.userId, req.body.note
     );
-    res.redirect('/admin/vehicle-updates');
+    res.redirect(backTo(req, '/admin/vehicle-updates'));
   } catch (err) {
-    res.status(400).send(`Onay hatası: ${err.message}. <a href="/admin/vehicle-updates">Geri</a>`);
+    res.status(400).send(`Onay hatası: ${err.message}. <a href="/admin/approvals">Geri</a>`);
   }
 }
 
@@ -24,9 +30,9 @@ async function reject(req, res) {
     await AdminVehicleUpdateService.reject(
       parseInt(req.params.id, 10), req.session.userId, req.body.reason
     );
-    res.redirect('/admin/vehicle-updates');
+    res.redirect(backTo(req, '/admin/vehicle-updates'));
   } catch (err) {
-    res.status(400).send(`Reddetme hatası: ${err.message}. <a href="/admin/vehicle-updates">Geri</a>`);
+    res.status(400).send(`Reddetme hatası: ${err.message}. <a href="/admin/approvals">Geri</a>`);
   }
 }
 

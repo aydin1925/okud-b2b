@@ -4,8 +4,8 @@ const { TARGET_TYPE_LABELS } = require('../../utils/constants');
 function showForm(req, res) {
   res.render('connections/redeem', {
     title: 'Davet Kodu Gir',
-    error: null,
-    code: '',
+    error: req.query.error || null,
+    code: req.query.code || '',
   });
 }
 
@@ -41,9 +41,9 @@ async function confirm(req, res) {
     });
     res.render('connections/redeem_success', { title: 'Filoya Katıldın' });
   } catch (err) {
-    res.status(400).send(
-      `Katılım hatası: ${err.message}. <a href="/connections/redeem">Tekrar dene</a>`
-    );
+    // Beyaz sayfa yerine kodun geldiği yere popup ile geri dön
+    const q = new URLSearchParams({ error: err.message, code: req.body.code || '' });
+    res.redirect('/connections/redeem?' + q.toString());
   }
 }
 
@@ -55,9 +55,8 @@ async function reject(req, res) {
     });
     res.render('connections/redeem_rejected', { title: 'Davet Reddedildi' });
   } catch (err) {
-    res.status(400).send(
-      `Reddetme hatası: ${err.message}. <a href="/connections/redeem">Tekrar dene</a>`
-    );
+    const q = new URLSearchParams({ error: err.message, code: req.body.code || '' });
+    res.redirect('/connections/redeem?' + q.toString());
   }
 }
 

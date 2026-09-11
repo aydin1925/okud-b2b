@@ -101,6 +101,7 @@ async function findActiveDriversForCompany(companyId) {
         dp.phone,
         dp.license_class,
         dp.status         AS profile_status,
+        fc.paused_at,
         u.id              AS user_id,
         u.first_name,
         u.last_name,
@@ -133,6 +134,7 @@ async function findActiveVehiclesForCompany(companyId) {
         vp.vehicle_type,
         vp.capacity,
         vp.status          AS profile_status,
+        fc.paused_at,
         u.id               AS owner_user_id,
         u.first_name       AS owner_first_name,
         u.last_name        AS owner_last_name,
@@ -167,6 +169,79 @@ async function findActiveCompaniesByOwner(ownerType, ownerId) {
   return rows;
 }
 
+// Kurum yöneticisi tarafından bir bağlı üyeyi (şoför veya araç) geçici pasife alır.
+// companyId kısıtı sayesinde başka kurumun connection'ı yanlışlıkla pause edilemez.
+// Zaten pasifse veya disconnect edilmişse affectedRows=0 döner (idempotent).
+async function pause(connectionId, companyId, userId) {
+  const [result] = await db.query(
+    `UPDATE fleet_connections
+        SET paused_at = NOW(), paused_by_user_id = ?
+      WHERE id = ? AND company_id = ?
+        AND disconnected_at IS NULL
+        AND paused_at IS NULL`,
+    [userId, connectionId, companyId]
+  );
+  return result.affectedRows;
+}
+
+async function resume(connectionId, companyId) {
+  const [result] = await db.query(
+    `UPDATE fleet_connections
+        SET paused_at = NULL, paused_by_user_id = NULL
+      WHERE id = ? AND company_id = ?
+        AND disconnected_at IS NULL
+        AND paused_at IS NOT NULL`,
+    [connectionId, companyId]
+  );
+  return result.affectedRows;
+}
+
+// Kullanıcının BİR kuruma bağlı tüm aktif fleet_connections satırları.
+// Her satır: bağlantı türü (driver/vehicle/hostess) + hedefin detayı + connected_at + paused_at.
+// personal dashboard'daki "kurum ilişki" sayfasında kullanılır — fleet-only kullanıcı için.
+async function findUserConnectionsToCompany(userId, companyId) {
+  const [rows] = await db.query(
+    `SELECT
+        fc.id                AS connection_id,
+        fc.target_type,
+        fc.target_id,
+        fc.connected_at,
+        fc.paused_at,
+        cr.code              AS invite_code,
+        -- driver
+        dp.id                AS driver_id,
+        du.first_name        AS driver_first_name,
+        du.last_name         AS driver_last_name,
+        -- vehicle
+        vp.id                AS vehicle_id,
+        vp.plate_number,
+        vp.brand,
+        vp.model,
+        vp.year,
+        vp.capacity,
+        -- hostess
+        hp.id                AS hostess_id,
+        hp.first_name        AS hostess_first_name,
+        hp.last_name         AS hostess_last_name
+       FROM fleet_connections fc
+       LEFT JOIN connection_requests cr ON cr.id = fc.connection_request_id
+       LEFT JOIN driver_profiles  dp ON fc.target_type = 'driver_profile'  AND dp.id = fc.target_id AND dp.deleted_at IS NULL
+       LEFT JOIN users            du ON du.id = dp.user_id
+       LEFT JOIN vehicle_profiles vp ON fc.target_type = 'vehicle_profile' AND vp.id = fc.target_id AND vp.deleted_at IS NULL
+       LEFT JOIN hostess_profiles hp ON fc.target_type = 'hostess_profile' AND hp.id = fc.target_id AND hp.deleted_at IS NULL
+      WHERE fc.company_id = ?
+        AND fc.disconnected_at IS NULL
+        AND (
+             (fc.target_type = 'driver_profile'  AND dp.user_id            = ?)
+          OR (fc.target_type = 'vehicle_profile' AND vp.owner_user_id      = ?)
+          OR (fc.target_type = 'hostess_profile' AND hp.managed_by_user_id = ?)
+        )
+      ORDER BY fc.connected_at ASC`,
+    [companyId, userId, userId, userId]
+  );
+  return rows;
+}
+
 // Detay sayfası ownership check: bu hedef bu kurumun aktif filosunda mı?
 async function findActiveByTarget(companyId, targetType, targetId) {
   const [rows] = await db.query(
@@ -187,5 +262,8 @@ module.exports = {
   findActiveDriversForCompany,
   findActiveVehiclesForCompany,
   findActiveCompaniesByOwner,
+  findUserConnectionsToCompany,
   findActiveByTarget,
+  pause,
+  resume,
 };

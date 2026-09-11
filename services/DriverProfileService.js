@@ -155,8 +155,42 @@ async function cancelMyPendingRequest(userId, requestId) {
     if (!affected) throw new Error('İptal edilecek pending talep bulunamadı');
 }
 
+/**
+ * Manuel pasife alma / aktifleştirme.
+ *   active=false → status='inactive' (fleet_readiness'ta sayılmaz, iş birliğinde gösterilmez)
+ *   active=true  → recomputeStatus çağır — belgeler tamam ise 'active', değilse 'pending_docs'
+ * recomputeStatus 'inactive' iken erken çıkıyor, o yüzden önce elle 'pending_docs'a çekip
+ * sonra hesaplama yaptırıyoruz.
+ */
+async function setActive(userId, active) {
+    const profile = await DriverProfileModel.findByUserId(userId);
+    if (!profile) throw new Error('Şoför profilin yok');
+
+    if (active === false || active === 'false') {
+        if (profile.status === 'inactive') return;
+        await DriverProfileModel.updateStatus(profile.id, 'inactive');
+    } else {
+        // Aktifleştir — önce 'pending_docs'a çek ki recomputeStatus çalışsın
+        await DriverProfileModel.updateStatus(profile.id, 'pending_docs');
+        await recomputeStatus(profile.id);
+    }
+}
+
+/**
+ * Şoför profili filodan çıkarma — kullanıcı kendi profilini soft delete eder.
+ * Belge dosyaları diskte kalır (documents.deleted_at ayrı bir konu; şu an dokunulmuyor).
+ * Aktif ortaklık olsa bile serbest — fleet_readiness recompute karşı tarafa yansıtır.
+ */
+async function softDelete(userId) {
+    const profile = await DriverProfileModel.findByUserId(userId);
+    if (!profile) throw new Error('Silinecek şoför profili yok');
+    const affected = await DriverProfileModel.softDelete(profile.id);
+    if (!affected) throw new Error('Şoför profili zaten silinmiş');
+}
+
 module.exports = {
     create, getMyProfile, recomputeStatus,
     updateSafeFields, requestSensitiveUpdate,
     getMyPendingRequest, cancelMyPendingRequest,
+    softDelete, setActive,
 };

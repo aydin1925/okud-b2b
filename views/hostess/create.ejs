@@ -1,0 +1,142 @@
+<div class="max-w-2xl mx-auto space-y-6">
+
+  <a href="/hostess" class="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 transition font-medium">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+    </svg>
+    Hosteslerim
+  </a>
+
+  <div>
+    <h1 class="text-2xl sm:text-4xl font-bold text-slate-900 tracking-tighter">
+      Yeni <span class="font-serif italic text-slate-500">hostes.</span>
+    </h1>
+    <p class="text-sm text-slate-500 mt-2">Aracına atadığın hostesi kayıt et. Kimlik bilgisini profil oluştururken alıyoruz — belge yükleme detay sayfasında.</p>
+  </div>
+
+  <% if (vehicles.length === 0) { %>
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-900 text-sm">
+      Önce en az bir araç kaydetmen gerekiyor. <a href="/vehicles/create" class="font-bold underline">Araç ekle</a>.
+    </div>
+  <% } else { %>
+
+    <!-- Boşta hostes hızlı atama — kullanıcı yeni hostes oluşturmadan önce mevcuttan ata -->
+    <% if (unassignedHostesses && unassignedHostesses.length > 0) { %>
+      <div class="bg-gradient-to-br from-emerald-50 to-white border border-emerald-200 rounded-3xl p-5 sm:p-6">
+        <div class="flex items-start gap-3 mb-4">
+          <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-sm font-bold text-slate-900"><%= unassignedHostesses.length %> boşta hostesin var</h3>
+            <p class="text-xs text-slate-600 mt-0.5">Aracı silindiği için boşta kalanları yeni oluşturmak yerine mevcut araca atayabilirsin.</p>
+          </div>
+        </div>
+
+        <form action="/hostess/assign" method="POST" class="grid sm:grid-cols-2 gap-3">
+          <select name="hostess_id" required
+                  class="rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+            <option value="">Boşta hostes seç</option>
+            <% unassignedHostesses.forEach(function(h) { %>
+              <option value="<%= h.id %>"><%= h.first_name %> <%= h.last_name %></option>
+            <% }); %>
+          </select>
+          <select name="vehicle_id" required
+                  class="rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+            <option value="">Araç seç</option>
+            <% vehicles.forEach(function(v) { %>
+              <option value="<%= v.id %>"><%= v.plate_number %> — <%= v.brand %> <%= v.model %></option>
+            <% }); %>
+          </select>
+          <button type="submit"
+                  class="sm:col-span-2 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-500 transition">
+            Boştaki Hostesi Bu Araca Ata
+          </button>
+        </form>
+
+        <p class="text-[11px] text-slate-500 mt-3 text-center">
+          — veya aşağıdan yeni bir hostes oluştur —
+        </p>
+      </div>
+    <% } %>
+
+    <% if (error) { %>
+      <div class="flex items-start gap-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+        <%= error %>
+      </div>
+    <% } %>
+
+    <form action="/hostess/create" method="POST" class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-5 sm:p-8 space-y-5">
+
+      <div>
+        <label for="vehicle_id" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Araç</label>
+        <select id="vehicle_id" name="vehicle_id" required
+                class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+          <option value="">Seçiniz</option>
+          <% vehicles.forEach(function(v) { %>
+            <option value="<%= v.id %>" <%= (formData.vehicle_id == v.id) ? 'selected' : '' %>>
+              <%= v.plate_number %> — <%= v.brand %> <%= v.model %>
+            </option>
+          <% }); %>
+        </select>
+        <p class="text-xs text-slate-400 mt-1.5">Aynı araca birden fazla aktif hostes atanamaz.</p>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label for="first_name" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Ad</label>
+          <input type="text" id="first_name" name="first_name" required maxlength="100"
+                 value="<%= formData.first_name || '' %>"
+                 class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+        </div>
+        <div>
+          <label for="last_name" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Soyad</label>
+          <input type="text" id="last_name" name="last_name" required maxlength="100"
+                 value="<%= formData.last_name || '' %>"
+                 class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+        </div>
+      </div>
+
+      <div>
+        <label for="national_id" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">TC Kimlik No</label>
+        <input type="text" id="national_id" name="national_id" required maxlength="11" pattern="\d{11}"
+               value="<%= formData.national_id || '' %>"
+               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 focus:ring-2 focus:ring-slate-900 focus:outline-none transition font-mono">
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label for="birth_date" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Doğum Tarihi</label>
+          <input type="date" id="birth_date" name="birth_date" required
+                 value="<%= formData.birth_date || '' %>"
+                 class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+        </div>
+        <div>
+          <label for="phone" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Telefon <span class="text-slate-400 font-normal normal-case">(opsiyonel)</span></label>
+          <input type="tel" id="phone" name="phone" maxlength="20"
+                 value="<%= formData.phone || '' %>"
+                 class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+        </div>
+      </div>
+
+      <div>
+        <label for="notes" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Not <span class="text-slate-400 font-normal normal-case">(opsiyonel)</span></label>
+        <textarea id="notes" name="notes" rows="3" maxlength="500" style="resize: none;"
+                  class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 focus:ring-2 focus:ring-slate-900 focus:outline-none transition"><%= formData.notes || '' %></textarea>
+      </div>
+
+      <div class="flex justify-end">
+        <button type="submit"
+                class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/25">
+          Hostesi Kaydet
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </button>
+      </div>
+    </form>
+  <% } %>
+</div>

@@ -16,9 +16,11 @@ async function showList(req, res) {
   });
 }
 
-function showCreateForm(req, res) {
-  const targetType = PartnershipInvitationService.oppositeType(
-    res.locals.currentCompany.company_type
+async function showCreateForm(req, res) {
+  const company = res.locals.currentCompany;
+  const targetType = PartnershipInvitationService.oppositeType(company.company_type);
+  const fleet = await PartnershipInvitationService.getFleetForInvitation(
+    company.id, company.company_type
   );
   res.render('partnerships/invitations/create', {
     title: 'Yeni İş Ortaklığı Daveti',
@@ -26,14 +28,22 @@ function showCreateForm(req, res) {
     formData: {},
     targetType,
     targetTypeLabel: TARGET_TYPE_LABELS[targetType] || '—',
+    fleet,
+    selectedDriverIds:  new Set(),
+    selectedVehicleIds: new Set(),
   });
 }
 
 async function create(req, res) {
+  const company = res.locals.currentCompany;
+  const toArr = (v) => v == null ? [] : (Array.isArray(v) ? v : [v]);
+  const driverIds  = toArr(req.body.driver_ids);
+  const vehicleIds = toArr(req.body.vehicle_ids);
+
   try {
     const result = await PartnershipInvitationService.create(
-      { label: req.body.label },
-      { companyId: res.locals.currentCompany.id, userId: req.session.userId }
+      { label: req.body.label, driverIds, vehicleIds },
+      { companyId: company.id, userId: req.session.userId }
     );
     res.render('partnerships/invitations/created', {
       title: 'Davet Kodu Oluşturuldu',
@@ -41,15 +51,21 @@ async function create(req, res) {
       targetTypeLabels: TARGET_TYPE_LABELS,
     });
   } catch (err) {
-    const targetType = PartnershipInvitationService.oppositeType(
-      res.locals.currentCompany.company_type
+    const targetType = PartnershipInvitationService.oppositeType(company.company_type);
+    const fleet = await PartnershipInvitationService.getFleetForInvitation(
+      company.id, company.company_type
     );
+    // Kullanıcının form'daki seçimini geri koyabilmek için Set'e çevir.
+    const asIntSet = (arr) => new Set(arr.map(x => parseInt(x, 10)).filter(Number.isFinite));
     res.status(400).render('partnerships/invitations/create', {
       title: 'Yeni İş Ortaklığı Daveti',
       error: err.message,
       formData: req.body,
       targetType,
       targetTypeLabel: TARGET_TYPE_LABELS[targetType] || '—',
+      fleet,
+      selectedDriverIds:  asIntSet(driverIds),
+      selectedVehicleIds: asIntSet(vehicleIds),
     });
   }
 }

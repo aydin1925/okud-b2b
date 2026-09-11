@@ -28,7 +28,7 @@
     <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl"></div>
     <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 40px 40px;"></div>
 
-    <div class="relative p-8">
+    <div class="relative p-5 sm:p-8">
       <div class="flex items-start justify-between gap-4 flex-wrap mb-6">
         <div class="flex items-start gap-4">
           <!-- Büyük avatar -->
@@ -37,7 +37,7 @@
           </div>
           <div>
             <p class="text-[10px] font-bold uppercase tracking-widest <%= isDriver ? 'text-emerald-300' : 'text-sky-300' %> mb-1"><%= isDriver ? 'Şoför' : 'Araç' %></p>
-            <h1 class="text-white text-3xl sm:text-4xl font-bold tracking-tighter <%= isDriver ? '' : 'font-mono tracking-wider' %>"><%= heading %></h1>
+            <h1 class="text-white text-2xl sm:text-4xl font-bold tracking-tighter break-all <%= isDriver ? '' : 'font-mono tracking-wider' %>"><%= heading %></h1>
             <p class="text-slate-300 mt-1.5">
               <% if (isDriver) { %>
                 <%= detail.profile.license_class %> sınıfı ehliyet · <%= detail.profile.phone %>
@@ -241,6 +241,39 @@
           </div>
         </div>
       <% }); %>
+    </div>
+  </div>
+
+  <!-- Kurum tarafı pause/resume: bu üyeyi kurum filosunda geçici pasife al -->
+  <div class="bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 overflow-hidden">
+    <div class="p-5 sm:p-6 flex items-start gap-3 flex-wrap">
+      <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg <%= detail.paused ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-600' %> flex-shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+          <% if (detail.paused) { %>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+          <% } else { %>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+          <% } %>
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-base font-bold text-slate-800">
+          <%= detail.paused ? 'Kurum Filonda Pasif' : 'Geçici Olarak Pasife Al' %>
+        </h3>
+        <p class="text-sm text-slate-600 mt-0.5">
+          <% if (detail.paused) { %>
+            Bu üye <strong>yalnızca senin kurumun filosunda</strong> pasif. İş birliklerine dahil edilmiyor. Başka kurumda aktif olabilir.
+          <% } else { %>
+            Bu üyeyi geçici olarak kurumundaki filodan çıkarabilirsin. Kayıt kalır, sadece iş birliklerinde ve fleet_readiness hesabında sayılmaz. Sadece senin kurumun etkilenir; şoför/araç sahibinin başka kurumdaki bağlantılarını etkilemez.
+          <% } %>
+        </p>
+      </div>
+      <form method="POST" action="/company/fleet/<%= isDriver ? 'drivers' : 'vehicles' %>/<%= detail.profile.id %>/<%= detail.paused ? 'resume' : 'pause' %>">
+        <button type="submit"
+                class="inline-flex items-center gap-1.5 rounded-lg <%= detail.paused ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/25' : 'bg-slate-700 hover:bg-slate-800 shadow-slate-500/25' %> px-4 py-2 text-sm font-semibold text-white transition shadow-lg">
+          <%= detail.paused ? 'Aktifleştir' : 'Pasife Al' %>
+        </button>
+      </form>
     </div>
   </div>
 </div>

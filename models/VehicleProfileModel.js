@@ -72,7 +72,41 @@ async function applySensitiveFields(id, { plate_number, brand, model, year, vehi
     return result.affectedRows;
 }
 
+/**
+ * Soft delete + hostes unlink — atomik.
+ * Araç filodan çıkarıldığında, o araca bağlı aktif hostesin vehicle_id'si NULL yapılır
+ * (hostes kaydı korunur; başka araca atanabilir). İkisi tek transaction'da olur ki
+ * biri başarısızsa diğeri de dönülür.
+ */
+async function softDeleteWithHostessUnlink(id) {
+    const conn = await db.getConnection();
+    try {
+        await conn.beginTransaction();
+
+        const [delRes] = await conn.query(
+            `UPDATE vehicle_profiles SET deleted_at = NOW()
+               WHERE id = ? AND deleted_at IS NULL`,
+            [id]
+        );
+
+        // Hostes unlink — bu araca bağlı aktif tüm hostesler (normalde 1)
+        await conn.query(
+            `UPDATE hostess_profiles SET vehicle_id = NULL
+               WHERE vehicle_id = ? AND deleted_at IS NULL`,
+            [id]
+        );
+
+        await conn.commit();
+        return delRes.affectedRows;
+    } catch (err) {
+        await conn.rollback();
+        throw err;
+    } finally {
+        conn.release();
+    }
+}
+
 module.exports = {
     findByOwnerUserId, findById, findByPlateNumber, create, updateStatus,
-    updateSafeFields, applySensitiveFields,
+    updateSafeFields, applySensitiveFields, softDeleteWithHostessUnlink,
 };

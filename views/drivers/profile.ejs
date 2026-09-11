@@ -1,7 +1,7 @@
 <% if (!profile) { %>
   <!-- Profil yok — hero CTA -->
   <div class="max-w-2xl mx-auto">
-    <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 shadow-2xl ring-1 ring-slate-900/10 p-12">
+    <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 shadow-2xl ring-1 ring-slate-900/10 p-8 sm:p-12">
       <div class="absolute -top-32 -right-32 w-96 h-96 bg-emerald-500/25 rounded-full blur-3xl"></div>
       <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl"></div>
       <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 40px 40px;"></div>
@@ -11,7 +11,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-8 w-8"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
         </div>
         <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-300 mb-2">Şoför Profili</p>
-        <h1 class="text-white text-3xl sm:text-4xl font-bold tracking-tighter leading-tight">
+        <h1 class="text-white text-2xl sm:text-4xl font-bold tracking-tighter leading-tight">
           Şoför olmaya<br>
           <span class="font-serif italic text-emerald-200">hazır mısın?</span>
         </h1>
@@ -48,7 +48,7 @@
       <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl"></div>
       <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 40px 40px;"></div>
 
-      <div class="relative p-8">
+      <div class="relative p-5 sm:p-8">
         <div class="flex items-start justify-between gap-4 flex-wrap">
           <div class="flex items-start gap-4">
             <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white text-xl font-black shadow-xl shadow-emerald-500/30 ring-1 ring-white/20 flex-shrink-0">
@@ -56,7 +56,7 @@
             </div>
             <div>
               <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-300 mb-1">Şoför Profili</p>
-              <h1 class="text-white text-3xl sm:text-4xl font-bold tracking-tighter"><%= currentUser.name %></h1>
+              <h1 class="text-white text-2xl sm:text-4xl font-bold tracking-tighter"><%= currentUser.name %></h1>
               <p class="text-slate-300 mt-1.5"><span class="font-serif italic text-slate-400"><%= profile.license_class %></span> sınıfı ehliyet</p>
             </div>
           </div>
@@ -186,7 +186,7 @@
     </div>
 
     <!-- Yükleme -->
-    <div class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-6">
+    <div class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-5 sm:p-6">
       <div class="flex items-center gap-3 mb-5">
         <div class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg shadow-emerald-500/25">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
@@ -197,7 +197,8 @@
         </div>
       </div>
 
-      <form action="/driver/documents/upload" method="POST" enctype="multipart/form-data" class="space-y-4">
+      <form action="/driver/documents/upload" method="POST" enctype="multipart/form-data" class="space-y-4"
+            data-perpetual-types='<%- JSON.stringify(perpetualTypes) %>'>
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
             <label for="document_type" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Belge Türü</label>
@@ -209,10 +210,12 @@
               <% }); %>
             </select>
           </div>
-          <div>
+          <div id="expiresAtWrapper">
             <label for="expires_at" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Son Geçerlilik <span class="text-slate-400 font-normal normal-case">(opsiyonel)</span></label>
             <input type="date" id="expires_at" name="expires_at"
                    class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+            <p id="perpetualHint" class="hidden mt-2 text-xs text-slate-500 italic">Bu belge süresizdir, tarih girmene gerek yok.</p>
+            <p id="criminalRecordHint" class="hidden mt-2 text-xs text-amber-700">💡 Sabıka kaydı genellikle 1 yıl geçerli sayılır.</p>
           </div>
         </div>
         <div>
@@ -226,6 +229,85 @@
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>
         </button>
       </form>
+
+      <script>
+        // Belge türü seçimine göre "Son Geçerlilik" alanının davranışını ayarla
+        (function () {
+          const form         = document.querySelector('form[action="/driver/documents/upload"]');
+          if (!form) return;
+          const typeSelect   = form.querySelector('#document_type');
+          const dateInput    = form.querySelector('#expires_at');
+          const dateWrapper  = form.querySelector('#expiresAtWrapper > label');
+          const perpetualMsg = form.querySelector('#perpetualHint');
+          const criminalMsg  = form.querySelector('#criminalRecordHint');
+          const perpetual    = JSON.parse(form.dataset.perpetualTypes || '[]');
+
+          typeSelect.addEventListener('change', function () {
+            const type = typeSelect.value;
+            const isPerpetual = perpetual.includes(type);
+
+            if (isPerpetual) {
+              dateInput.value = '';
+              dateInput.disabled = true;
+              dateInput.classList.add('opacity-40', 'cursor-not-allowed');
+              perpetualMsg.classList.remove('hidden');
+            } else {
+              dateInput.disabled = false;
+              dateInput.classList.remove('opacity-40', 'cursor-not-allowed');
+              perpetualMsg.classList.add('hidden');
+            }
+
+            // Sabıka kaydı için özel ipucu
+            if (type === 'criminal_record') {
+              criminalMsg.classList.remove('hidden');
+            } else {
+              criminalMsg.classList.add('hidden');
+            }
+          });
+        })();
+      </script>
+    </div>
+
+    <!-- (Sahibi tarafı pasife alma UI'ı geçici olarak kaldırıldı; kurum tarafı pasife alma öncelikli.
+         Backend metotları ve route'lar sistemde duruyor.) -->
+
+    <!-- Tehlikeli Bölge: Şoför profilini filodan çıkar -->
+    <div class="bg-white rounded-2xl shadow-soft ring-1 ring-red-200/50 overflow-hidden">
+      <div class="p-6">
+        <div class="flex items-start gap-3 mb-3">
+          <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-100 text-red-600 flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-red-700">Tehlikeli Bölge</h3>
+            <p class="text-sm text-slate-600 mt-0.5">
+              Şoför profilini filodan çıkardığında, seni ekleyen kurumların filo uyumu
+              anında yeniden hesaplanır. Belgelerin diskte kalır, geri getirme özelliği
+              yok; yeniden şoför olmak istersen profili tekrar oluşturmalısın.
+            </p>
+          </div>
+        </div>
+        <button type="button"
+                onclick="document.getElementById('driverDeleteDialog').showModal()"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 transition shadow-lg shadow-red-500/25">
+          Şoför Profilimi Sil
+        </button>
+
+        <dialog id="driverDeleteDialog" class="rounded-3xl p-0 w-full max-w-md backdrop:bg-slate-900/60">
+          <form method="POST" action="/driver/profile/delete" class="bg-white rounded-3xl overflow-hidden">
+            <div class="px-6 py-5">
+              <h3 class="text-lg font-bold text-slate-900">Şoför Profilini Sil</h3>
+              <p class="text-sm text-slate-600 mt-2">Bu işlem geri alınamaz. Profil, seni ekleyen kurumların filo listelerinden düşer.</p>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-2">
+              <button type="button" onclick="document.getElementById('driverDeleteDialog').close()" class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">Vazgeç</button>
+              <button type="submit" class="inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 transition shadow-lg shadow-red-500/25">Evet, sil</button>
+            </div>
+          </form>
+        </dialog>
+      </div>
     </div>
 
   </div>

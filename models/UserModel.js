@@ -52,7 +52,19 @@ async function updatePasswordHash(id, password_hash) {
     return result.affectedRows;
 }
 
+// Kullanıcı e-posta doğrulama linkine tıkladığında set edilir.
+// Zaten doluysa (ikinci tıklama) yeniden yazar — zararsız.
+async function setEmailVerified(id) {
+    const [result] = await db.query(
+        `UPDATE users SET email_verified_at = NOW()
+           WHERE id = ? AND deleted_at IS NULL`,
+        [id]
+    );
+    return result.affectedRows;
+}
+
 module.exports = {
     findByEmail, create, findById,
     updateName, updateEmail, updatePasswordHash,
+    setEmailVerified,
 };

@@ -1,0 +1,275 @@
+<%
+  const firstName = currentUser.name.split(' ')[0];
+  const surname   = currentUser.name.split(' ').slice(1).join(' ');
+  const userInitials = currentUser.name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase();
+
+  const vehList  = (typeof vehicles !== 'undefined' && vehicles) ? vehicles : [];
+  const firstVehicle = vehList.length > 0 ? vehList[0] : null;
+
+  const hostessList  = (typeof hostesses !== 'undefined' && hostesses) ? hostesses : [];
+  const hostessCount = hostessList.length;
+
+  const docs = (typeof documents !== 'undefined' && documents) ? documents : [];
+
+  // Belgeleri kalan-gün'e göre değerlendir
+  function daysUntil(dateStr) {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    return Math.round((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  }
+  function docState(d) {
+    // pending/rejected → warn/bad; verified + geçerli → good; süresi yaklaşıyor → warn
+    if (d.status === 'rejected') return { cls: 'bad',  label: 'reddedildi' };
+    if (d.status !== 'verified') return { cls: 'warn', label: 'onay bekliyor' };
+    const days = daysUntil(d.expires_at);
+    if (days === null) return { cls: 'ok', label: 'geçerli' };
+    if (days < 0) return { cls: 'bad', label: 'süresi doldu' };
+    if (days <= 30) return { cls: 'warn', label: days + ' gün' };
+    return { cls: 'ok', label: days + ' gün' };
+  }
+
+  // Plakayı 3 parça olarak ayır: "33S6062" → "33 S 6062", "34ABC1234" → "34 ABC 1234"
+  function plateParts(p) {
+    if (!p) return { formatted: '' };
+    const clean = String(p).trim().toUpperCase().replace(/\s+/g, '');
+    const m = clean.match(/^(\d{1,2})([A-ZÇĞİÖŞÜ]+)(\d+)$/);
+    if (m) return { formatted: `${m[1]} ${m[2]} ${m[3]}` };
+    // beklenmedik format — orijinali bozma
+    return { formatted: String(p).trim().toUpperCase() };
+  }
+  const plate = firstVehicle ? plateParts(firstVehicle.plate_number) : null;
+
+  function initialsOf(name) {
+    if (!name) return '?';
+    return name.trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase();
+  }
+%>
+
+<div class="user-view">
+  <div class="k-view">
+
+    <!-- Hero -->
+    <div class="k-hero">
+      <div>
+        <div class="hi">Hoş geldin,</div>
+        <h1><%= firstName %><% if (surname) { %> <em><%= surname %>.</em><% } %></h1>
+      </div>
+      <a href="/notifications" class="notif-pill">
+        <% if (notificationUnreadCount > 0) { %>
+          <span class="badge"><%= notificationUnreadCount > 99 ? '99+' : notificationUnreadCount %></span>
+          <span>yeni bildirim</span>
+        <% } else { %>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span>bildirimler</span>
+        <% } %>
+      </a>
+    </div>
+
+    <!-- Sol geniş kolon: Kurumların + Hızlı işlemler -->
+    <div class="k-col">
+
+      <div class="k-sec">
+        <div class="k-sec-head">
+          <h3>Kurumların</h3>
+          <a href="/profile" class="aux">tümünü yönet <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        </div>
+        <div class="k-card">
+          <% if (companies.length === 0) { %>
+            <div class="empty">
+              <div class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 18V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9M9 22V12M15 22V12"/></svg></div>
+              <h4>Henüz bir kurumda yoksun</h4>
+              <p>Yeni kurum ekleyebilir ya da davet koduyla bir filoya katılabilirsin.</p>
+            </div>
+          <% } else { %>
+            <% companies.forEach(function(c) { %>
+              <% if (c.role_name) { /* Yönetici — mevcut context switch akışı */ %>
+                <form action="/companies/switch" method="POST" style="margin:0;">
+                  <input type="hidden" name="company_id" value="<%= c.id %>">
+                  <button type="submit" class="k-row" style="width:100%; text-align:left;">
+                    <span class="av"><%= (c.name || '?').trim()[0].toUpperCase() %></span>
+                    <div class="info">
+                      <div class="n"><%= c.name %></div>
+                      <div class="m">
+                        <% if (!c.is_active) { %>
+                          <span class="tag-wait">onay bekliyor</span>
+                          <span class="sep">·</span>
+                        <% } %>
+                        <span><%= c.role_display_name %></span>
+                      </div>
+                    </div>
+                    <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                  </button>
+                </form>
+              <% } else { /* Filo üyeliği — salt-okunur ilişki sayfası */ %>
+                <a href="/companies/<%= c.id %>/relationship" class="k-row" style="text-decoration:none;">
+                  <span class="av"><%= (c.name || '?').trim()[0].toUpperCase() %></span>
+                  <div class="info">
+                    <div class="n"><%= c.name %></div>
+                    <div class="m">
+                      <% if (!c.is_active) { %>
+                        <span class="tag-wait">onay bekliyor</span>
+                        <span class="sep">·</span>
+                      <% } %>
+                      <span><%= c.role_display_name %></span>
+                    </div>
+                  </div>
+                  <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </a>
+              <% } %>
+            <% }); %>
+          <% } %>
+          <a href="/companies/create" class="k-add">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Yeni kurum ekle
+          </a>
+        </div>
+      </div>
+
+      <!-- Hızlı işlemler -->
+      <div class="k-sec">
+        <div class="k-sec-head">
+          <h3>Hızlı işlemler</h3>
+        </div>
+        <div class="k-actions">
+          <a href="/connections/redeem" class="k-btn primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M7 8V6a5 5 0 0 1 10 0v2"/></svg>
+            Davet koduyla filoya katıl
+          </a>
+          <a href="/driver/profile" class="k-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg>
+            Şoför profilime git
+          </a>
+          <a href="/notifications" class="k-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            Bildirimler
+          </a>
+          <a href="/profile" class="k-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Yardım ve destek
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sağ dar kolon: Aracın → Belgelerin → Hosteslerin → Hızlı işlemler -->
+    <div class="k-col">
+
+      <!-- Aracın -->
+      <div class="k-sec">
+        <div class="k-sec-head">
+          <h3>Aracın<% if (vehList.length > 1) { %> · <%= vehList.length %><% } %></h3>
+          <a href="/vehicles" class="aux"><% if (vehList.length > 1) { %>tümü<% } else { %>detay<% } %> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        </div>
+        <div class="k-vehicle">
+          <% if (firstVehicle) { %>
+            <span class="k-plate">
+              <span class="tr">TR</span>
+              <span class="num"><%= plate.formatted %></span>
+            </span>
+            <div class="name">
+              <%= firstVehicle.brand || 'Araç' %><% if (firstVehicle.model) { %> <%= firstVehicle.model %><% } %>
+            </div>
+            <div class="meta">
+              <% const parts = []; %>
+              <% if (firstVehicle.year) parts.push(firstVehicle.year); %>
+              <% if (firstVehicle.capacity) parts.push(firstVehicle.capacity + ' kişi'); %>
+              <% if (firstVehicle.vehicle_type) parts.push(firstVehicle.vehicle_type); %>
+              <%= parts.join(' · ') || 'detaylar eksik' %>
+            </div>
+            <a href="/vehicles/<%= firstVehicle.id %>" class="cta">
+              Aracımı yönet
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          <% } else { %>
+            <div class="name">Henüz kayıtlı aracın yok</div>
+            <div class="meta">ruhsat + sigorta ile ekle</div>
+            <a href="/vehicles" class="cta">
+              Araç ekle
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </a>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Belgelerin (aracın altında) -->
+      <div class="k-sec">
+        <div class="k-sec-head">
+          <h3>Belgelerin<% if (docs.length > 0) { %> · <%= docs.length %><% } %></h3>
+          <% const allOk = docs.length > 0 && docs.every(d => docState(d).cls === 'ok'); %>
+          <% if (allOk) { %>
+            <span class="aux" style="color:var(--good);">tümü geçerli <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <% } %>
+        </div>
+        <div class="k-card">
+          <% if (docs.length === 0) { %>
+            <div class="empty">
+              <div class="icn" style="background:var(--surface-3); color:var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+              <h4>Henüz belgen yok</h4>
+              <p>Şoför profilinden ya da aracından yükleyebilirsin.</p>
+            </div>
+          <% } else { %>
+            <% docs.slice(0, 5).forEach(function(d) { %>
+              <% const s = docState(d); %>
+              <a href="<%= d.owner_kind === 'driver' ? '/driver/profile' : (d.owner_kind === 'vehicle' ? '/vehicles' : '/hostess') %>" class="k-doc <%= s.cls === 'ok' ? '' : (s.cls === 'warn' ? 'warn' : 'bad') %>">
+                <div>
+                  <div class="dn"><%= d.type_label %></div>
+                  <div class="ds"><%= d.owner_label %></div>
+                </div>
+                <div class="dr">
+                  <div class="du"><%= s.label %></div>
+                  <div class="dot"></div>
+                </div>
+              </a>
+            <% }); %>
+          <% } %>
+          <a href="/driver/profile" class="k-add">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Belge yükle
+          </a>
+        </div>
+      </div>
+
+      <!-- Hosteslerin -->
+      <div class="k-sec">
+        <div class="k-sec-head">
+          <h3>Hosteslerin<% if (hostessCount > 0) { %> · <%= hostessCount %><% } %></h3>
+          <a href="/hostess" class="aux">tümü <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></a>
+        </div>
+        <div class="k-card">
+          <% if (hostessCount === 0) { %>
+            <div class="empty">
+              <div class="icn" style="background:var(--surface-3); color:var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+              <h4>Henüz hostesin yok</h4>
+              <p>Aracına yardımcı ekleyebilirsin.</p>
+            </div>
+          <% } else { %>
+            <% hostessList.slice(0, 3).forEach(function(h) { %>
+              <a href="/hostess/<%= h.id %>" class="k-row">
+                <span class="av" style="background:linear-gradient(135deg,#EC4899,#DB2777);"><%= initialsOf((h.first_name||'') + ' ' + (h.last_name||'')) %></span>
+                <div class="info">
+                  <div class="n"><%= h.first_name %> <%= h.last_name %></div>
+                  <div class="m">
+                    <% if (h.vehicle_id) { %>
+                      <span>araca atanmış</span>
+                    <% } else { %>
+                      <span>atanmamış</span>
+                    <% } %>
+                  </div>
+                </div>
+                <span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+              </a>
+            <% }); %>
+          <% } %>
+          <a href="/hostess" class="k-add">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Hostes ekle
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>

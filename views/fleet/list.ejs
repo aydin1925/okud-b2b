@@ -4,15 +4,15 @@
   const problemPct = stats.total > 0 ? Math.round((stats.problem / stats.total) * 100) : 0;
 %>
 
-<div class="space-y-8">
+<div class="space-y-6 sm:space-y-8">
 
   <!-- HERO — dashboard style -->
-  <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 p-6 sm:p-8 shadow-2xl ring-1 ring-slate-900/10">
+  <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 p-5 sm:p-8 shadow-2xl ring-1 ring-slate-900/10">
     <div class="absolute -top-20 -right-20 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl"></div>
     <div class="absolute -bottom-20 -left-20 w-96 h-96 bg-purple-500/15 rounded-full blur-3xl"></div>
     <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 40px 40px;"></div>
 
-    <div class="relative grid lg:grid-cols-[2fr_1fr] gap-8">
+    <div class="relative grid lg:grid-cols-[2fr_1fr] gap-6 sm:gap-8">
       <div>
         <div class="flex items-center gap-2 mb-3">
           <span class="inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -20,11 +20,11 @@
           <span class="text-slate-500 text-xs">·</span>
           <p class="text-xs text-slate-400"><%= currentCompany.name %></p>
         </div>
-        <h1 class="text-white text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter leading-[1.05]">
+        <h1 class="text-white text-2xl sm:text-4xl md:text-5xl font-bold tracking-tighter leading-[1.05]">
           <%= activeTab === 'drivers' ? 'Şoförlerin' : 'Araçların' %><br>
           <span class="font-serif italic text-slate-400">tek bakışta.</span>
         </h1>
-        <div class="mt-6 flex items-center gap-3">
+        <div class="mt-4 sm:mt-6 flex items-center gap-3">
           <div class="flex items-baseline gap-2">
             <span class="text-white text-4xl sm:text-5xl md:text-6xl font-black tabular-nums tracking-tighter"><%= stats.total %></span>
             <span class="text-slate-400 text-sm font-semibold">toplam</span>
@@ -143,6 +143,11 @@
                   <span class="h-1.5 w-1.5 rounded-full <%= stDot %>"></span>
                   <%= stLabel %>
                 </span>
+                <% if (m.paused) { %>
+                  <span class="inline-flex items-center gap-1 rounded-full ring-1 bg-slate-100 text-slate-600 ring-slate-200 px-2 py-0.5 text-[11px] font-bold uppercase tracking-widest">
+                    Pasif
+                  </span>
+                <% } %>
               </div>
               <p class="text-sm text-slate-500 mt-0.5 truncate"><%= m.subtext %></p>
               <% if (m.issues.length > 0) { %>

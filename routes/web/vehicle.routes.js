@@ -16,6 +16,9 @@ router.get('/:id',         VehicleController.showDetail);
 router.get('/:id/edit',    VehicleController.showEditForm);
 router.post('/:id/edit',   VehicleController.updateVehicle);
 router.post('/:id/updates/:reqId/cancel', VehicleController.cancelUpdateRequest);
+router.post('/:id/delete',     VehicleController.deleteVehicle);
+router.post('/:id/activate',   VehicleController.setActive);
+router.post('/:id/deactivate', VehicleController.setActive);
 
 router.post(
   '/:id/documents/upload',

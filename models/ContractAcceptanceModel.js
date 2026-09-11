@@ -20,11 +20,16 @@ async function findByFleetConnection(fleetConnectionId) {
   return rows;
 }
 
+// partnership_id ile snapshot + kabul eden kullanıcının tam adı.
+// Kullanıcı silinmiş olsa bile snapshot'ı gösterebilelim diye LEFT JOIN.
 async function findByPartnership(partnershipId) {
   const [rows] = await db.query(
-    `SELECT * FROM contract_acceptances
-      WHERE partnership_id = ? AND deleted_at IS NULL
-      ORDER BY accepted_at ASC
+    `SELECT ca.*,
+            TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))) AS accepted_by_name
+       FROM contract_acceptances ca
+       LEFT JOIN users u ON u.id = ca.user_id
+      WHERE ca.partnership_id = ? AND ca.deleted_at IS NULL
+      ORDER BY ca.accepted_at ASC
       LIMIT 1`,
     [partnershipId]
   );

@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Etkinlik Akışı · OKUD SuperAdmin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/superadmin.css">
+<style>
+  /* Summary strip */
+  .strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  @media (max-width: 780px) { .strip { grid-template-columns: repeat(2, 1fr); } }
+  .strip .item {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow-md); padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .strip .item .ic {
+    width: 32px; height: 32px; border-radius: 7px;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .strip .item.good .ic { background: var(--good-soft); color: var(--good); }
+  .strip .item.bad .ic { background: var(--accent-soft); color: var(--accent); }
+  .strip .item.blue .ic { background: var(--blue-soft); color: var(--blue); }
+  .strip .item.amber .ic { background: var(--amber-soft); color: var(--amber); }
+  .strip .item .ic svg { width: 14px; height: 14px; stroke-width: 2; }
+  .strip .item .txt .l { font-size: 11px; color: var(--ink-4); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+  .strip .item .txt .v { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; margin-top: 4px; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+  /* Filter row */
+  .fr { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+  .chip-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 6px;
+    background: var(--surface); box-shadow: var(--shadow-sm);
+    font-size: 12.5px; font-weight: 500; color: var(--ink-3);
+    letter-spacing: -0.005em;
+    transition: all 150ms var(--ease);
+  }
+  .chip-btn:hover { color: var(--ink); }
+  .chip-btn.on { background: var(--ink); color: white; box-shadow: 0 1px 2px rgba(15,15,20,0.20), inset 0 1px 0 rgba(255,255,255,0.08); }
+  .chip-btn .cnt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    padding: 1px 5px; border-radius: 3px;
+    background: var(--surface-3); color: var(--ink-4);
+    letter-spacing: -0.02em;
+  }
+  .chip-btn.on .cnt { background: rgba(255,255,255,0.15); color: white; }
+  .sel-inline {
+    background: var(--surface); box-shadow: var(--shadow-sm);
+    border: 0; border-radius: 6px; padding: 6px 10px;
+    font-size: 12px; color: var(--ink-2); font-weight: 500;
+    outline: none; cursor: pointer; letter-spacing: -0.005em;
+  }
+
+  /* Day block */
+  .day-block { margin-bottom: 24px; }
+  .day-label {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 12px; padding: 0 2px;
+  }
+  .day-label .name {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.10em;
+    font-weight: 600; color: var(--ink);
+  }
+  .day-label .rule { flex: 1; height: 1px; background: var(--line); }
+  .day-label .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; color: var(--ink-4); font-weight: 500; letter-spacing: -0.01em;
+  }
+
+  /* Timeline */
+  .tl { position: relative; padding-left: 28px; }
+  .tl::before {
+    content: ''; position: absolute; left: 8px; top: 12px; bottom: 12px;
+    width: 1px; background: var(--line);
+  }
+  .tl-item {
+    position: relative;
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 14px; align-items: center;
+    transition: box-shadow 180ms var(--ease), transform 180ms var(--ease);
+  }
+  .tl-item:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+  .tl-item + .tl-item { margin-top: 6px; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -24px; top: 50%; transform: translateY(-50%);
+    width: 11px; height: 11px; border-radius: 999px;
+    background: var(--surface); box-shadow: 0 0 0 2px var(--ink-5), var(--shadow-sm);
+  }
+  .tl-item.good::before { box-shadow: 0 0 0 2px var(--good), var(--shadow-sm); background: var(--good); }
+  .tl-item.bad::before { box-shadow: 0 0 0 2px var(--accent), var(--shadow-sm); background: var(--accent); }
+  .tl-item.blue::before { box-shadow: 0 0 0 2px var(--blue), var(--shadow-sm); background: var(--blue); }
+  .tl-item.amber::before { box-shadow: 0 0 0 2px var(--amber), var(--shadow-sm); background: var(--amber); }
+  .tl-item.sys::before { box-shadow: 0 0 0 2px var(--ink-4), var(--shadow-sm); background: var(--ink-4); }
+  .tl-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px; font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+  .tl-time .abs { display: block; color: var(--ink-2); font-weight: 600; }
+  .tl-time .rel { display: block; color: var(--ink-4); font-size: 10.5px; font-weight: 500; margin-top: 2px; }
+  .tl-body { min-width: 0; }
+  .tl-title {
+    font-size: 13.5px; font-weight: 500; letter-spacing: -0.005em; color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tl-item.bad .tl-title { color: var(--accent); }
+  .tl-title .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em;
+    font-weight: 600; padding: 2px 6px; border-radius: 3px;
+  }
+  .tl-title .tag.doc { background: var(--amber-soft); color: var(--amber); }
+  .tl-title .tag.company { background: var(--blue-soft); color: var(--blue); }
+  .tl-title .tag.driver { background: var(--good-soft); color: var(--good); }
+  .tl-title .tag.vehicle { background: var(--accent-soft); color: var(--accent); }
+  .tl-title .tag.system { background: var(--surface-3); color: var(--ink-3); }
+  .tl-sub {
+    font-size: 12px; color: var(--ink-3); margin-top: 4px;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  }
+  .tl-sub .arrow { color: var(--ink-5); }
+  .tl-sub .actor {
+    display: inline-flex; align-items: center; gap: 5px;
+    color: var(--ink-2); font-weight: 500;
+  }
+  .tl-sub .actor .av {
+    width: 18px; height: 18px; border-radius: 999px;
+    background: linear-gradient(135deg, var(--accent), #7F1D1D);
+    color: white; font-size: 9px; font-weight: 600; letter-spacing: -0.02em;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .tl-sub .reason { color: var(--ink-4); font-style: italic; }
+  .tl-sub .m { font-family: 'JetBrains Mono', monospace; color: var(--ink-3); letter-spacing: -0.01em; }
+  .tl-sub strong { color: var(--ink); font-weight: 600; }
+  .tl-go {
+    color: var(--ink-5); flex-shrink: 0;
+    transition: color 150ms var(--ease), transform 200ms var(--ease);
+  }
+  .tl-item:hover .tl-go { color: var(--ink-3); transform: translateX(2px); }
+  .tl-go svg { width: 14px; height: 14px; stroke-width: 2; }
+
+  .load-more {
+    display: flex; justify-content: center; margin-top: 16px;
+  }
+
+  @media (max-width: 720px) {
+    .tl-item { grid-template-columns: 60px 1fr; }
+    .tl-go { display: none; }
+    .tl-time { font-size: 10.5px; }
+  }
+</style>
+</head>
+<body class="sa">
+
+<div style="padding:10px 16px; background:var(--ink); color:white; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.06em; display:flex; align-items:center; justify-content:space-between;">
+  <span>MOCKUP · veriler örnek</span>
+  <a href="/admin" style="color:white; text-decoration:underline;">← Gerçek panele dön</a>
+</div>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="sb-brand">
+      <span class="sb-logo">O</span>
+      <div class="sb-brand-text">
+        <div class="name">OKUD</div>
+        <div class="role">SuperAdmin</div>
+      </div>
+    </div>
+
+    <div class="sb-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Ara veya komut…">
+      <span class="kbd">⌘K</span>
+    </div>
+
+    <div class="sb-group">Genel</div>
+    <nav class="sb-nav">
+      <a href="/admin" class="sb-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Kontrol Paneli
+      </a>
+      <a href="/admin/approvals" class="sb-link alert">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Onay Merkezi
+        <span class="badge">22</span>
+      </a>
+      <a href="activity.html" class="sb-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Etkinlik Akışı
+      </a>
+      <a href="/mockup/ai-rapor.html" class="sb-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
+        Aylık Rapor
+      </a>
+    </nav>
+
+    <div class="sb-group">Yönetim</div>
+    <nav class="sb-nav">
+      <a href="#" class="sb-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 18V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9M9 22V12M15 22V12"/></svg>
+        Kurumlar
+        <span class="badge">47</span>
+      </a>
+      <a href="#" class="sb-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Kullanıcılar
+        <span class="badge">312</span>
+      </a>
+      <a href="#" class="sb-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        İş Ortaklıkları
+        <span class="badge">64</span>
+      </a>
+    </nav>
+
+    <div class="sb-group">Sistem</div>
+    <nav class="sb-nav">
+      <a href="#" class="sb-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        Sağlık
+      </a>
+      <a href="#" class="sb-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25M21 5.25V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25"/></svg>
+        Denetim İzleri
+      </a>
+      <a href="#" class="sb-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 10 4.09V4a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Ayarlar
+      </a>
+    </nav>
+
+    <div class="sb-foot">
+      <span class="sb-avatar">AŞ</span>
+      <div class="info">
+        <div class="n">Aydın Şahin</div>
+        <div class="s">Çevrimiçi</div>
+      </div>
+      <button class="menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+    </div>
+  </aside>
+
+  <main>
+
+    <div class="topbar">
+      <div class="breadcrumb">
+        <span>Panel</span>
+        <span class="sep">/</span>
+        <span class="current">Etkinlik Akışı</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="topbar-time">2026-09-08 · 14:32</span>
+        <span class="status-pill"><span class="dot"></span>Operasyonel</span>
+        <button class="icon-btn" title="Bildirimler">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span class="badge-dot"></span>
+        </button>
+        <button class="icon-btn" title="Tema">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="page-hero">
+        <div>
+          <div class="eyebrow">Sistem Etkinliği</div>
+          <h1>Etkinlik Akışı</h1>
+          <div class="sub">
+            Son 7 günde <strong>37 aksiyon</strong> · 27 onay · 3 ret
+            <span class="live">Canlı</span>
+          </div>
+        </div>
+        <button class="btn btn-ghost">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Log Dışa Aktar
+        </button>
+      </div>
+
+      <div class="strip">
+        <div class="item good">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+          <div class="txt"><div class="l">Onay</div><div class="v">27</div></div>
+        </div>
+        <div class="item bad">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+          <div class="txt"><div class="l">Ret</div><div class="v">3</div></div>
+        </div>
+        <div class="item blue">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
+          <div class="txt"><div class="l">Güncelleme</div><div class="v">7</div></div>
+        </div>
+        <div class="item amber">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+          <div class="txt"><div class="l">Sistem uyarı</div><div class="v">3</div></div>
+        </div>
+      </div>
+
+      <div class="fr">
+        <button class="chip-btn on">Hepsi <span class="cnt">37</span></button>
+        <button class="chip-btn">Onay <span class="cnt">27</span></button>
+        <button class="chip-btn">Ret <span class="cnt">3</span></button>
+        <button class="chip-btn">Sistem <span class="cnt">7</span></button>
+        <select class="sel-inline" style="margin-left:auto;">
+          <option>Son 7 gün</option>
+          <option>Bugün</option>
+          <option>Son 24 saat</option>
+          <option>Son 30 gün</option>
+        </select>
+      </div>
+
+      <div class="day-block">
+        <div class="day-label">
+          <span class="name">Bugün</span>
+          <span class="rule"></span>
+          <span class="meta">2026-09-08 · 12 aksiyon</span>
+        </div>
+        <div class="tl">
+          <div class="tl-item good">
+            <span class="tl-time"><span class="abs">14:27</span><span class="rel">5 dk</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Ehliyet onaylandı <span class="tag doc">Belge</span></div>
+              <div class="tl-sub">
+                <span class="actor"><span class="av">AŞ</span> Aydın Şahin</span>
+                <span class="arrow">→</span>
+                <span>Ali Demir · Kayseri Servis Kooperatifi</span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item good">
+            <span class="tl-time"><span class="abs">14:12</span><span class="rel">20 dk</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Kurum aktifleştirildi <span class="tag company">Kurum</span></div>
+              <div class="tl-sub">
+                <span class="actor"><span class="av">AŞ</span> Aydın Şahin</span>
+                <span class="arrow">→</span>
+                <span>OkulX Vakfı <span class="m">· VKN 3821759416</span></span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item bad">
+            <span class="tl-time"><span class="abs">13:31</span><span class="rel">1 sa</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Psikoteknik reddedildi <span class="tag doc">Belge</span></div>
+              <div class="tl-sub">
+                <span class="actor"><span class="av">AŞ</span> Aydın Şahin</span>
+                <span class="arrow">→</span>
+                <span>Fatma Yıldız · gerekçe: <span class="reason">süresi dolmuş</span></span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item blue">
+            <span class="tl-time"><span class="abs">12:15</span><span class="rel">2 sa</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Şoför güncellemesi uygulandı <span class="tag driver">Şoför</span></div>
+              <div class="tl-sub">
+                <span class="actor"><span class="av">AŞ</span> Aydın Şahin</span>
+                <span class="arrow">→</span>
+                <span>Yaşar Öztürk · TC güncellendi</span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item good">
+            <span class="tl-time"><span class="abs">10:04</span><span class="rel">4 sa</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Trafik sigortası onaylandı <span class="tag vehicle">Araç</span></div>
+              <div class="tl-sub">
+                <span class="actor"><span class="av">AŞ</span> Aydın Şahin</span>
+                <span class="arrow">→</span>
+                <span class="m">38 XYZ 4419</span>
+                <span>· <span class="m">2027-03-15</span>'e kadar</span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item sys">
+            <span class="tl-time"><span class="abs">04:00</span><span class="rel">bu sabah</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Cron taraması tamamlandı <span class="tag system">Sistem</span></div>
+              <div class="tl-sub">
+                <span>187 evrak tarandı · <strong style="color:var(--amber);">3 uyarı</strong> düştü · 0 hata</span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="day-block">
+        <div class="day-label">
+          <span class="name">Dün</span>
+          <span class="rule"></span>
+          <span class="meta">2026-09-07 · 14 aksiyon</span>
+        </div>
+        <div class="tl">
+          <div class="tl-item good">
+            <span class="tl-time"><span class="abs">22:00</span><span class="rel">dün gece</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Kurum onaylandı <span class="tag company">Kurum</span></div>
+              <div class="tl-sub">
+                <span class="actor"><span class="av">AŞ</span> Aydın Şahin</span>
+                <span class="arrow">→</span>
+                <span>Anatolia Kolej Servisi · alıcı</span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item good">
+            <span class="tl-time"><span class="abs">15:30</span><span class="rel">dün öğle</span></span>
+            <div class="tl-body">
+              <div class="tl-title">SRC belgesi onaylandı <span class="tag doc">Belge</span></div>
+              <div class="tl-sub">
+                <span class="actor"><span class="av">AŞ</span> Aydın Şahin</span>
+                <span class="arrow">→</span>
+                <span>Hasan Kılıç · SRC-2</span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item blue">
+            <span class="tl-time"><span class="abs">11:45</span><span class="rel">dün sabah</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Araç güncellemesi uygulandı <span class="tag vehicle">Araç</span></div>
+              <div class="tl-sub">
+                <span class="actor"><span class="av">AŞ</span> Aydın Şahin</span>
+                <span class="arrow">→</span>
+                <span class="m">34 ABC 1234</span>
+                <span>· kapasite <strong>16 → 22</strong></span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item bad">
+            <span class="tl-time"><span class="abs">09:15</span><span class="rel">dün sabah</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Trafik sigortası reddedildi <span class="tag vehicle">Araç</span></div>
+              <div class="tl-sub">
+                <span class="actor"><span class="av">AŞ</span> Aydın Şahin</span>
+                <span class="arrow">→</span>
+                <span class="m">34 ABC 1234</span>
+                <span>· gerekçe: <span class="reason">süresi biten sigorta</span></span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item sys">
+            <span class="tl-time"><span class="abs">04:00</span><span class="rel">dün gece</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Cron taraması tamamlandı <span class="tag system">Sistem</span></div>
+              <div class="tl-sub">
+                <span>184 evrak tarandı · 5 uyarı düştü · 0 hata</span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="day-block">
+        <div class="day-label">
+          <span class="name">Bu Hafta</span>
+          <span class="rule"></span>
+          <span class="meta">daha önce · 11 aksiyon</span>
+        </div>
+        <div class="tl">
+          <div class="tl-item good">
+            <span class="tl-time"><span class="abs">09-05</span><span class="rel">2 gün</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Toplu belge onayı yapıldı <span class="tag doc">Belge</span></div>
+              <div class="tl-sub">
+                <span class="actor"><span class="av">AŞ</span> Aydın Şahin</span>
+                <span class="arrow">→</span>
+                <span><strong>8 belge</strong> tek seferde onaylandı</span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item amber">
+            <span class="tl-time"><span class="abs">09-04</span><span class="rel">3 gün</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Kurum belge şablonu değiştirildi <span class="tag system">Sistem</span></div>
+              <div class="tl-sub">
+                <span>OkulX Vakfı · Sabıka kaydı zorunluluğu <strong>eklendi</strong></span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item bad">
+            <span class="tl-time"><span class="abs">09-03</span><span class="rel">4 gün</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Şoför profili silindi <span class="tag driver">Şoför</span></div>
+              <div class="tl-sub">
+                <span>Bekir Turan · sahibi tarafından <span class="reason">soft delete</span></span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item blue">
+            <span class="tl-time"><span class="abs">09-02</span><span class="rel">5 gün</span></span>
+            <div class="tl-body">
+              <div class="tl-title">İş ortaklığı kuruldu <span class="tag company">Kurum</span></div>
+              <div class="tl-sub">
+                <span>Kayseri Servis Kooperatifi <span class="arrow">↔</span> Anatolia Kolej Servisi</span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+
+          <div class="tl-item sys">
+            <span class="tl-time"><span class="abs">09-01</span><span class="rel">6 gün</span></span>
+            <div class="tl-body">
+              <div class="tl-title">Sistem güncellemesi yapıldı <span class="tag system">Sistem</span></div>
+              <div class="tl-sub">
+                <span>Migration 025 uygulandı · <span class="m">davet_time_fleet_scope</span> tablosu eklendi</span>
+              </div>
+            </div>
+            <span class="tl-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="load-more">
+        <button class="btn btn-ghost">
+          Daha eskiyi yükle
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

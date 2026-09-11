@@ -1,12 +1,14 @@
 const FleetConnectionModel = require('../models/FleetConnectionModel');
 const DriverProfileModel   = require('../models/DriverProfileModel');
 const VehicleProfileModel  = require('../models/VehicleProfileModel');
+const HostessProfileModel  = require('../models/HostessProfileModel');
 const DocumentModel        = require('../models/DocumentModel');
 const UserModel            = require('../models/UserModel');
 const db                   = require('../config/db');
 const {
   DRIVER_DOCUMENT_TYPES,
   VEHICLE_DOCUMENT_TYPES,
+  HOSTESS_DOCUMENT_TYPES,
   DOCUMENT_TYPE_LABELS,
   OWNER_TYPES,
   DOC_EXPIRY_THRESHOLDS_DAYS,
@@ -119,11 +121,13 @@ async function listDrivers(companyId) {
 
     members.push({
       profileId: r.profile_id,
+      connectionId: r.connection_id,
       name: `${r.first_name} ${r.last_name}`,
       subtext: `${r.license_class} sınıfı ehliyet · ${r.email}`,
       status,
       issues,
       connectedAt: r.connected_at,
+      paused: !!r.paused_at,
     });
   }
 
@@ -135,18 +139,48 @@ async function listVehicles(companyId) {
   const members = [];
 
   for (const r of rows) {
-    const docStatuses = await computeDocStatuses(
+    // Aracın kendi belgeleri
+    const vehicleDocStatuses = await computeDocStatuses(
       OWNER_TYPES.VEHICLE_PROFILE, r.profile_id, VEHICLE_DOCUMENT_TYPES
     );
-    const { status, issues } = deriveMemberStatus(r.profile_status === 'active', docStatuses);
+
+    // Araca atanmış aktif hostes (varsa) — belgeleri de araç sağlığına dahil
+    const hostess = await HostessProfileModel.findActiveByVehicleId(r.profile_id);
+    let hostessDocStatuses = [];
+    if (hostess) {
+      hostessDocStatuses = await computeDocStatuses(
+        OWNER_TYPES.HOSTESS_PROFILE, hostess.id, HOSTESS_DOCUMENT_TYPES
+      );
+      // Hostes belgelerinin issue mesajlarına ön ek koy — kaynağı belli olsun
+      for (const s of hostessDocStatuses) {
+        if (s.reason) s.reason = `Hostes: ${s.reason}`;
+      }
+    }
+
+    const allDocStatuses = [...vehicleDocStatuses, ...hostessDocStatuses];
+
+    // Araç aktif değilse ya da hostes varken hostes aktif değilse — problem
+    const profileActive = r.profile_status === 'active';
+    const hostessActive = !hostess || hostess.status === 'active';
+    const overallActive = profileActive && hostessActive;
+
+    const { status, issues } = deriveMemberStatus(overallActive, allDocStatuses);
 
     members.push({
       profileId: r.profile_id,
+      connectionId: r.connection_id,
       name: r.plate_number,
-      subtext: `${r.brand} ${r.model} (${r.year}) · ${r.capacity} kişi · Sahip: ${r.owner_first_name} ${r.owner_last_name}`,
+      subtext: `${r.brand} ${r.model} (${r.year}) · ${r.capacity} kişi · Sahip: ${r.owner_first_name} ${r.owner_last_name}`
+              + (hostess ? ` · Hostes: ${hostess.first_name} ${hostess.last_name}` : ''),
       status,
       issues,
       connectedAt: r.connected_at,
+      paused: !!r.paused_at,
+      hostess: hostess ? {
+        id: hostess.id,
+        name: `${hostess.first_name} ${hostess.last_name}`,
+        status: hostess.status,
+      } : null,
     });
   }
 
@@ -238,6 +272,7 @@ async function getMemberDetail(companyId, type, memberId) {
     type,
     profile,
     connection,
+    paused: !!connection.paused_at,
     docStatuses,
     status,
     issues,
@@ -245,4 +280,23 @@ async function getMemberDetail(companyId, type, memberId) {
   };
 }
 
-module.exports = { listDrivers, listVehicles, getMemberDetail };
+/**
+ * Kurumun bir filo üyesini geçici pasife alır ya da tekrar aktifleştirir.
+ *   type: 'driver' | 'vehicle'
+ *   memberId: profile id
+ *   paused: true → pause, false → resume
+ * Ownership: connection'ın bu kurumda olduğunu bulup üzerinden çalışır.
+ */
+async function setPaused(companyId, type, memberId, paused, userId) {
+  const targetType = type === 'driver' ? OWNER_TYPES.DRIVER_PROFILE : OWNER_TYPES.VEHICLE_PROFILE;
+  const connection = await FleetConnectionModel.findActiveByTarget(companyId, targetType, memberId);
+  if (!connection) throw new Error('Bu üye kurumun aktif filosunda değil');
+
+  if (paused) {
+    await FleetConnectionModel.pause(connection.id, companyId, userId);
+  } else {
+    await FleetConnectionModel.resume(connection.id, companyId);
+  }
+}
+
+module.exports = { listDrivers, listVehicles, getMemberDetail, setPaused };

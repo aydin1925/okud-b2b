@@ -39,6 +39,24 @@ async function findById(id) {
   return rows[0] || null;
 }
 
+// Timeline için: daveti oluşturan ve tüketen kullanıcıların tam adları ile.
+// LEFT JOIN — kullanıcı silinmiş olsa bile davet satırı kaybolmasın.
+async function findByIdWithUsers(id) {
+  const [rows] = await db.query(
+    `SELECT
+        i.*,
+        TRIM(CONCAT(COALESCE(cu.first_name, ''), ' ', COALESCE(cu.last_name, ''))) AS created_by_name,
+        TRIM(CONCAT(COALESCE(su.first_name, ''), ' ', COALESCE(su.last_name, ''))) AS consumed_by_name
+       FROM partnership_invitations i
+       LEFT JOIN users cu ON cu.id = i.created_by
+       LEFT JOIN users su ON su.id = i.consumed_by
+      WHERE i.id = ? AND i.deleted_at IS NULL
+      LIMIT 1`,
+    [id]
+  );
+  return rows[0] || null;
+}
+
 async function findPendingByCompany(companyId) {
   const [rows] = await db.query(
     `SELECT * FROM partnership_invitations
@@ -77,6 +95,7 @@ module.exports = {
   findActiveByCode,
   existsByCode,
   findById,
+  findByIdWithUsers,
   findPendingByCompany,
   cancel,
   rejectByAdmin,

@@ -53,7 +53,7 @@
         Dashboard
       </a>
       <p class="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-2">Davet Kodu</p>
-      <h2 class="text-4xl font-bold text-slate-900 tracking-tighter">Kodu <span class="font-serif italic text-slate-500">buraya.</span></h2>
+      <h2 class="text-2xl sm:text-4xl font-bold text-slate-900 tracking-tighter">Kodu <span class="font-serif italic text-slate-500">buraya.</span></h2>
     </div>
 
     <% if (error) { %>
@@ -70,7 +70,7 @@
           <input type="text" id="code" name="code" value="<%= code %>" required autocomplete="off" spellcheck="false"
                  maxlength="10"
                  placeholder="XXXXXXXX"
-                 class="w-full rounded-3xl border-0 ring-2 ring-slate-200 bg-white px-6 py-8 text-center text-5xl font-black font-mono uppercase tracking-[0.4em] text-slate-900 placeholder:text-slate-200 focus:ring-4 focus:ring-slate-900 focus:outline-none transition shadow-soft-lg">
+                 class="w-full rounded-3xl border-0 ring-2 ring-slate-200 bg-white px-4 sm:px-6 py-6 sm:py-8 text-center text-3xl sm:text-5xl font-black font-mono uppercase tracking-[0.2em] sm:tracking-[0.4em] text-slate-900 placeholder:text-slate-200 focus:ring-4 focus:ring-slate-900 focus:outline-none transition shadow-soft-lg">
           <div class="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-slate-500">
             8 karakter
           </div>
@@ -97,3 +97,21 @@
   </div>
 
 </div>
+
+<% if (error) { %>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    Swal.fire({
+      icon: 'error',
+      title: 'Katılım tamamlanamadı',
+      text: <%- JSON.stringify(error) %>,
+      confirmButtonText: 'Anladım',
+    }).then(function () {
+      // URL'i temizle — sayfa yenilenirse popup tekrar açılmasın
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, '/connections/redeem');
+      }
+    });
+  });
+</script>
+<% } %>

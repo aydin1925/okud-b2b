@@ -1,0 +1,485 @@
+<style>
+  /* Kanal kartları */
+  .ch-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 1050px) { .ch-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .ch-grid { grid-template-columns: 1fr; } }
+  .ch-card {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow-md); padding: 16px 18px;
+    display: block;
+    transition: box-shadow 220ms var(--ease), transform 220ms var(--ease);
+  }
+  .ch-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+  .ch-card.on { box-shadow: 0 0 0 2px var(--ink), var(--shadow-md); }
+  .ch-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .ch-title-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .ch-icn {
+    width: 30px; height: 30px; border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .ch-icn svg { width: 14px; height: 14px; stroke-width: 2; }
+  .ch-icn.amber { background: var(--amber-soft); color: var(--amber); }
+  .ch-icn.blue { background: var(--blue-soft); color: var(--blue); }
+  .ch-icn.good { background: var(--good-soft); color: var(--good); }
+  .ch-icn.accent { background: var(--accent-soft); color: var(--accent); }
+  .ch-name { font-size: 13px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink); }
+  .ch-big {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px; font-weight: 600; letter-spacing: -0.04em;
+    line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums;
+  }
+  .ch-foot {
+    font-size: 11.5px; color: var(--ink-4);
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex; gap: 2px; padding: 3px; margin-bottom: 16px;
+    background: var(--surface-2); border-radius: 7px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+  }
+  .tab {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 5px;
+    font-size: 12.5px; font-weight: 500; color: var(--ink-3);
+    letter-spacing: -0.005em; white-space: nowrap;
+    transition: all 150ms var(--ease);
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
+  .tab .cnt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 600;
+    padding: 1px 6px; border-radius: 3px;
+    background: var(--surface-3); color: var(--ink-3);
+  }
+  .tab.active .cnt { background: var(--ink); color: white; }
+
+  /* Item card (row) */
+  .item {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow-md); padding: 16px 18px;
+    display: grid; grid-template-columns: auto 1fr auto; gap: 14px;
+    align-items: flex-start;
+  }
+  .item + .item { margin-top: 8px; }
+  .item .av {
+    width: 38px; height: 38px; border-radius: 999px;
+    color: white; font-weight: 600; font-size: 12px; letter-spacing: -0.02em;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .item .av.company { border-radius: 8px; background: linear-gradient(135deg, #2563EB, #1E40AF); }
+  .item .av.driver { background: linear-gradient(135deg, #059669, #047857); }
+  .item .av.doc { background: linear-gradient(135deg, #D97706, #B45309); }
+  .item .av.vehicle { background: linear-gradient(135deg, #DC2626, #991B1B); }
+  .item .body { min-width: 0; }
+  .item .title-row {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 2px;
+  }
+  .item .title-row .name { font-size: 14px; font-weight: 600; letter-spacing: -0.005em; color: var(--ink); }
+  .item .title-row .sub { font-size: 12.5px; color: var(--ink-3); }
+  .item .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--ink-4); font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-top: 2px;
+  }
+  .item .diff {
+    margin-top: 10px; padding: 10px 12px;
+    background: var(--surface-2); border-radius: var(--radius-sm);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .item .diff-row {
+    display: grid; grid-template-columns: 90px 1fr auto 1fr; gap: 8px;
+    align-items: center; font-size: 12.5px;
+  }
+  .item .diff-row .k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--ink-4); text-transform: uppercase;
+    letter-spacing: 0.06em; font-weight: 600;
+  }
+  .item .diff-row .old { color: var(--ink-4); text-decoration: line-through; }
+  .item .diff-row .new { color: var(--ink); font-weight: 600; }
+  .item .diff-row .arrow { color: var(--ink-5); }
+  .item .diff-row .arrow svg { width: 12px; height: 12px; stroke-width: 2; }
+  .item .diff-row.mono .old, .item .diff-row.mono .new {
+    font-family: 'JetBrains Mono', monospace; letter-spacing: -0.01em;
+  }
+  .item .actions {
+    display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  }
+  .item .actions form { margin: 0; }
+
+  /* Card variant chip strip */
+  .item .chip-strip { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+
+  /* Small screen — item stacked */
+  @media (max-width: 700px) {
+    .item { grid-template-columns: auto 1fr; }
+    .item .actions {
+      grid-column: 1 / -1;
+      justify-content: flex-end;
+      padding-top: 10px; border-top: 1px solid var(--line);
+    }
+    .item .diff-row {
+      grid-template-columns: 70px 1fr;
+      gap: 4px 8px;
+    }
+    .item .diff-row .arrow { display: none; }
+    .item .diff-row .old { grid-column: 2; font-size: 11px; }
+    .item .diff-row .new { grid-column: 2; font-size: 12px; }
+  }
+
+  /* Empty (per tab) */
+  .tab-panel > .empty { margin: 0; }
+</style>
+
+<%
+  const initials = (s) => (s || '?').trim().split(/\s+/).map(w => w[0]).slice(0,2).join('').toUpperCase();
+  const tabHref = (tab) => '/admin/approvals?tab=' + tab;
+  const returnUrl = '/admin/approvals?tab=' + activeTab;
+  const VEHICLE_LABELS = {
+    plate_number: 'Plaka', brand: 'Marka', model: 'Model',
+    year: 'Yıl', vehicle_type: 'Tip', capacity: 'Kapasite',
+  };
+%>
+
+<div class="page-hero">
+  <div>
+    <div class="eyebrow">Onay ve Doğrulama</div>
+    <h1>Onay Merkezi</h1>
+    <div class="sub">
+      <% if (pendingCounts.total === 0) { %>
+        Hiç iş beklemiyor <span class="live" style="background:var(--surface-3); color:var(--ink-3);">Sakin</span>
+      <% } else { %>
+        <strong><%= pendingCounts.total %></strong> iş bekliyor · dört kanaldan gelen tüm talepler
+        <span class="live">Aksiyon</span>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Kanal kartları -->
+<div class="section">
+  <div class="section-head">
+    <h2>Kanallar <span class="count">4 tür</span></h2>
+  </div>
+  <div class="ch-grid">
+    <a href="<%= tabHref('documents') %>" class="ch-card<%= activeTab === 'documents' ? ' on' : '' %>">
+      <div class="ch-head">
+        <div class="ch-title-row">
+          <span class="ch-icn amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+          <div class="ch-name">Belge Onayları</div>
+        </div>
+        <span class="chip chip-amber"><%= pendingCounts.documents %></span>
+      </div>
+      <div class="ch-big"><%= pendingCounts.documents %></div>
+      <div class="ch-foot">Ehliyet · SRC · psikoteknik · sigorta</div>
+    </a>
+
+    <a href="<%= tabHref('companies') %>" class="ch-card<%= activeTab === 'companies' ? ' on' : '' %>">
+      <div class="ch-head">
+        <div class="ch-title-row">
+          <span class="ch-icn blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 18V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9"/></svg></span>
+          <div class="ch-name">Kurum Onayları</div>
+        </div>
+        <span class="chip chip-blue"><%= pendingCounts.companies %></span>
+      </div>
+      <div class="ch-big"><%= pendingCounts.companies %></div>
+      <div class="ch-foot">Yeni oluşturulan kurumlar</div>
+    </a>
+
+    <a href="<%= tabHref('driver-updates') %>" class="ch-card<%= activeTab === 'driver-updates' ? ' on' : '' %>">
+      <div class="ch-head">
+        <div class="ch-title-row">
+          <span class="ch-icn good"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg></span>
+          <div class="ch-name">Şoför Değişiklikleri</div>
+        </div>
+        <span class="chip chip-good"><%= pendingCounts.driverUpdates %></span>
+      </div>
+      <div class="ch-big"><%= pendingCounts.driverUpdates %></div>
+      <div class="ch-foot">TC · ehliyet sınıfı · doğum</div>
+    </a>
+
+    <a href="<%= tabHref('vehicle-updates') %>" class="ch-card<%= activeTab === 'vehicle-updates' ? ' on' : '' %>">
+      <div class="ch-head">
+        <div class="ch-title-row">
+          <span class="ch-icn accent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V15a1 1 0 0 0 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></span>
+          <div class="ch-name">Araç Değişiklikleri</div>
+        </div>
+        <span class="chip chip-bad"><%= pendingCounts.vehicleUpdates %></span>
+      </div>
+      <div class="ch-big"><%= pendingCounts.vehicleUpdates %></div>
+      <div class="ch-foot">Plaka · marka · kapasite</div>
+    </a>
+  </div>
+</div>
+
+<!-- Tab bar -->
+<div class="section">
+  <div class="tabs">
+    <a href="<%= tabHref('documents') %>" class="tab<%= activeTab === 'documents' ? ' active' : '' %>">Belgeler <span class="cnt"><%= pendingCounts.documents %></span></a>
+    <a href="<%= tabHref('companies') %>" class="tab<%= activeTab === 'companies' ? ' active' : '' %>">Kurumlar <span class="cnt"><%= pendingCounts.companies %></span></a>
+    <a href="<%= tabHref('driver-updates') %>" class="tab<%= activeTab === 'driver-updates' ? ' active' : '' %>">Şoför Değ. <span class="cnt"><%= pendingCounts.driverUpdates %></span></a>
+    <a href="<%= tabHref('vehicle-updates') %>" class="tab<%= activeTab === 'vehicle-updates' ? ' active' : '' %>">Araç Değ. <span class="cnt"><%= pendingCounts.vehicleUpdates %></span></a>
+  </div>
+
+  <!-- ═══ BELGELER ═══ -->
+  <% if (activeTab === 'documents') { %>
+    <div class="tab-panel">
+      <% if (documents.length === 0) { %>
+        <div class="empty">
+          <div class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h4>Hepsi temiz</h4>
+          <p>Onay bekleyen belge yok.</p>
+        </div>
+      <% } else { %>
+        <% documents.forEach(function(doc) { %>
+          <div class="item">
+            <span class="av doc"><%= initials(doc.first_name + ' ' + doc.last_name) %></span>
+            <div class="body">
+              <div class="title-row">
+                <span class="name"><%= doc.first_name %> <%= doc.last_name %></span>
+                <span class="sub">· <%= typeLabels[doc.document_type] || doc.document_type %></span>
+              </div>
+              <div class="meta">#<%= doc.id %> · <%= doc.email %> · yükleme <%= doc.created_at %><% if (doc.expires_at) { %> · son <%= doc.expires_at %><% } %></div>
+              <div class="chip-strip">
+                <span class="chip chip-neutral"><%= doc.owner_type %>#<%= doc.owner_id %></span>
+                <span class="chip chip-neutral"><%= Math.round((doc.file_size || 0) / 1024) %> KB</span>
+                <% if (doc.expires_at) { %><span class="chip chip-amber">geçerli: <%= doc.expires_at %></span><% } %>
+              </div>
+            </div>
+            <div class="actions">
+              <form action="/admin/documents/<%= doc.id %>/verify" method="POST"
+                    data-confirm="Bu belgeyi onaylıyorsun."
+                    data-confirm-title="Belgeyi Onayla">
+                <input type="hidden" name="_return" value="<%= returnUrl %>">
+                <button type="submit" class="btn btn-sm btn-good" title="Onayla">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Onayla
+                </button>
+              </form>
+              <form action="/admin/documents/<%= doc.id %>/reject" method="POST"
+                    data-confirm="Bu belgeyi reddediyorsun. Red gerekçesi zorunlu."
+                    data-confirm-title="Belgeyi Reddet"
+                    data-confirm-danger
+                    data-confirm-input="reason"
+                    data-confirm-input-placeholder="Örn: süresi dolmuş">
+                <input type="hidden" name="_return" value="<%= returnUrl %>">
+                <button type="submit" class="btn btn-sm btn-danger" title="Reddet">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Reddet
+                </button>
+              </form>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+  <% } %>
+
+  <!-- ═══ KURUMLAR ═══ -->
+  <% if (activeTab === 'companies') { %>
+    <div class="tab-panel">
+      <% if (companies.length === 0) { %>
+        <div class="empty">
+          <div class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h4>Hepsi temiz</h4>
+          <p>Onay bekleyen kurum yok.</p>
+        </div>
+      <% } else { %>
+        <% companies.forEach(function(c) { %>
+          <div class="item">
+            <span class="av company"><%= (c.name || '?').trim()[0].toUpperCase() %></span>
+            <div class="body">
+              <div class="title-row">
+                <span class="name"><%= c.name %></span>
+                <span class="chip <%= c.company_type === 'provider' ? 'chip-blue' : 'chip-good' %>">
+                  <%= c.company_type === 'provider' ? 'sağlayıcı' : 'alıcı' %>
+                </span>
+              </div>
+              <div class="meta">VKN <%= c.tax_number %> · kayıt <%= c.created_at %></div>
+              <div class="chip-strip">
+                <span class="chip chip-neutral">
+                  <%= c.admin_first_name %> <%= c.admin_last_name %> · <%= c.admin_email %>
+                </span>
+              </div>
+            </div>
+            <div class="actions">
+              <form action="/admin/companies/<%= c.id %>/approve" method="POST"
+                    data-confirm="Bu kurumu onaylıyorsun. Aktif hale gelecek."
+                    data-confirm-title="Kurumu Onayla">
+                <input type="hidden" name="_return" value="<%= returnUrl %>">
+                <button type="submit" class="btn btn-sm btn-good">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Onayla
+                </button>
+              </form>
+              <form action="/admin/companies/<%= c.id %>/reject" method="POST"
+                    data-confirm="Bu kurumu reddediyorsun. Red gerekçesi zorunlu."
+                    data-confirm-title="Kurumu Reddet"
+                    data-confirm-danger
+                    data-confirm-input="reason"
+                    data-confirm-input-placeholder="Örn: VKN doğrulanamadı">
+                <input type="hidden" name="_return" value="<%= returnUrl %>">
+                <button type="submit" class="btn btn-sm btn-danger">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Reddet
+                </button>
+              </form>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+  <% } %>
+
+  <!-- ═══ ŞOFÖR DEĞİŞİKLİKLERİ ═══ -->
+  <% if (activeTab === 'driver-updates') { %>
+    <div class="tab-panel">
+      <% if (driverUpdates.length === 0) { %>
+        <div class="empty">
+          <div class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h4>Hepsi temiz</h4>
+          <p>Onay bekleyen şoför değişikliği yok.</p>
+        </div>
+      <% } else { %>
+        <% driverUpdates.forEach(function(r) { %>
+          <div class="item">
+            <span class="av driver"><%= initials(r.first_name + ' ' + r.last_name) %></span>
+            <div class="body">
+              <div class="title-row">
+                <span class="name"><%= r.first_name %> <%= r.last_name %></span>
+                <span class="sub">· <%= r.email %></span>
+              </div>
+              <div class="meta">Talep #<%= r.id %> · <%= r.created_at %></div>
+              <div class="diff">
+                <% if (r.requested_national_id) { %>
+                  <div class="diff-row mono">
+                    <span class="k">TC</span>
+                    <span class="old"><%= r.current_national_id %></span>
+                    <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                    <span class="new"><%= r.requested_national_id %></span>
+                  </div>
+                <% } %>
+                <% if (r.requested_birth_date) { %>
+                  <div class="diff-row">
+                    <span class="k">Doğum</span>
+                    <span class="old"><%= r.current_birth_date %></span>
+                    <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                    <span class="new"><%= r.requested_birth_date %></span>
+                  </div>
+                <% } %>
+                <% if (r.requested_license_class) { %>
+                  <div class="diff-row">
+                    <span class="k">Ehliyet</span>
+                    <span class="old"><%= r.current_license_class %></span>
+                    <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                    <span class="new"><%= r.requested_license_class %></span>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+            <div class="actions">
+              <form action="/admin/driver-updates/<%= r.id %>/approve" method="POST"
+                    data-confirm="Bu değişikliği onaylıyorsun. Profil güncellenecek."
+                    data-confirm-title="Değişikliği Onayla">
+                <input type="hidden" name="_return" value="<%= returnUrl %>">
+                <button type="submit" class="btn btn-sm btn-good">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Onayla
+                </button>
+              </form>
+              <form action="/admin/driver-updates/<%= r.id %>/reject" method="POST"
+                    data-confirm="Bu değişikliği reddediyorsun. Red gerekçesi zorunlu."
+                    data-confirm-title="Değişikliği Reddet"
+                    data-confirm-danger
+                    data-confirm-input="reason"
+                    data-confirm-input-placeholder="Örn: belge doğrulaması yapılamadı">
+                <input type="hidden" name="_return" value="<%= returnUrl %>">
+                <button type="submit" class="btn btn-sm btn-danger">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Reddet
+                </button>
+              </form>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+  <% } %>
+
+  <!-- ═══ ARAÇ DEĞİŞİKLİKLERİ ═══ -->
+  <% if (activeTab === 'vehicle-updates') { %>
+    <div class="tab-panel">
+      <% if (vehicleUpdates.length === 0) { %>
+        <div class="empty">
+          <div class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h4>Hepsi temiz</h4>
+          <p>Onay bekleyen araç değişikliği yok.</p>
+        </div>
+      <% } else { %>
+        <% vehicleUpdates.forEach(function(r) { %>
+          <%
+            const rows = [];
+            ['plate_number','brand','model','year','vehicle_type','capacity'].forEach(function(f) {
+              const reqKey = 'requested_' + f;
+              const curKey = 'current_' + f;
+              if (r[reqKey] !== null && r[reqKey] !== undefined && String(r[reqKey]) !== '') {
+                rows.push({ label: VEHICLE_LABELS[f], oldVal: r[curKey], newVal: r[reqKey], mono: (f === 'plate_number') });
+              }
+            });
+          %>
+          <div class="item">
+            <span class="av vehicle"><%= initials(r.first_name + ' ' + r.last_name) %></span>
+            <div class="body">
+              <div class="title-row">
+                <span class="name"><%= r.first_name %> <%= r.last_name %></span>
+                <span class="sub">· <%= r.email %></span>
+                <span class="chip chip-neutral" style="font-family:'JetBrains Mono',monospace;"><%= r.current_plate_number %></span>
+              </div>
+              <div class="meta">Talep #<%= r.id %> · <%= r.created_at %></div>
+              <div class="diff">
+                <% rows.forEach(function(row) { %>
+                  <div class="diff-row<%= row.mono ? ' mono' : '' %>">
+                    <span class="k"><%= row.label %></span>
+                    <span class="old"><%= row.oldVal %></span>
+                    <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+                    <span class="new"><%= row.newVal %></span>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+            <div class="actions">
+              <form action="/admin/vehicle-updates/<%= r.id %>/approve" method="POST"
+                    data-confirm="Bu değişikliği onaylıyorsun. Araç kaydı güncellenecek."
+                    data-confirm-title="Değişikliği Onayla">
+                <input type="hidden" name="_return" value="<%= returnUrl %>">
+                <button type="submit" class="btn btn-sm btn-good">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Onayla
+                </button>
+              </form>
+              <form action="/admin/vehicle-updates/<%= r.id %>/reject" method="POST"
+                    data-confirm="Bu değişikliği reddediyorsun. Red gerekçesi zorunlu."
+                    data-confirm-title="Değişikliği Reddet"
+                    data-confirm-danger
+                    data-confirm-input="reason"
+                    data-confirm-input-placeholder="Örn: ruhsat fotoğrafı okunmuyor">
+                <input type="hidden" name="_return" value="<%= returnUrl %>">
+                <button type="submit" class="btn btn-sm btn-danger">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  Reddet
+                </button>
+              </form>
+            </div>
+          </div>
+        <% }); %>
+      <% } %>
+    </div>
+  <% } %>
+
+</div>

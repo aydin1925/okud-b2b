@@ -1,14 +1,16 @@
 <%
-  const active   = vehicles.filter(v => v.status === 'active').length;
-  const pending  = vehicles.filter(v => v.status === 'pending_docs').length;
-  const inactive = vehicles.filter(v => v.status === 'inactive').length;
+  // İstatistikler tüm liste üzerinden hesaplanır (controller'dan gelir),
+  // filtre uygulansa bile hero'daki metrikler bozulmasın.
+  const active   = stats.active;
+  const pending  = stats.pending;
+  const inactive = stats.inactive;
   const vehicleTypeLabels = { minibus: 'Minibüs', midibus: 'Midibüs', otobus: 'Otobüs', van: 'Van', binek: 'Binek' };
 %>
 
-<div class="space-y-8">
+<div class="space-y-6 sm:space-y-8">
 
   <!-- HERO -->
-  <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 sm:p-8 shadow-2xl ring-1 ring-slate-900/10">
+  <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-5 sm:p-8 shadow-2xl ring-1 ring-slate-900/10">
     <div class="absolute -top-32 -right-32 w-96 h-96 bg-sky-500/25 rounded-full blur-3xl"></div>
     <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500/15 rounded-full blur-3xl"></div>
     <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 40px 40px;"></div>
@@ -17,10 +19,10 @@
       <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
     </svg>
 
-    <div class="relative grid lg:grid-cols-[2fr_1fr] gap-8 items-end">
+    <div class="relative grid lg:grid-cols-[2fr_1fr] gap-6 sm:gap-8 items-end">
       <div>
         <p class="text-[10px] font-bold uppercase tracking-widest text-sky-300 mb-2">Filom</p>
-        <h1 class="text-white text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter leading-[1.05]">
+        <h1 class="text-white text-2xl sm:text-4xl md:text-5xl font-bold tracking-tighter leading-[1.05]">
           Araçlarım<br>
           <span class="font-serif italic text-slate-400">tek panelde.</span>
         </h1>
@@ -30,15 +32,15 @@
       <!-- Stat mini grid -->
       <div class="grid grid-cols-3 gap-2">
         <div class="rounded-2xl bg-white/10 backdrop-blur ring-1 ring-white/20 p-4 text-center">
-          <p class="text-3xl font-black text-white tabular-nums"><%= vehicles.length %></p>
+          <p class="text-2xl sm:text-3xl font-black text-white tabular-nums"><%= active + pending + inactive %></p>
           <p class="text-[10px] font-bold uppercase tracking-widest text-slate-300 mt-1">Toplam</p>
         </div>
         <div class="rounded-2xl bg-emerald-500/10 backdrop-blur ring-1 ring-emerald-400/30 p-4 text-center">
-          <p class="text-3xl font-black text-emerald-300 tabular-nums"><%= active %></p>
+          <p class="text-2xl sm:text-3xl font-black text-emerald-300 tabular-nums"><%= active %></p>
           <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-200 mt-1">Aktif</p>
         </div>
         <div class="rounded-2xl bg-amber-500/10 backdrop-blur ring-1 ring-amber-400/30 p-4 text-center">
-          <p class="text-3xl font-black text-amber-300 tabular-nums"><%= pending %></p>
+          <p class="text-2xl sm:text-3xl font-black text-amber-300 tabular-nums"><%= pending %></p>
           <p class="text-[10px] font-bold uppercase tracking-widest text-amber-200 mt-1">Bekliyor</p>
         </div>
       </div>
@@ -55,7 +57,7 @@
   </div>
 
   <% if (vehicles.length === 0) { %>
-    <div class="relative overflow-hidden bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 rounded-3xl p-16 text-center">
+    <div class="relative overflow-hidden bg-gradient-to-br from-sky-50 to-blue-50 border border-sky-200 rounded-3xl p-10 sm:p-16 text-center">
       <div class="absolute top-0 right-0 w-64 h-64 bg-sky-300/30 rounded-full blur-3xl"></div>
       <div class="relative">
         <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-xl text-sky-600 mb-4">

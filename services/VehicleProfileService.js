@@ -169,8 +169,40 @@ async function cancelMyPendingRequest(userId, requestId) {
     if (!affected) throw new Error('İptal edilecek pending talep bulunamadı');
 }
 
+/**
+ * Manuel pasife alma / aktifleştirme. active=false → 'inactive'; true → recompute.
+ */
+async function setActive(userId, vehicleId, active) {
+    const vehicle = await VehicleProfileModel.findById(vehicleId);
+    if (!vehicle) throw new Error('Araç bulunamadı');
+    if (vehicle.owner_user_id !== userId) throw new Error('Bu araca erişim yetkin yok');
+
+    if (active === false || active === 'false') {
+        if (vehicle.status === 'inactive') return;
+        await VehicleProfileModel.updateStatus(vehicleId, 'inactive');
+    } else {
+        await VehicleProfileModel.updateStatus(vehicleId, 'pending_docs');
+        await recomputeStatus(vehicleId);
+    }
+}
+
+/**
+ * Aracı filodan çıkarma — sahiplik + atomik transaction.
+ * Araç soft delete + araca bağlı aktif hostesin vehicle_id NULL yapılır (boşta).
+ * Hostes kaydı silinmez; sonra başka araca atanabilir.
+ */
+async function softDelete(userId, vehicleId) {
+    const vehicle = await VehicleProfileModel.findById(vehicleId);
+    if (!vehicle) throw new Error('Silinecek araç bulunamadı');
+    if (vehicle.owner_user_id !== userId) throw new Error('Bu araca erişim yetkin yok');
+
+    const affected = await VehicleProfileModel.softDeleteWithHostessUnlink(vehicleId);
+    if (!affected) throw new Error('Araç zaten silinmiş');
+}
+
 module.exports = {
     create, listForUser, getForUser, recomputeStatus,
     updateSafeFields, requestSensitiveUpdate,
     getMyPendingRequest, cancelMyPendingRequest,
+    softDelete, setActive,
 };

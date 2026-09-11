@@ -15,7 +15,7 @@
   <!-- Başlık kartı -->
   <div class="bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 overflow-hidden">
     <div class="h-1.5 <%= cpIsProvider ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-emerald-500 to-emerald-600' %>"></div>
-    <div class="p-6">
+    <div class="p-5 sm:p-6">
       <div class="flex items-start justify-between gap-4 flex-wrap">
         <div class="flex items-start gap-4">
           <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl flex-shrink-0 font-bold text-white text-xl
@@ -64,48 +64,334 @@
     </div>
   </div>
 
-  <!-- İmzalanmış sözleşme snapshot -->
-  <% if (detail.acceptance) { %>
+  <!-- Filo Uyumu — sadece receiver rolündeyken -->
+  <% if (typeof fleetReadiness !== 'undefined' && fleetReadiness) {
+       const fr = fleetReadiness;
+       const totalMissing = fr.drivers.missing.length + fr.vehicles.missing.length + fr.hostesses.missing.length;
+       const totalMembers = fr.drivers.total + fr.vehicles.total + fr.hostesses.total;
+  %>
     <div class="bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100 flex items-start justify-between gap-3 flex-wrap bg-gradient-to-b from-slate-50 to-white">
+      <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white flex items-start justify-between gap-3 flex-wrap">
         <div class="flex items-center gap-3">
-          <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white">
+          <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
             </svg>
           </div>
           <div>
-            <h3 class="text-base font-bold text-slate-800">İmzalanmış Sözleşme</h3>
-            <p class="text-xs text-slate-500">Kabul tarihi: <%= detail.acceptance.accepted_at %></p>
+            <h3 class="text-base font-bold text-slate-800">Filo Uyumu</h3>
+            <p class="text-xs text-slate-500">Belge Kuralları şablonuna karşı canlı karşılaştırma</p>
           </div>
         </div>
-        <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-white">
-          🔒 Snapshot
-        </span>
+        <a href="/company/document-requirements" class="text-xs font-semibold text-slate-500 hover:text-slate-900 transition">
+          Şablonu düzenle →
+        </a>
       </div>
-      <div class="p-6">
-        <p class="font-bold text-slate-800 mb-4 text-lg"><%= detail.acceptance.title_snapshot %></p>
-        <div class="whitespace-pre-line text-sm text-slate-700 leading-relaxed max-h-[60vh] overflow-auto rounded-xl bg-slate-50 ring-1 ring-slate-200 p-5 font-serif">
+
+      <div class="p-5 sm:p-6 space-y-4">
+        <!-- KPI özet -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Şoför</p>
+            <p class="text-2xl font-black text-slate-900 mt-1"><%= fr.drivers.ready %>/<%= fr.drivers.total %></p>
+            <p class="text-[11px] text-slate-500">hazır</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Araç</p>
+            <p class="text-2xl font-black text-slate-900 mt-1"><%= fr.vehicles.ready %>/<%= fr.vehicles.total %></p>
+            <p class="text-[11px] text-slate-500">hazır</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Hostes</p>
+            <p class="text-2xl font-black text-slate-900 mt-1"><%= fr.hostesses.ready %>/<%= fr.hostesses.total %></p>
+            <p class="text-[11px] text-slate-500">hazır</p>
+          </div>
+        </div>
+
+        <% if (fr.allReady) { %>
+          <div class="flex items-start gap-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" /></svg>
+            <span>
+              <% if (totalMembers === 0) { %>
+                Karşı tarafın henüz aktif filo üyesi yok.
+              <% } else { %>
+                Karşı tarafın <strong>tüm filo üyeleri</strong> belge şablonuna uyuyor.
+              <% } %>
+            </span>
+          </div>
+        <% } else { %>
+          <button type="button"
+                  onclick="document.getElementById('readinessDialog').showModal()"
+                  class="group w-full flex items-center justify-between gap-3 text-left rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 hover:bg-amber-100 transition">
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0 text-amber-600 mt-0.5"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+              <div>
+                <p class="text-sm font-bold text-amber-900"><%= totalMissing %> üyede eksik belge var</p>
+                <p class="text-xs text-amber-800 mt-0.5">Detayları görmek için tıkla</p>
+              </div>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-amber-600 group-hover:text-amber-800 transition flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        <% } %>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Ortaklık geçmişi — dikey timeline -->
+  <% if (detail.timeline && detail.timeline.length > 0) {
+       const kindStyle = {
+         invitation_created:     { bg: 'bg-slate-100',   fg: 'text-slate-600',  ring: 'ring-slate-200' },
+         partnership_started:    { bg: 'bg-emerald-100', fg: 'text-emerald-700', ring: 'ring-emerald-200' },
+         readiness_alert:        { bg: 'bg-amber-100',   fg: 'text-amber-700',  ring: 'ring-amber-200' },
+         partnership_terminated: { bg: 'bg-red-100',     fg: 'text-red-700',    ring: 'ring-red-200' },
+       };
+       function fmtTL(d) {
+         if (!d) return '';
+         const dt = new Date(d);
+         return dt.toLocaleString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+       }
+  %>
+    <div class="bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white flex items-center gap-3">
+        <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-800">Ortaklık Geçmişi</h3>
+          <p class="text-xs text-slate-500">Bu ortaklığın hayat çizgisi</p>
+        </div>
+      </div>
+
+      <div class="p-5 sm:p-6">
+        <ol class="relative border-l-2 border-slate-100 ml-3 space-y-5">
+          <% detail.timeline.forEach(function(it) {
+               const st = kindStyle[it.kind] || kindStyle.invitation_created;
+          %>
+            <li class="pl-6 relative">
+              <span class="absolute -left-[9px] top-1 flex h-4 w-4 items-center justify-center rounded-full <%= st.bg %> ring-2 <%= st.ring %>">
+                <span class="h-1.5 w-1.5 rounded-full <%= st.fg.replace('text-', 'bg-') %>"></span>
+              </span>
+              <div class="flex items-baseline justify-between gap-3 flex-wrap">
+                <p class="font-bold text-slate-900 text-sm"><%= it.title %></p>
+                <time class="text-[11px] font-medium text-slate-400 whitespace-nowrap"><%= fmtTL(it.at) %></time>
+              </div>
+              <% if (it.subtitle) { %>
+                <p class="text-xs text-slate-500 mt-0.5"><%= it.subtitle %></p>
+              <% } %>
+            </li>
+          <% }); %>
+        </ol>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- İmzalanmış sözleşme snapshot — kompakt kart, tıklayınca popup açar -->
+  <% if (detail.acceptance) { %>
+    <button type="button"
+            onclick="document.getElementById('contractSnapshotDialog').showModal()"
+            class="group w-full bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 hover:ring-slate-300 hover:shadow-soft-lg transition p-5 flex items-center gap-4 text-left">
+      <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white flex-shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <p class="font-bold text-slate-900 truncate"><%= detail.acceptance.title_snapshot %></p>
+          <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-white uppercase tracking-widest">
+            🔒 Snapshot
+          </span>
+        </div>
+        <p class="text-xs text-slate-500 mt-1">
+          <% if (detail.acceptance.accepted_by_name) { %>
+            Kabul eden: <strong class="text-slate-700"><%= detail.acceptance.accepted_by_name %></strong> ·
+          <% } %>
+          <%= detail.acceptance.accepted_at %> · Aç ve oku
+        </p>
+      </div>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition flex-shrink-0">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+      </svg>
+    </button>
+
+    <!-- Sözleşme popup — main.ejs'teki dialog animasyonunu kullanır -->
+    <dialog id="contractSnapshotDialog" class="rounded-3xl p-0 w-full max-w-3xl backdrop:bg-slate-900/60">
+      <div class="bg-white rounded-3xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-start justify-between gap-3 sticky top-0 bg-white rounded-t-3xl">
+          <div class="min-w-0">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">İmzalanmış Sözleşme</p>
+            <h3 class="text-lg font-bold text-slate-900 mt-0.5 leading-snug"><%= detail.acceptance.title_snapshot %></h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              <% if (detail.acceptance.accepted_by_name) { %>
+                Kabul eden: <strong class="text-slate-700"><%= detail.acceptance.accepted_by_name %></strong> ·
+              <% } %>
+              <%= detail.acceptance.accepted_at %>
+            </p>
+          </div>
+          <button type="button" onclick="document.getElementById('contractSnapshotDialog').close()"
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div class="px-6 py-5 max-h-[65vh] overflow-auto whitespace-pre-line text-sm text-slate-700 leading-relaxed font-serif">
 <%= detail.acceptance.content_snapshot %>
         </div>
-        <p class="text-xs text-slate-400 mt-4 flex items-start gap-1.5">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 flex-shrink-0 mt-0.5 text-slate-300">
+
+        <div class="px-6 py-3 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500 flex items-start gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 flex-shrink-0 mt-0.5 text-slate-400">
             <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
           </svg>
           Bu metin, kabul edildiği anda dondurulmuştur. Kurumun mevcut şablonu değişse bile bu sözleşme değişmez.
-        </p>
+        </div>
       </div>
-    </div>
+    </dialog>
+
+    <!-- Filo eksik detay dialog — sadece receiver ve uyumsuzluk varsa -->
+    <% if (typeof fleetReadiness !== 'undefined' && fleetReadiness && !fleetReadiness.allReady) { %>
+      <dialog id="readinessDialog" class="rounded-3xl p-0 w-full max-w-2xl backdrop:bg-slate-900/60">
+        <div class="bg-white rounded-3xl overflow-hidden">
+          <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 sticky top-0 bg-white rounded-t-3xl">
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-widest text-amber-700 mb-0.5">Filo Eksikleri</p>
+              <h3 class="text-lg font-bold text-slate-900">Uymayan üyeler</h3>
+            </div>
+            <button type="button" onclick="document.getElementById('readinessDialog').close()" class="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+
+          <div class="px-6 py-5 max-h-[65vh] overflow-auto space-y-5">
+            <% if (fleetReadiness.drivers.missing.length > 0) { %>
+              <section>
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Şoförler (<%= fleetReadiness.drivers.missing.length %>)</p>
+                <ul class="space-y-2">
+                  <% fleetReadiness.drivers.missing.forEach(function(m) { %>
+                    <li class="rounded-2xl border border-amber-200 bg-amber-50/50 p-3">
+                      <p class="font-bold text-slate-900 text-sm"><%= m.name %></p>
+                      <% m.issues.forEach(function(iss) { %>
+                        <p class="text-xs text-slate-600 mt-0.5">· <%= iss %></p>
+                      <% }); %>
+                    </li>
+                  <% }); %>
+                </ul>
+              </section>
+            <% } %>
+
+            <% if (fleetReadiness.vehicles.missing.length > 0) { %>
+              <section>
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Araçlar (<%= fleetReadiness.vehicles.missing.length %>)</p>
+                <ul class="space-y-2">
+                  <% fleetReadiness.vehicles.missing.forEach(function(m) { %>
+                    <li class="rounded-2xl border border-amber-200 bg-amber-50/50 p-3">
+                      <p class="font-bold text-slate-900 text-sm"><%= m.name %></p>
+                      <% m.issues.forEach(function(iss) { %>
+                        <p class="text-xs text-slate-600 mt-0.5">· <%= iss %></p>
+                      <% }); %>
+                    </li>
+                  <% }); %>
+                </ul>
+              </section>
+            <% } %>
+
+            <% if (fleetReadiness.hostesses.missing.length > 0) { %>
+              <section>
+                <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Hostesler (<%= fleetReadiness.hostesses.missing.length %>)</p>
+                <ul class="space-y-2">
+                  <% fleetReadiness.hostesses.missing.forEach(function(m) { %>
+                    <li class="rounded-2xl border border-amber-200 bg-amber-50/50 p-3">
+                      <p class="font-bold text-slate-900 text-sm"><%= m.name %> <span class="text-slate-400 font-normal">· araç <%= m.vehiclePlate %></span></p>
+                      <% m.issues.forEach(function(iss) { %>
+                        <p class="text-xs text-slate-600 mt-0.5">· <%= iss %></p>
+                      <% }); %>
+                    </li>
+                  <% }); %>
+                </ul>
+              </section>
+            <% } %>
+          </div>
+
+          <div class="px-6 py-3 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500">
+            Bu liste canlı hesaplanır — karşı taraf belge yüklerse veya süre değişirse buradaki durum güncellenir.
+          </div>
+        </div>
+      </dialog>
+    <% } %>
   <% } else { %>
     <div class="rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 px-5 py-4 text-sm">
       Bu iş ortaklığı için kabul kaydı bulunamadı (muhtemelen migration öncesi test verisi).
     </div>
   <% } %>
 
+  <!-- Provider tarafı: ortaklığa dahil filo özeti + yönet linki -->
+  <% if (typeof scopeCounts !== 'undefined' && scopeCounts) { %>
+    <a href="/company/partnerships/<%= detail.id %>/fleet-scope"
+       class="group block bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 hover:ring-slate-300 hover:shadow-soft-lg transition p-5">
+      <div class="flex items-center gap-4">
+        <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-blue-700 flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-slate-900">Bu ortaklığa dahil filom</p>
+          <p class="text-xs text-slate-500 mt-0.5">
+            <strong class="text-slate-700"><%= scopeCounts.vehiclesIncluded %></strong> araç ·
+            <strong class="text-slate-700"><%= scopeCounts.driversIncluded %></strong> şoför dahil
+            <span class="text-slate-400"> · yönetmek için tıkla</span>
+          </p>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-slate-300 group-hover:text-slate-500 transition flex-shrink-0">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </div>
+    </a>
+  <% } %>
+
+  <!-- İletişim — karşı taraf kurumun birincil yöneticisi -->
+  <% if (detail.counterpartContact) {
+       const cc = detail.counterpartContact;
+       const ccName = [cc.first_name, cc.last_name].filter(Boolean).join(' ') || 'Kurum Yöneticisi';
+       const ccInitial = (cc.first_name || cc.last_name || '?').trim()[0].toUpperCase();
+  %>
+    <div class="bg-white rounded-2xl shadow-soft ring-1 ring-slate-900/5 overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white flex items-center gap-3">
+        <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-slate-800">Karşı Taraf İletişim</h3>
+          <p class="text-xs text-slate-500"><%= detail.counterparty.name %> kurumunun birincil yöneticisi</p>
+        </div>
+      </div>
+
+      <div class="p-5 sm:p-6 flex items-center gap-3 sm:gap-4 flex-wrap">
+        <div class="inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-700 font-bold flex-shrink-0">
+          <%= ccInitial %>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-slate-900 truncate"><%= ccName %></p>
+          <p class="text-xs text-slate-500 mt-0.5">Kurum Yöneticisi</p>
+        </div>
+        <a href="mailto:<%= cc.email %>"
+           class="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+          </svg>
+          <span class="truncate"><%= cc.email %></span>
+        </a>
+      </div>
+    </div>
+  <% } %>
+
   <!-- Fesih -->
   <% if (detail.isActive) { %>
     <div class="bg-white rounded-2xl shadow-soft ring-1 ring-red-200/50 overflow-hidden">
-      <div class="p-6">
+      <div class="p-5 sm:p-6">
         <div class="flex items-start gap-3 mb-3">
           <div class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-100 text-red-600 flex-shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
@@ -120,20 +406,63 @@
             </p>
           </div>
         </div>
-        <form action="/company/partnerships/<%= detail.id %>/terminate" method="POST"
-              data-confirm="Bu iş ortaklığını feshetmek üzeresin. İşlem geri alınamaz — yeni bir ortaklık için baştan davet gerekir."
-              data-confirm-title="İş Ortaklığını Feshet"
-              data-confirm-button="Evet, feshet"
-              data-confirm-danger
-              class="mt-2">
-          <button type="submit"
-                  class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 transition shadow-lg shadow-red-500/25">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            İş Ortaklığını Feshet
-          </button>
-        </form>
+        <button type="button"
+                onclick="document.getElementById('terminateDialog').showModal()"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 transition shadow-lg shadow-red-500/25">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          İş Ortaklığını Feshet
+        </button>
+
+        <!-- Fesih onay modal — opsiyonel gerekçe ile -->
+        <dialog id="terminateDialog" class="rounded-3xl p-0 w-full max-w-lg backdrop:bg-slate-900/60">
+          <form method="POST" action="/company/partnerships/<%= detail.id %>/terminate" class="bg-white rounded-3xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-start gap-3">
+              <div class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600 flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-slate-900">İş Ortaklığını Feshet</h3>
+                <p class="text-sm text-slate-600 mt-0.5">Bu işlem geri alınamaz. <strong><%= detail.counterparty.name %></strong> kurumunun yöneticilerine bildirim gönderilecek.</p>
+              </div>
+            </div>
+
+            <div class="px-6 py-5 space-y-3">
+              <div>
+                <label for="reasonTextarea" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                  Gerekçe <span class="text-slate-400 font-normal">(opsiyonel)</span>
+                </label>
+                <textarea id="reasonTextarea" name="reason" rows="4" maxlength="1000"
+                          placeholder="Karşı tarafın anlaması için kısa bir açıklama yazabilirsin. Boş bırakılırsa sadece fesih bilgisi gönderilir."
+                          class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-400 resize-none"></textarea>
+                <p class="text-[11px] text-slate-400 mt-1">En fazla 1000 karakter</p>
+              </div>
+              <div class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-xs text-slate-600 flex items-start gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4 flex-shrink-0 mt-0.5 text-slate-400">
+                  <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+                </svg>
+                <span>İmzalanmış sözleşme snapshot'ı iki tarafta da saklı kalır. Yeni bir ortaklık için baştan davet gerekir.</span>
+              </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-2">
+              <button type="button" onclick="document.getElementById('terminateDialog').close()"
+                      class="inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">
+                Vazgeç
+              </button>
+              <button type="submit"
+                      class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 transition shadow-lg shadow-red-500/25">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Evet, feshet ve bildir
+              </button>
+            </div>
+          </form>
+        </dialog>
       </div>
     </div>
   <% } %>

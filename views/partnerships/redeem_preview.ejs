@@ -7,7 +7,7 @@
     Farklı kod
   </a>
 
-  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-900/10">
+  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 sm:p-8 shadow-2xl ring-1 ring-slate-900/10">
     <div class="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"></div>
     <div class="relative">
       <p class="text-[10px] font-bold uppercase tracking-widest text-purple-300 mb-3">İş Ortaklığı Daveti</p>
@@ -28,7 +28,71 @@
     </div>
   </div>
 
-  <form action="/partnerships/redeem/confirm" method="POST" class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-6 space-y-5">
+  <!-- Filo hazırlık karşılaştırması — sadece receiver redeem yaparken -->
+  <% if (preview.fleetReadiness) {
+       const fr = preview.fleetReadiness;
+       const totalMissing = fr.drivers.missing.length + fr.vehicles.missing.length + fr.hostesses.missing.length;
+       const totalMembers = fr.drivers.total + fr.vehicles.total + fr.hostesses.total;
+  %>
+    <div class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 bg-gradient-to-b from-slate-50 to-white">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-purple-600 mb-1">Filo Karşılaştırması</p>
+        <h3 class="text-base font-bold text-slate-900">Karşı tarafın filosu senin belge şablonuna uyuyor mu?</h3>
+        <p class="text-xs text-slate-500 mt-1">
+          Belge Kuralları sayfanda seçtiğin gereksinimlere göre karşılaştırma. <strong>Uyumsuzluk varsa ortaklık kurulamaz</strong> — karşı taraf önce eksikleri gidermeli.
+        </p>
+      </div>
+
+      <div class="p-5 sm:p-6 space-y-4">
+        <!-- KPI özet -->
+        <div class="grid grid-cols-3 gap-2 sm:gap-3">
+          <div class="rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3 sm:p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Şoför</p>
+            <p class="text-xl sm:text-2xl font-black text-slate-900 mt-1"><%= fr.drivers.ready %>/<%= fr.drivers.total %></p>
+            <p class="text-[11px] text-slate-500">hazır</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3 sm:p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Araç</p>
+            <p class="text-xl sm:text-2xl font-black text-slate-900 mt-1"><%= fr.vehicles.ready %>/<%= fr.vehicles.total %></p>
+            <p class="text-[11px] text-slate-500">hazır</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3 sm:p-4">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Hostes</p>
+            <p class="text-xl sm:text-2xl font-black text-slate-900 mt-1"><%= fr.hostesses.ready %>/<%= fr.hostesses.total %></p>
+            <p class="text-[11px] text-slate-500">hazır</p>
+          </div>
+        </div>
+
+        <% if (fr.allReady) { %>
+          <div class="flex items-start gap-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" /></svg>
+            <span>
+              <% if (totalMembers === 0) { %>
+                Karşı tarafın henüz aktif filo üyesi yok.
+              <% } else { %>
+                Karşı tarafın <strong>tüm filo üyeleri</strong> belge şablonuna uyuyor.
+              <% } %>
+            </span>
+          </div>
+        <% } else { %>
+          <button type="button"
+                  onclick="document.getElementById('readinessDialog').showModal()"
+                  class="group w-full flex items-center justify-between gap-3 text-left rounded-2xl bg-red-50 border border-red-200 px-4 py-3 hover:bg-red-100 transition">
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0 text-red-600 mt-0.5"><path fill-rule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" /></svg>
+              <div>
+                <p class="text-sm font-bold text-red-900"><%= totalMissing %> üyede eksik belge var — ortaklık kurulamaz</p>
+                <p class="text-xs text-red-800 mt-0.5">Detayları görmek için tıkla · karşı taraf eksikleri gidermeli</p>
+              </div>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-red-600 group-hover:text-red-800 transition flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        <% } %>
+      </div>
+    </div>
+  <% } %>
+
+  <form action="/partnerships/redeem/confirm" method="POST" class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-5 sm:p-6 space-y-5">
     <input type="hidden" name="code" value="<%= preview.invitation.code %>">
 
     <p class="text-sm text-slate-600">
@@ -58,15 +122,47 @@
       </label>
     </div>
 
-    <button type="submit"
-            class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3.5 text-sm font-bold text-white hover:bg-emerald-500 transition shadow-lg shadow-emerald-500/25">
-      Onayla ve İş Ortaklığı Kur
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-      </svg>
-    </button>
+    <% const canRedeem = !preview.fleetReadiness || preview.fleetReadiness.allReady; %>
+    <% if (canRedeem) { %>
+      <button type="submit"
+              class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3.5 text-sm font-bold text-white hover:bg-emerald-500 transition shadow-lg shadow-emerald-500/25">
+        Onayla ve İş Ortaklığı Kur
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        </svg>
+      </button>
+    <% } else { %>
+      <button type="button" disabled
+              class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-200 text-slate-500 px-5 py-3.5 text-sm font-bold cursor-not-allowed">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+        </svg>
+        Ortaklık kurulamaz — karşı tarafın filosunda eksik var
+      </button>
+    <% } %>
   </form>
 
+  <!-- Filo uyumsuz durumda: reddet + eksikleri karşı tarafa otomatik bildir -->
+  <% if (preview.fleetReadiness && !preview.fleetReadiness.allReady) { %>
+    <form action="/partnerships/redeem/reject-with-notice" method="POST"
+          data-confirm="Daveti reddedeceksin. Karşı tarafa hangi üyede hangi belge eksik olduğunu içeren bir bildirim otomatik gönderilir."
+          data-confirm-title="Reddet ve Bilgilendir"
+          data-confirm-button="Evet, reddet ve bildir"
+          data-confirm-danger>
+      <input type="hidden" name="code" value="<%= preview.invitation.code %>">
+      <button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 px-5 py-3 text-sm font-semibold transition shadow-lg shadow-slate-900/20">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+        </svg>
+        Reddet ve karşı tarafı eksiklerle bilgilendir
+      </button>
+      <p class="text-xs text-slate-500 mt-2 text-center">
+        Sistem, hangi şoför/araç/hostesin hangi belgesinin eksik olduğunu içeren bir bildirim hazırlar ve karşı tarafın yöneticilerine iletir.
+      </p>
+    </form>
+  <% } %>
+
+  <!-- Sessiz reddet — mesaj göndermez -->
   <form action="/partnerships/redeem/reject" method="POST"
         data-confirm="Bu iş ortaklığı davetini reddetmek üzeresin. Kod bir daha kullanılamaz."
         data-confirm-title="Daveti Reddet"
@@ -74,7 +170,9 @@
         data-confirm-danger>
     <input type="hidden" name="code" value="<%= preview.invitation.code %>">
     <button type="submit" class="w-full inline-flex items-center justify-center gap-1 rounded-xl bg-white ring-1 ring-red-200 text-red-600 hover:bg-red-50 px-5 py-3 text-sm font-semibold transition">
-      Daveti Reddet
+      <%= (preview.fleetReadiness && !preview.fleetReadiness.allReady)
+          ? 'Sessiz reddet (mesaj gönderme)'
+          : 'Daveti Reddet' %>
     </button>
   </form>
 </div>
@@ -90,3 +188,74 @@
 <%= preview.contract.content %>
   </div>
 </dialog>
+
+<!-- Filo eksik detay dialog — sadece uyum eksikliği varsa açılabilir -->
+<% if (preview.fleetReadiness && !preview.fleetReadiness.allReady) { %>
+  <dialog id="readinessDialog" class="rounded-3xl p-0 w-full max-w-2xl backdrop:bg-slate-900/60">
+    <div class="bg-white rounded-3xl overflow-hidden">
+      <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 sticky top-0 bg-white rounded-t-3xl">
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-widest text-amber-700 mb-0.5">Filo Eksikleri</p>
+          <h3 class="text-lg font-bold text-slate-900">Uymayan üyeler</h3>
+        </div>
+        <button type="button" onclick="document.getElementById('readinessDialog').close()" class="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      <div class="px-6 py-5 max-h-[65vh] overflow-auto space-y-5">
+        <% if (preview.fleetReadiness.drivers.missing.length > 0) { %>
+          <section>
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Şoförler (<%= preview.fleetReadiness.drivers.missing.length %>)</p>
+            <ul class="space-y-2">
+              <% preview.fleetReadiness.drivers.missing.forEach(function(m) { %>
+                <li class="rounded-2xl border border-amber-200 bg-amber-50/50 p-3">
+                  <p class="font-bold text-slate-900 text-sm"><%= m.name %></p>
+                  <% m.issues.forEach(function(iss) { %>
+                    <p class="text-xs text-slate-600 mt-0.5">· <%= iss %></p>
+                  <% }); %>
+                </li>
+              <% }); %>
+            </ul>
+          </section>
+        <% } %>
+
+        <% if (preview.fleetReadiness.vehicles.missing.length > 0) { %>
+          <section>
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Araçlar (<%= preview.fleetReadiness.vehicles.missing.length %>)</p>
+            <ul class="space-y-2">
+              <% preview.fleetReadiness.vehicles.missing.forEach(function(m) { %>
+                <li class="rounded-2xl border border-amber-200 bg-amber-50/50 p-3">
+                  <p class="font-bold text-slate-900 text-sm"><%= m.name %></p>
+                  <% m.issues.forEach(function(iss) { %>
+                    <p class="text-xs text-slate-600 mt-0.5">· <%= iss %></p>
+                  <% }); %>
+                </li>
+              <% }); %>
+            </ul>
+          </section>
+        <% } %>
+
+        <% if (preview.fleetReadiness.hostesses.missing.length > 0) { %>
+          <section>
+            <p class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Hostesler (<%= preview.fleetReadiness.hostesses.missing.length %>)</p>
+            <ul class="space-y-2">
+              <% preview.fleetReadiness.hostesses.missing.forEach(function(m) { %>
+                <li class="rounded-2xl border border-amber-200 bg-amber-50/50 p-3">
+                  <p class="font-bold text-slate-900 text-sm"><%= m.name %> <span class="text-slate-400 font-normal">· araç <%= m.vehiclePlate %></span></p>
+                  <% m.issues.forEach(function(iss) { %>
+                    <p class="text-xs text-slate-600 mt-0.5">· <%= iss %></p>
+                  <% }); %>
+                </li>
+              <% }); %>
+            </ul>
+          </section>
+        <% } %>
+      </div>
+
+      <div class="px-6 py-3 border-t border-slate-100 bg-slate-50/50 text-xs text-slate-500">
+        Bu liste, senin belge şablonuna göre karşı tarafın filosundaki eksiklikleri gösterir. Ortaklık kurulduktan sonra da filo panelinden takip edebilirsin.
+      </div>
+    </div>
+  </dialog>
+<% } %>

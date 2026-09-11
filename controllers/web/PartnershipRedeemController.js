@@ -61,4 +61,25 @@ async function reject(req, res) {
   }
 }
 
-module.exports = { showForm, preview, confirm, reject };
+/**
+ * "Reddet + karşı tarafa eksikleri bildir" — sadece receiver kullanır.
+ * Bildirim provider'ın manager'larına gider, içerik sistem tarafı hazırlar.
+ */
+async function rejectWithNotice(req, res) {
+  try {
+    await PartnershipRedeemService.rejectWithReadinessNotice({
+      code: req.body.code,
+      currentCompanyId: res.locals.currentCompany.id,
+      userId: req.session.userId,
+    });
+    res.render('partnerships/redeem_rejected', {
+      title: 'Davet Reddedildi ve Karşı Taraf Bilgilendirildi',
+    });
+  } catch (err) {
+    res.status(400).send(
+      `Reddetme hatası: ${err.message}. <a href="/partnerships/redeem">Tekrar dene</a>`
+    );
+  }
+}
+
+module.exports = { showForm, preview, confirm, reject, rejectWithNotice };

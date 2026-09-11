@@ -48,4 +48,25 @@ async function deleteAll(req, res) {
   res.redirect(filter === 'all' ? '/notifications' : `/notifications?filter=${filter}`);
 }
 
-module.exports = { showList, markRead, markAllRead, deleteOne, deleteAll };
+// Navbar bell popover için — son 5 bildirim + okunmamış sayaç JSON döner.
+async function recentJson(req, res) {
+  try {
+    const items = await NotificationService.listForUser(req.session.userId, { limit: 5 });
+    const counts = await NotificationService.countsForUser(req.session.userId);
+    res.json({
+      items: items.map(n => ({
+        id: n.id,
+        title: n.title,
+        type: n.type,
+        company_name: n.company_name || null,
+        created_at: n.created_at,
+        read_at: n.read_at,
+      })),
+      unreadCount: counts.unread,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Bildirimler yüklenemedi' });
+  }
+}
+
+module.exports = { showList, markRead, markAllRead, deleteOne, deleteAll, recentJson };

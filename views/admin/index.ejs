@@ -1,133 +1,355 @@
-<div class="space-y-8">
+<style>
+  /* Dashboard'a özel */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 900px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+  .m-card {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow-md); padding: 18px 20px 14px;
+    transition: box-shadow 200ms var(--ease), transform 200ms var(--ease);
+    position: relative;
+  }
+  .m-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+  .m-card .head-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .m-card .lbl { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-weight: 500; }
+  .m-card .icn {
+    width: 26px; height: 26px; border-radius: 6px;
+    background: var(--surface-2); color: var(--ink-3);
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .m-card .icn svg { width: 13px; height: 13px; stroke-width: 2; }
+  .m-card .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 30px; font-weight: 600; letter-spacing: -0.04em;
+    line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums;
+  }
+  .m-card .val .u { font-size: 14px; color: var(--ink-4); font-weight: 500; margin-left: 2px; }
+  .m-card .footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line);
+  }
+  .m-card .note {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11.5px; color: var(--ink-3); font-weight: 500;
+  }
+  .m-card .note.good { color: var(--good); }
+  .m-card .mock-tag {
+    position: absolute; top: 10px; right: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--ink-5); font-weight: 600;
+    padding: 1px 5px; border: 1px solid var(--line-2); border-radius: 3px;
+  }
+  .m-card .mini-spark { width: 60px; height: 20px; }
 
-  <!-- HERO -->
-  <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-violet-950 via-slate-900 to-slate-950 p-6 sm:p-8 shadow-2xl ring-1 ring-slate-900/10">
-    <div class="absolute -top-32 -right-32 w-96 h-96 bg-violet-500/25 rounded-full blur-3xl"></div>
-    <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-purple-500/15 rounded-full blur-3xl"></div>
-    <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 40px 40px;"></div>
+  /* Priorities */
+  .prio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 900px) { .prio-grid { grid-template-columns: 1fr; } }
+  .prio-card {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow-md); padding: 20px 22px;
+    display: block;
+    transition: box-shadow 220ms var(--ease), transform 220ms var(--ease);
+  }
+  .prio-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+  .prio-card .icn-box {
+    width: 32px; height: 32px; border-radius: 7px;
+    display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px;
+  }
+  .prio-card.accent .icn-box { background: var(--accent-soft); color: var(--accent); }
+  .prio-card.good .icn-box { background: var(--good-soft); color: var(--good); }
+  .prio-card.blue .icn-box { background: var(--blue-soft); color: var(--blue); }
+  .prio-card .icn-box svg { width: 15px; height: 15px; stroke-width: 2; }
+  .prio-card .top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .prio-card .lbl { font-size: 11.5px; color: var(--ink-3); font-weight: 500; }
+  .prio-card .value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 32px; font-weight: 600; letter-spacing: -0.04em;
+    line-height: 1; color: var(--ink); font-variant-numeric: tabular-nums; margin-top: 6px;
+  }
+  .prio-card.accent .value { color: var(--accent); }
+  .prio-card.good .value { color: var(--good); }
+  .prio-card .desc { font-size: 13px; color: var(--ink-3); line-height: 1.5; margin-top: 8px; }
+  .prio-card .desc strong { color: var(--ink-2); font-weight: 500; }
+  .prio-card .go-arrow { color: var(--ink-4); transition: color 150ms var(--ease), transform 200ms var(--ease); }
+  .prio-card:hover .go-arrow { color: var(--ink); transform: translateX(3px); }
+  .prio-card .go-arrow svg { width: 14px; height: 14px; stroke-width: 2; }
 
-    <div class="relative flex items-start justify-between gap-6 flex-wrap">
-      <div>
-        <div class="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur ring-1 ring-white/20 px-3 py-1 mb-3">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5 text-violet-300"><path fill-rule="evenodd" d="M11.484 2.17a.75.75 0 011.032 0 11.209 11.209 0 007.877 3.08.75.75 0 01.722.515 12.74 12.74 0 01.635 3.985c0 5.942-4.064 10.933-9.563 12.348a.75.75 0 01-.374 0C6.314 20.683 2.25 15.692 2.25 9.75c0-1.39.223-2.73.635-3.985a.75.75 0 01.722-.516l.143.001c2.996 0 5.718-1.17 7.734-3.08z" clip-rule="evenodd" /></svg>
-          <span class="text-xs font-bold uppercase tracking-widest text-violet-100">SuperAdmin</span>
-        </div>
-        <h1 class="text-white text-5xl font-bold tracking-tighter leading-[1.05]">
-          Onay <span class="font-serif italic text-violet-300">merkezi.</span>
-        </h1>
-        <p class="text-slate-300 mt-3">Sistemin sağlığını buradan yönetiyorsun. Bekleyen ne varsa aşağıda.</p>
+  /* Row */
+  .row-split { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; }
+  @media (max-width: 900px) { .row-split { grid-template-columns: 1fr; } }
+
+  /* Brief */
+  .brief-lead {
+    font-size: 18px; font-weight: 500; letter-spacing: -0.02em;
+    line-height: 1.45; color: var(--ink); margin-bottom: 14px;
+  }
+  .brief-lead .num { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+  .brief-lead .u {
+    display: inline-flex; align-items: center; gap: 3px;
+    color: var(--good); font-weight: 600;
+    font-family: 'JetBrains Mono', monospace; font-size: 14px;
+    padding: 1px 6px; background: var(--good-soft);
+    border-radius: 4px; letter-spacing: -0.02em; vertical-align: 1px;
+  }
+  .brief-para { font-size: 14px; line-height: 1.65; color: var(--ink-3); margin: 0 0 20px; }
+  .brief-para .num { font-weight: 600; color: var(--ink); font-family: 'JetBrains Mono', monospace; }
+  .sa .brief-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; font-weight: 500; color: white;
+    padding: 8px 14px; background: var(--ink); border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(15,15,20,0.20);
+  }
+  .sa .brief-cta:hover { background: var(--ink-2); color: white; }
+  .brief-cta svg { width: 13px; height: 13px; stroke-width: 2; }
+
+  /* Activity mini list */
+  .act { display: grid; grid-template-columns: 46px 1fr auto; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+  .act:last-child { border-bottom: none; }
+  .act .ts { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-4); font-weight: 500; }
+  .act .body .t { font-size: 13.5px; font-weight: 500; display: inline-flex; align-items: baseline; gap: 6px; }
+  .act .body .t::before { content: ''; width: 6px; height: 6px; border-radius: 999px; background: var(--good); flex-shrink: 0; transform: translateY(-1px); }
+  .act.bad .body .t { color: var(--accent); }
+  .act.bad .body .t::before { background: var(--accent); }
+  .act.info .body .t::before { background: var(--blue); }
+  .act .body .m { font-size: 12px; color: var(--ink-4); margin-top: 3px; padding-left: 12px; }
+  .act .ago { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-5); font-weight: 500; }
+  .sa .act-more {
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    margin-top: 14px; padding: 10px;
+    font-size: 12.5px; color: var(--ink-3); font-weight: 500;
+    background: var(--surface-2); border-radius: 6px;
+    transition: all 150ms var(--ease);
+  }
+  .sa .act-more:hover { color: var(--ink); background: var(--surface-3); }
+  .act-more svg { width: 12px; height: 12px; stroke-width: 2; }
+
+  /* Quick nav */
+  .nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 780px) { .nav-grid { grid-template-columns: 1fr; } }
+  .nav-card {
+    background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-md);
+    padding: 18px 20px; display: flex; align-items: center; gap: 14px;
+    transition: all 200ms var(--ease);
+  }
+  .nav-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-1px); }
+  .nav-card .n-icon {
+    width: 34px; height: 34px; border-radius: 7px;
+    background: var(--surface-2); color: var(--ink-2);
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 150ms var(--ease);
+  }
+  .nav-card:hover .n-icon { background: var(--ink); color: white; }
+  .nav-card .n-icon svg { width: 15px; height: 15px; stroke-width: 2; }
+  .nav-card .l { flex: 1; min-width: 0; }
+  .nav-card .l .t { font-size: 14px; font-weight: 500; color: var(--ink); }
+  .nav-card .l .d { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-4); margin-top: 3px; }
+  .nav-card .arr { color: var(--ink-5); transition: color 150ms var(--ease), transform 200ms var(--ease); }
+  .nav-card:hover .arr { color: var(--ink); transform: translateX(2px); }
+  .nav-card .arr svg { width: 14px; height: 14px; stroke-width: 2; }
+</style>
+
+<div class="page-hero">
+  <div>
+    <div class="eyebrow">Genel Bakış</div>
+    <h1>Kontrol Paneli</h1>
+    <div class="sub">
+      Sistem geneli özet ve dikkat gerektiren işler
+      <% if (pendingCounts.total > 0) { %>
+        <span class="live">Aksiyon Bekliyor</span>
+      <% } %>
+    </div>
+  </div>
+  <div class="actions">
+    <a href="/admin/approvals" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Onaya Git
+    </a>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-head">
+    <h2>Sistem Ölçeği <span class="count">örnek veriler</span></h2>
+  </div>
+  <div class="metrics">
+    <div class="m-card">
+      <span class="mock-tag">Örnek</span>
+      <div class="head-row">
+        <div class="lbl">Aktif Kurum</div>
+        <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 18V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9M9 22V12M15 22V12"/></svg></span>
       </div>
-      <!-- Toplam bekleyen -->
-      <div class="text-right">
-        <p class="text-[10px] font-bold uppercase tracking-widest text-violet-300">Toplam Bekleyen</p>
-        <p class="text-white text-4xl sm:text-5xl md:text-6xl font-black tabular-nums tracking-tighter mt-1"><%= counts.total %></p>
+      <div class="val">47</div>
+      <div class="footer">
+        <span class="note good">+3 bu ay</span>
+        <svg class="mini-spark" viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,15 L12,13 L24,10 L36,7 L48,5 L60,2" fill="none" stroke="#059669" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+    <div class="m-card">
+      <span class="mock-tag">Örnek</span>
+      <div class="head-row">
+        <div class="lbl">Kullanıcı</div>
+        <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
+      </div>
+      <div class="val">312</div>
+      <div class="footer">
+        <span class="note good">+18 bu hafta</span>
+        <svg class="mini-spark" viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,16 L12,14 L24,11 L36,9 L48,5 L60,2" fill="none" stroke="#059669" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+    <div class="m-card">
+      <span class="mock-tag">Örnek</span>
+      <div class="head-row">
+        <div class="lbl">Yüklü Evrak</div>
+        <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+      </div>
+      <div class="val">1.847</div>
+      <div class="footer">
+        <span class="note">+42 bugün</span>
+        <svg class="mini-spark" viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,14 L12,12 L24,13 L36,10 L48,7 L60,5" fill="none" stroke="#8B8B8E" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+    <div class="m-card">
+      <span class="mock-tag">Örnek</span>
+      <div class="head-row">
+        <div class="lbl">Uptime · 30g</div>
+        <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+      </div>
+      <div class="val">99.98<span class="u">%</span></div>
+      <div class="footer">
+        <span class="note good">SLA 99.9%</span>
+        <svg class="mini-spark" viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,4 L60,4" fill="none" stroke="#059669" stroke-width="1.5" stroke-linecap="round"/></svg>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Onay kartları -->
-  <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-    <!-- Belgeler -->
-    <a href="/admin/documents/pending" class="group relative overflow-hidden bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 hover:ring-slate-900/15 hover:shadow-soft-xl transition p-6">
-      <div class="absolute -top-8 -right-8 w-40 h-40 bg-amber-100 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition"></div>
-      <div class="relative">
-        <div class="flex items-start justify-between gap-3 mb-4">
-          <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-6 w-6"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
-          </div>
-          <% if (counts.documents > 0) { %>
-            <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-800 px-2.5 py-0.5 text-xs font-bold tabular-nums"><%= counts.documents %></span>
-          <% } %>
-        </div>
-        <p class="font-bold text-slate-900 text-lg">Belge Onayları</p>
-        <p class="text-sm text-slate-500 mt-1">Ehliyet, SRC, ruhsat, sigorta</p>
-        <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-          <span class="text-xs font-semibold text-slate-500">
-            <% if (counts.documents === 0) { %>Tümü onaylı<% } else { %><%= counts.documents %> belge bekliyor<% } %>
-          </span>
-          <span class="inline-flex items-center gap-1 text-sm font-bold text-slate-700 group-hover:text-slate-900 group-hover:translate-x-0.5 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
-          </span>
-        </div>
-      </div>
-    </a>
-
-    <!-- Kurumlar -->
-    <a href="/admin/companies" class="group relative overflow-hidden bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 hover:ring-slate-900/15 hover:shadow-soft-xl transition p-6">
-      <div class="absolute -top-8 -right-8 w-40 h-40 bg-blue-100 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition"></div>
-      <div class="relative">
-        <div class="flex items-start justify-between gap-3 mb-4">
-          <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-700 text-white shadow-lg shadow-blue-500/30">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-6 w-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" /></svg>
-          </div>
-          <% if (counts.companies > 0) { %>
-            <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 text-blue-800 px-2.5 py-0.5 text-xs font-bold tabular-nums"><%= counts.companies %></span>
-          <% } %>
-        </div>
-        <p class="font-bold text-slate-900 text-lg">Kurum Onayları</p>
-        <p class="text-sm text-slate-500 mt-1">Yeni oluşturulan kurumlar</p>
-        <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-          <span class="text-xs font-semibold text-slate-500">
-            <% if (counts.companies === 0) { %>Tümü onaylı<% } else { %><%= counts.companies %> kurum bekliyor<% } %>
-          </span>
-          <span class="inline-flex items-center gap-1 text-sm font-bold text-slate-700 group-hover:text-slate-900 group-hover:translate-x-0.5 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
-          </span>
-        </div>
-      </div>
-    </a>
-
-    <!-- Şoför profil değişiklikleri -->
-    <a href="/admin/driver-updates" class="group relative overflow-hidden bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 hover:ring-slate-900/15 hover:shadow-soft-xl transition p-6">
-      <div class="absolute -top-8 -right-8 w-40 h-40 bg-emerald-100 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition"></div>
-      <div class="relative">
-        <div class="flex items-start justify-between gap-3 mb-4">
-          <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg shadow-emerald-500/30">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-6 w-6"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          </div>
-          <% if (counts.driverUpdates > 0) { %>
-            <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 text-emerald-800 px-2.5 py-0.5 text-xs font-bold tabular-nums"><%= counts.driverUpdates %></span>
-          <% } %>
-        </div>
-        <p class="font-bold text-slate-900 text-lg">Şoför Değişiklikleri</p>
-        <p class="text-sm text-slate-500 mt-1">Hassas alan talepleri</p>
-        <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-          <span class="text-xs font-semibold text-slate-500">
-            <% if (counts.driverUpdates === 0) { %>Bekleyen yok<% } else { %><%= counts.driverUpdates %> talep bekliyor<% } %>
-          </span>
-          <span class="inline-flex items-center gap-1 text-sm font-bold text-slate-700 group-hover:text-slate-900 group-hover:translate-x-0.5 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
-          </span>
-        </div>
-      </div>
-    </a>
-
-    <!-- Araç değişiklikleri -->
-    <a href="/admin/vehicle-updates" class="group relative overflow-hidden bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 hover:ring-slate-900/15 hover:shadow-soft-xl transition p-6">
-      <div class="absolute -top-8 -right-8 w-40 h-40 bg-sky-100 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition"></div>
-      <div class="relative">
-        <div class="flex items-start justify-between gap-3 mb-4">
-          <div class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-sky-700 text-white shadow-lg shadow-sky-500/30">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-6 w-6"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>
-          </div>
-          <% if (counts.vehicleUpdates > 0) { %>
-            <span class="inline-flex items-center gap-1 rounded-full bg-sky-100 text-sky-800 px-2.5 py-0.5 text-xs font-bold tabular-nums"><%= counts.vehicleUpdates %></span>
-          <% } %>
-        </div>
-        <p class="font-bold text-slate-900 text-lg">Araç Değişiklikleri</p>
-        <p class="text-sm text-slate-500 mt-1">Plaka, marka, kapasite vb.</p>
-        <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-          <span class="text-xs font-semibold text-slate-500">
-            <% if (counts.vehicleUpdates === 0) { %>Bekleyen yok<% } else { %><%= counts.vehicleUpdates %> talep bekliyor<% } %>
-          </span>
-          <span class="inline-flex items-center gap-1 text-sm font-bold text-slate-700 group-hover:text-slate-900 group-hover:translate-x-0.5 transition">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
-          </span>
-        </div>
-      </div>
-    </a>
-
+<div class="section">
+  <div class="section-head">
+    <h2>Bugün Gündemde <span class="count">3 konu</span></h2>
   </div>
+  <div class="prio-grid">
+    <a href="/admin/approvals" class="prio-card accent">
+      <span class="icn-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      <div class="top-row">
+        <span class="lbl">Onay Bekliyor</span>
+        <span class="go-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      </div>
+      <div class="value"><%= pendingCounts.total %></div>
+      <div class="desc">
+        <% if (pendingCounts.total === 0) { %>
+          tüm onaylar tamamlandı, ekran boş
+        <% } else { %>
+          iş sırada · en eski işi görüntülemek için <strong>tıkla</strong>
+        <% } %>
+      </div>
+    </a>
+    <a href="/mockup/ai-rapor.html" class="prio-card good">
+      <span class="icn-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 6 23 6 23 12"/><path d="M23 6l-9.5 9.5-5-5L1 18"/></svg></span>
+      <div class="top-row">
+        <span class="lbl">Bu Ayın Büyümesi <span class="mock-tag" style="position:static; margin-left:4px;">Mock</span></span>
+        <span class="go-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      </div>
+      <div class="value">+21%</div>
+      <div class="desc">kurum sayısı · geçen ay <strong>39</strong>'du</div>
+    </a>
+    <a href="/mockup/activity.html" class="prio-card blue">
+      <span class="icn-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+      <div class="top-row">
+        <span class="lbl">Son 24 Saat <span class="mock-tag" style="position:static; margin-left:4px;">Mock</span></span>
+        <span class="go-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      </div>
+      <div class="value">27 <span style="color:var(--ink-4);font-weight:500;">·</span> 3</div>
+      <div class="desc">onay · ret · aksiyon ritmi <strong>normal</strong></div>
+    </a>
+  </div>
+</div>
 
+<div class="section">
+  <div class="row-split">
+    <div class="card">
+      <div class="card-head">
+        <h3>Bu Ayın Özeti <span class="ai-tag">AI · Mock</span></h3>
+        <span class="stamp">Eylül 2026</span>
+      </div>
+      <div class="brief-lead">
+        Sisteme <span class="num">8</span> yeni kurum katıldı <span class="u">↑ +33%</span> ve aralarında <span class="num">14</span> yeni iş birliği kuruldu.
+      </div>
+      <p class="brief-para">
+        Bu ay <span class="num">3.240</span> evrak işlendi (+34%), sisteme <span class="num">82</span> yeni kullanıcı dahil oldu. Sistem <span class="num">%99.98</span> uptime ile hiç kesinti yaşamadı; ortalama belge işlem süresi <span class="num">8sa</span>'ten <span class="num">5sa</span>'e indi.
+      </p>
+      <a href="/mockup/ai-rapor.html" class="brief-cta">
+        Aylık raporun tamamı
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3>Son Etkinlik <span class="ai-tag" style="background:transparent; color:var(--ink-4); border:1px solid var(--line-2); font-size:8.5px;">Mock</span></h3>
+        <span class="stamp">son 4</span>
+      </div>
+      <div class="act">
+        <span class="ts">14:27</span>
+        <div class="body"><div class="t">Ehliyet onaylandı</div><div class="m">Ali Demir · Kayseri Kooperatifi</div></div>
+        <span class="ago">5dk</span>
+      </div>
+      <div class="act">
+        <span class="ts">14:12</span>
+        <div class="body"><div class="t">Kurum aktifleştirildi</div><div class="m">OkulX Vakfı</div></div>
+        <span class="ago">20dk</span>
+      </div>
+      <div class="act bad">
+        <span class="ts">13:31</span>
+        <div class="body"><div class="t">Psikoteknik reddedildi</div><div class="m">Fatma Yıldız · süresi dolmuş</div></div>
+        <span class="ago">1sa</span>
+      </div>
+      <div class="act info">
+        <span class="ts">04:00</span>
+        <div class="body"><div class="t">Cron tarama tamamlandı</div><div class="m">187 evrak · 3 uyarı</div></div>
+        <span class="ago">10sa</span>
+      </div>
+      <a href="/mockup/activity.html" class="act-more">
+        Tümünü aç
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-head">
+    <h2>Hızlı Erişim <span class="count">gerçek + mock</span></h2>
+  </div>
+  <div class="nav-grid">
+    <a class="nav-card" href="/admin/approvals">
+      <span class="n-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+      <div class="l"><div class="t">Onay Merkezi</div><div class="d"><%= pendingCounts.total %> iş bekliyor</div></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </a>
+    <a class="nav-card" href="/admin/approvals?tab=documents">
+      <span class="n-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+      <div class="l"><div class="t">Belge Onayları</div><div class="d"><%= pendingCounts.documents %> belge bekliyor</div></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </a>
+    <a class="nav-card" href="/admin/approvals?tab=companies">
+      <span class="n-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 18V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9M9 22V12M15 22V12"/></svg></span>
+      <div class="l"><div class="t">Kurum Onayları</div><div class="d"><%= pendingCounts.companies %> kurum bekliyor</div></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </a>
+    <a class="nav-card" href="/admin/approvals?tab=driver-updates">
+      <span class="n-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></svg></span>
+      <div class="l"><div class="t">Şoför Değişiklikleri</div><div class="d"><%= pendingCounts.driverUpdates %> talep</div></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </a>
+    <a class="nav-card" href="/admin/approvals?tab=vehicle-updates">
+      <span class="n-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V15a1 1 0 0 0 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></span>
+      <div class="l"><div class="t">Araç Değişiklikleri</div><div class="d"><%= pendingCounts.vehicleUpdates %> talep</div></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </a>
+    <a class="nav-card" href="/mockup/ai-rapor.html">
+      <span class="n-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></span>
+      <div class="l"><div class="t">Aylık Rapor <span style="color:var(--ink-5); font-size:11px;">· mock</span></div><div class="d">Eylül 2026</div></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+    </a>
+  </div>
 </div>

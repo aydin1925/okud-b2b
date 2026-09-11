@@ -1,6 +1,6 @@
 const DriverProfileService = require('../../services/DriverProfileService');
 const DocumentService = require('../../services/DocumentService');
-const { DRIVER_DOCUMENT_TYPES, DOCUMENT_TYPE_LABELS } = require('../../utils/constants');
+const { DRIVER_DOCUMENT_TYPES, DOCUMENT_TYPE_LABELS, PERPETUAL_DOCUMENT_TYPES } = require('../../utils/constants');
 
 async function showMyProfile(req, res) {
     const profile = await DriverProfileService.getMyProfile(req.session.userId);
@@ -26,6 +26,7 @@ async function showMyProfile(req, res) {
         documentsByType,
         requiredTypes: DRIVER_DOCUMENT_TYPES,
         typeLabels: DOCUMENT_TYPE_LABELS,
+        perpetualTypes: PERPETUAL_DOCUMENT_TYPES,
         pendingRequest,
     });
 }
@@ -109,4 +110,23 @@ async function cancelUpdateRequest(req, res) {
     }
 }
 
-module.exports = { showMyProfile, showCreateForm, create, showEditForm, updateProfile, cancelUpdateRequest };
+async function setActive(req, res) {
+    const active = req.path.endsWith('/activate');
+    try {
+        await DriverProfileService.setActive(req.session.userId, active);
+        res.redirect('/driver/profile');
+    } catch (err) {
+        res.status(400).send(`Hata: ${err.message}. <a href="/driver/profile">Geri</a>`);
+    }
+}
+
+async function deleteProfile(req, res) {
+    try {
+        await DriverProfileService.softDelete(req.session.userId);
+        res.redirect('/dashboard');
+    } catch (err) {
+        res.status(400).send(`Silme hatası: ${err.message}. <a href="/driver/profile">Geri</a>`);
+    }
+}
+
+module.exports = { showMyProfile, showCreateForm, create, showEditForm, updateProfile, cancelUpdateRequest, deleteProfile, setActive };

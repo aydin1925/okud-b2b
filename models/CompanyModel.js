@@ -61,6 +61,40 @@ async function findByUserId(userId) {
   return rows;
 }
 
+/**
+ * Kullanıcının FİLO ÜYESİ olarak (şoför / araç sahibi / hostes yöneticisi olarak)
+ * bağlı olduğu kurumlar. company_users'ta yer almayan sıradan filo üyeleri için.
+ * Her satırda role_name = null, role_display_name = target_type'a göre etiket.
+ */
+async function findByFleetMembership(userId) {
+  const [rows] = await db.query(
+    `SELECT DISTINCT
+        c.id, c.name, c.tax_number, c.company_type, c.is_active,
+        NULL AS role_name,
+        CASE fc.target_type
+          WHEN 'driver_profile'  THEN 'Şoför'
+          WHEN 'vehicle_profile' THEN 'Araç Sahibi'
+          WHEN 'hostess_profile' THEN 'Hostes Yöneticisi'
+          ELSE 'Filo Üyesi'
+        END AS role_display_name
+      FROM fleet_connections fc
+      INNER JOIN companies c ON c.id = fc.company_id
+      LEFT JOIN driver_profiles  dp ON fc.target_type = 'driver_profile'  AND dp.id = fc.target_id AND dp.deleted_at IS NULL
+      LEFT JOIN vehicle_profiles vp ON fc.target_type = 'vehicle_profile' AND vp.id = fc.target_id AND vp.deleted_at IS NULL
+      LEFT JOIN hostess_profiles hp ON fc.target_type = 'hostess_profile' AND hp.id = fc.target_id AND hp.deleted_at IS NULL
+      WHERE fc.disconnected_at IS NULL
+        AND c.deleted_at IS NULL
+        AND (
+             (fc.target_type = 'driver_profile'  AND dp.user_id = ?)
+          OR (fc.target_type = 'vehicle_profile' AND vp.owner_user_id = ?)
+          OR (fc.target_type = 'hostess_profile' AND hp.managed_by_user_id = ?)
+        )
+      ORDER BY c.name ASC`,
+    [userId, userId, userId]
+  );
+  return rows;
+}
+
 async function findMembership(userId, companyId) {
   const [rows] = await db.query(
     `SELECT
@@ -75,6 +109,25 @@ async function findMembership(userId, companyId) {
         AND c.deleted_at  IS NULL
       LIMIT 1`,
     [userId, companyId]
+  );
+  return rows[0] || null;
+}
+
+// Bir kurumun birincil iletişim noktası — company_admin rolündeki en eski aktif üye.
+// Detay sayfasında "karşı tarafa ulaş" butonu için tek bir kişi göstermek istiyoruz.
+async function findPrimaryContactByCompanyId(companyId) {
+  const [rows] = await db.query(
+    `SELECT u.id, u.first_name, u.last_name, u.email
+       FROM company_users cu
+       INNER JOIN users u ON u.id = cu.user_id
+       INNER JOIN roles r ON r.id = cu.role_id
+      WHERE cu.company_id = ?
+        AND cu.deleted_at IS NULL
+        AND u.deleted_at  IS NULL
+        AND r.name = 'company_admin'
+      ORDER BY cu.created_at ASC
+      LIMIT 1`,
+    [companyId]
   );
   return rows[0] || null;
 }
@@ -140,7 +193,8 @@ async function softDelete(id) {
 }
 
 module.exports = {
-  findByTaxNumber, findById, createWithAdmin, findByUserId, findMembership,
+  findByTaxNumber, findById, createWithAdmin, findByUserId, findByFleetMembership, findMembership,
   findManagersByCompanyId,
+  findPrimaryContactByCompanyId,
   findPendingApproval, activate, softDelete,
 };

@@ -6,16 +6,16 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
       </svg>
     </div>
-    <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Kod <span class="font-serif italic text-slate-500">hazır.</span></h2>
+    <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Kod <span class="font-serif italic text-slate-500">hazır.</span></h2>
     <p class="text-slate-500 mt-2 text-sm">Aşağıdaki kodu ilgili kişiye ilet.</p>
   </div>
 
   <!-- Kod kutusu -->
-  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-900/10">
+  <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 sm:p-8 shadow-2xl ring-1 ring-slate-900/10">
     <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
     <div class="relative text-center">
       <p class="text-[10px] font-bold uppercase tracking-widest text-blue-300 mb-3">Davet Kodu</p>
-      <div class="text-5xl sm:text-6xl font-black tracking-[0.3em] text-white font-mono mb-4"><%= result.code %></div>
+      <div class="text-3xl sm:text-6xl font-black tracking-[0.2em] sm:tracking-[0.3em] text-white font-mono mb-4 break-all"><%= result.code %></div>
       <button type="button" onclick="copyCode()"
               class="inline-flex items-center gap-2 rounded-xl bg-white/10 backdrop-blur ring-1 ring-white/20 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20 transition">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">

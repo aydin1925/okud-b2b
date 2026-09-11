@@ -1,88 +1,75 @@
-<div class="grid lg:grid-cols-2 gap-8 items-center min-h-[calc(100vh-14rem)]">
+<div class="auth-shell">
 
-  <!-- Sol: Brand paneli -->
-  <div class="hidden lg:block relative">
-    <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-10 min-h-[500px] shadow-2xl ring-1 ring-slate-900/10">
-      <!-- Decorative gradient orbs -->
-      <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
-      <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"></div>
-
-      <div class="relative h-full flex flex-col">
-        <div class="inline-flex items-center gap-2 self-start">
-          <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 backdrop-blur text-white text-sm font-black ring-1 ring-white/20">O</span>
-          <span class="text-white font-bold text-lg">OKUD</span>
-        </div>
-
-        <div class="flex-1 flex flex-col justify-center py-16">
-          <h1 class="text-white text-4xl font-bold leading-tight tracking-tight">
-            Otonom belge<br>denetimi. <span class="font-serif italic text-blue-300">Kesintisiz.</span>
-          </h1>
-          <p class="text-slate-300 mt-4 text-base leading-relaxed max-w-md">
-            Şoför, kurum ve araç belgelerini tek merkezden takip et. Süresi dolan hiçbir evrak gözden kaçmasın.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3 mt-auto">
-          <div class="rounded-xl bg-white/5 backdrop-blur border border-white/10 p-3">
-            <div class="text-white text-lg font-bold">✓</div>
-            <div class="text-slate-400 text-[10px] uppercase tracking-widest font-semibold mt-1">Belge Onay</div>
-          </div>
-          <div class="rounded-xl bg-white/5 backdrop-blur border border-white/10 p-3">
-            <div class="text-white text-lg font-bold">24h</div>
-            <div class="text-slate-400 text-[10px] uppercase tracking-widest font-semibold mt-1">OTP Süresi</div>
-          </div>
-          <div class="rounded-xl bg-white/5 backdrop-blur border border-white/10 p-3">
-            <div class="text-white text-lg font-bold">∞</div>
-            <div class="text-slate-400 text-[10px] uppercase tracking-widest font-semibold mt-1">Hukuki İz</div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="auth-topbar">
+    <a href="/" class="auth-logo">
+      <span class="box">O</span>
+      <span class="name">OKUD</span>
+    </a>
   </div>
 
-  <!-- Sağ: Form -->
-  <div class="max-w-md mx-auto lg:mx-0 w-full">
-    <div class="mb-8">
-      <p class="text-xs font-bold uppercase tracking-widest text-blue-600 mb-2">Hoş geldin</p>
-      <h2 class="text-4xl font-bold text-slate-900 tracking-tight">Giriş yap</h2>
-      <p class="text-slate-500 mt-2">Hesabına erişmek için bilgilerini gir.</p>
+  <div class="auth-editorial">
+
+    <!-- Sol: form -->
+    <div class="form-side">
+      <div class="auth-form-card">
+        <div class="auth-eyebrow">Hoş geldin</div>
+        <h1 class="auth-title">Hesabına giriş yap</h1>
+        <p class="auth-sub">E-posta ve şifrenle devam et. Şifreni unuttuysan hemen yeni bir tane oluşturabilirsin.</p>
+
+        <% if (typeof info !== 'undefined' && info) { %>
+          <div class="auth-alert ok">
+            <i class="ti ti-circle-check"></i>
+            <span><%= info %></span>
+          </div>
+        <% } %>
+
+        <% if (error) { %>
+          <div class="auth-alert err">
+            <i class="ti ti-alert-circle"></i>
+            <span><%= error %></span>
+          </div>
+        <% } %>
+
+        <form action="/login" method="POST" class="auth-fields">
+          <div class="auth-field">
+            <label for="email">E-posta</label>
+            <div class="input-wrap">
+              <i class="ti ti-mail field-icon" aria-hidden="true"></i>
+              <input type="email" id="email" name="email" value="<%= formData.email || '' %>" required autocomplete="email" placeholder="ornek@mail.com">
+            </div>
+          </div>
+
+          <div class="auth-field">
+            <div class="label-row">
+              <label for="password">Şifre</label>
+              <a href="/forgot-password">Şifremi unuttum</a>
+            </div>
+            <div class="input-wrap">
+              <i class="ti ti-lock field-icon" aria-hidden="true"></i>
+              <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="••••••••">
+            </div>
+          </div>
+
+          <button type="submit" class="auth-submit">
+            Giriş yap <i class="ti ti-arrow-right"></i>
+          </button>
+        </form>
+
+        <p class="auth-swap">
+          Hesabın yok mu? <a href="/register">Kayıt ol</a>
+        </p>
+      </div>
     </div>
 
-    <% if (error) { %>
-      <div class="flex items-start gap-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm mb-5 animate-fade-up">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 flex-shrink-0 mt-0.5">
-          <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
-        </svg>
-        <span><%= error %></span>
+    <!-- Sağ: editoryel panel -->
+    <div class="brand-side">
+      <span class="ghost" aria-hidden="true">OKUD</span>
+      <div class="content">
+        <div class="tag">Belge denetimi · Otonom</div>
+        <h1>Süresi dolan<br>hiçbir belge<br><em>gözden kaçmasın.</em></h1>
+        <p>Şoför, kurum ve araç belgelerini tek merkezden takip et. Ehliyeti dolan şoför yola çıkmasın, sen haberdar olmadan hiçbir sözleşme askıya alınmasın.</p>
       </div>
-    <% } %>
+    </div>
 
-    <form action="/login" method="POST" class="space-y-4">
-      <div>
-        <label for="email" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Email</label>
-        <input type="email" id="email" name="email" value="<%= formData.email || '' %>" required
-               placeholder="ornek@mail.com"
-               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
-      </div>
-
-      <div>
-        <label for="password" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Şifre</label>
-        <input type="password" id="password" name="password" required
-               placeholder="••••••••"
-               class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
-      </div>
-
-      <button type="submit"
-              class="group w-full inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3.5 text-sm font-semibold text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/25 mt-2">
-        Giriş yap
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4 group-hover:translate-x-0.5 transition">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-        </svg>
-      </button>
-    </form>
-
-    <p class="text-sm text-slate-500 mt-8 text-center">
-      Hesabın yok mu? <a href="/register" class="text-slate-900 font-semibold hover:underline underline-offset-4">Hemen kayıt ol →</a>
-    </p>
   </div>
 </div>
