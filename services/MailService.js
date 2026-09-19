@@ -55,7 +55,7 @@ async function send({ to, subject, body, html }) {
 
   try {
     const info = await getTransporter().sendMail({
-      from: process.env.MAIL_FROM || `"OKUD" <${process.env.MAIL_USER}>`,
+      from: process.env.MAIL_FROM || `"Filoskope" <${process.env.MAIL_USER}>`,
       to,
       subject,
       text: body,

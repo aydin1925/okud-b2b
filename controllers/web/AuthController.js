@@ -1,5 +1,7 @@
 const UserService = require('../../services/UserService');
 const AuthService = require('../../services/AuthService');
+const AuditService = require('../../services/AuditService');
+const { AUDIT_ACTIONS } = require('../../utils/constants');
 
 // =====================================================================
 // REGISTER
@@ -17,19 +19,38 @@ function showRegisterForm(req, res) {
 async function register(req, res) {
     try {
         const user = await UserService.register(req.body);
+        const submittedEmail = String(req.body.email || '').trim();
 
-        // Kayıt başarılı — doğrulama linkini sessizce gönder.
-        // Mail patlarsa uygulama akışı kesilmesin — kullanıcı kayıt oldu zaten.
-        try {
-            await AuthService.sendEmailVerification(user.id);
-        } catch (mailErr) {
-            console.error('[register] verification mail atılamadı:', mailErr.message);
+        if (user.duplicate) {
+            // Enumeration koruması: e-posta zaten kayıtlı ama BUNU AÇIK ETME.
+            // Var olan adrese "birileri seninle kayıt denedi" bilgisi gönder (best-effort),
+            // kullanıcıya ise normal kayıttakiyle AYNI mesajı göster.
+            try {
+                await AuthService.sendDuplicateRegisterNotice(submittedEmail);
+            } catch (mailErr) {
+                console.error('[register] duplicate notice atılamadı:', mailErr.message);
+            }
+        } else {
+            AuditService.log({
+                actorUserId: user.id,
+                action: AUDIT_ACTIONS.AUTH_REGISTER,
+                entityType: 'user',
+                entityId: user.id,
+                metadata: { email: user.email },
+                ipAddress: req.ip,
+            });
+            // Doğrulama linkini sessizce gönder. Mail patlarsa akış kesilmesin.
+            try {
+                await AuthService.sendEmailVerification(user.id);
+            } catch (mailErr) {
+                console.error('[register] verification mail atılamadı:', mailErr.message);
+            }
         }
 
         res.render('auth/register', {
             title: 'Kayıt Ol',
             error: null,
-            success: `Kayıt başarılı! ${user.email} adresine doğrulama maili gönderildi.`,
+            success: `Kayıt alındı. Eğer ${submittedEmail} kullanılabilir bir adresse, doğrulama maili gönderildi.`,
             formData: {}
         });
     }
@@ -60,14 +81,26 @@ function showLoginForm(req, res) {
 
 async function login(req, res) {
     try {
-        const user = await AuthService.login(req.body);
-        // Session'a kullanıcı bilgisini yaz
-        req.session.userId = user.id;
-        req.session.userEmail = user.email;
-        req.session.userName = `${user.first_name} ${user.last_name}`;
-        req.session.isSuperadmin = !!user.is_superadmin;
-        req.session.emailVerifiedAt = user.email_verified_at || null;
-        res.redirect('/dashboard');
+        const user = await AuthService.login(req.body, req.ip);
+
+        // Session fixation savunması: giriş başarısında session id'yi YENİLE.
+        // Böylece login öncesi (belki saldırgan tarafından sabitlenmiş) session id
+        // geçersiz olur; kullanıcı taze, yalnız kendisinin bildiği bir id ile devam eder.
+        req.session.regenerate((err) => {
+            if (err) {
+                return res.status(500).render('auth/login', {
+                    title: 'Giriş Yap', error: 'Oturum başlatılamadı, tekrar deneyin.',
+                    info: null, formData: { email: req.body.email },
+                });
+            }
+            req.session.userId = user.id;
+            req.session.userEmail = user.email;
+            req.session.userName = `${user.first_name} ${user.last_name}`;
+            req.session.isSuperadmin = !!user.is_superadmin;
+            req.session.emailVerifiedAt = user.email_verified_at || null;
+            // Store'a yazılmadan redirect etmeyelim (aksi halde ilk istek session'sız gelebilir)
+            req.session.save(() => res.redirect('/dashboard'));
+        });
     }
     catch(err) {
         res.status(400).render('auth/login', {
@@ -145,7 +178,7 @@ async function doReset(req, res) {
     const token = String(req.body.token || '').trim();
     try {
         await AuthService.resetPasswordWithToken(
-            token, req.body.new_password, req.body.new_password_confirm
+            token, req.body.new_password, req.body.new_password_confirm, req.ip
         );
         res.redirect('/login?flash=pw-reset');
     } catch (err) {
@@ -165,7 +198,7 @@ async function doReset(req, res) {
 async function verifyEmail(req, res) {
     const token = String(req.query.token || '').trim();
     try {
-        const { userId } = await AuthService.verifyEmailWithToken(token);
+        const { userId } = await AuthService.verifyEmailWithToken(token, req.ip);
         // Aktif oturum varsa session'ı senkron et — banner hemen kaybolsun
         if (req.session && req.session.userId === userId) {
             req.session.emailVerifiedAt = new Date();

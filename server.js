@@ -4,8 +4,33 @@ const path = require('path');
 const session = require('express-session');
 const expressLayouts = require('express-ejs-layouts');
 const cors = require('cors');
+const helmet = require('helmet');
+const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
+const MySQLStore = require('express-mysql-session')(session);
 
 const db = require('./config/db');
+const { csrfProtection, csrfToken } = require('./config/csrf');
+
+// Kritik sırların varlığını boot'ta doğrula — eksikse hiç ayağa kalkma.
+// (Prod'da zayıf/boş secret sessiz felaket; erken ve gürültülü patla.)
+['SESSION_SECRET', 'CSRF_SECRET'].forEach((k) => {
+  if (!process.env[k]) {
+    console.error(`FATAL: ${k} tanımlı değil (.env). Sunucu başlatılmıyor.`);
+    process.exit(1);
+  }
+});
+
+// Çökme dayanıklılığı: yakalanmamış hata/promise reddi süreci sessizce düşürmesin.
+// Loglayıp uncaughtException'da kontrollü çıkıyoruz — süreç yöneticisi (PM2/Hostinger)
+// temiz bir durumdan yeniden başlatsın. Bozuk bir state'te çalışmaya devam etmekten iyidir.
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+  process.exit(1);
+});
 
 // Global template locals middleware'leri
 const currentUser = require('./middlewares/currentUser');
@@ -40,6 +65,7 @@ const partnershipInvitationWebRoutes = require('./routes/web/partnership-invitat
 const partnershipRedeemWebRoutes = require('./routes/web/partnership-redeem.routes');
 const redeemWebRoutes = require('./routes/web/redeem.routes');
 const notificationWebRoutes = require('./routes/web/notification.routes');
+const documentWebRoutes = require('./routes/web/document.routes');
 const profileWebRoutes = require('./routes/web/profile.routes');
 const adminWebRoutes = require('./routes/web/admin.routes');
 
@@ -50,6 +76,30 @@ const documentExpiryJob = require('./jobs/documentExpiryJob');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProd = process.env.NODE_ENV === 'production';
+
+// Reverse proxy (nginx/caddy) arkasındaysak: orijinal HTTPS bilgisini X-Forwarded-Proto'dan al.
+// Bu satır olmadan prod'da secure cookie hiç gönderilmez (Node "istek HTTP geldi" sanır).
+app.set('trust proxy', 1);
+
+// Güvenlik header'ları (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, HSTS...).
+// CSP kapalı: sayfalarda inline script/style + CDN'ler (Tailwind, SweetAlert, fonts) var;
+// doğru bir CSP ayrı bir iş — şimdilik diğer header'ları alıyoruz.
+app.use(helmet({ contentSecurityPolicy: false }));
+
+// İstek loglama — prod'da 'combined' (Apache formatı), dev'de 'dev' (renkli/kısa).
+app.use(morgan(isProd ? 'combined' : 'dev'));
+
+// Sağlık kontrolü — load balancer / uptime izleme için. DB'ye ping atar.
+// Statik/route zincirinden önce, hafif ve auth'suz.
+app.get('/health', async (req, res) => {
+    try {
+        await db.query('SELECT 1');
+        res.json({ status: 'ok', uptime: Math.floor(process.uptime()) });
+    } catch (err) {
+        res.status(503).json({ status: 'error', message: 'db unreachable' });
+    }
+});
 
 // View engine
 app.set('view engine', 'ejs');
@@ -60,25 +110,49 @@ app.set('layout', 'layouts/main');
 // Statik dosyalar (CSS, resim, client-side JS) — public/ klasörü kökten servis edilir
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Body parser
+// Body parser + cookie parser (CSRF çerezi okumak için cookie-parser şart)
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(cookieParser());
 
-// CORS — sadece /api rotalarında. Flutter native CORS'a takılmaz ama
-// Flutter web build ve tarayıcı testleri için hazır olalım.
-app.use('/api', cors());
+// CORS — sadece /api. Allowlist: env CORS_ORIGINS (virgülle), yoksa dev'de serbest.
+const corsOrigins = (process.env.CORS_ORIGINS || '')
+    .split(',').map((s) => s.trim()).filter(Boolean);
+app.use('/api', cors({
+    origin: corsOrigins.length ? corsOrigins : (isProd ? false : true),
+    credentials: true,
+}));
 
-// Session
+// Session — kalıcı store (MySQL). MemoryStore prod'da sızıntı + restart'ta herkesi düşürür.
+const sessionStore = new MySQLStore({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT || 3306,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    createDatabaseTable: true,          // sessions tablosunu yoksa kur
+    clearExpired: true,
+    checkExpirationInterval: 15 * 60 * 1000,
+    expiration: 8 * 60 * 60 * 1000,
+});
+
 app.use(session({
     secret: process.env.SESSION_SECRET,
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
+    rolling: true,                     // aktif kullanıcı sürekli çalışırken çıkarılmasın
     cookie: {
-        httpOnly: true,
-        secure: false,
-        maxAge: 1000 * 60 * 60 * 8,
+        httpOnly: true,                // JS document.cookie okumasın (XSS savunması)
+        secure: isProd,                // prod'da sadece HTTPS'te gönder, dev'de HTTP OK
+        sameSite: 'lax',               // başka site senin cookie'nle istek atmasın (CSRF savunması)
+        maxAge: 1000 * 60 * 60 * 8,   // 8 saat
     },
 }));
+
+// CSRF — /api hariç tüm state-değiştiren isteklerde doğrula + her render'a token bırak.
+app.use(csrfProtection);
+app.use(csrfToken);
 
 // Her template'e currentUser, currentCompany ve bildirim sayacını gönder
 app.use(currentUser);
@@ -109,6 +183,7 @@ app.use('/driver',              requireAuth, driverWebRoutes);
 app.use('/vehicles',            requireAuth, vehicleWebRoutes);
 app.use('/hostess',             requireAuth, hostessWebRoutes);
 app.use('/notifications',       requireAuth, notificationWebRoutes);
+app.use('/documents',           requireAuth, documentWebRoutes);
 app.use('/profile',             requireAuth, profileWebRoutes);
 app.use('/connections/redeem',  requireAuth, redeemWebRoutes);
 
@@ -139,6 +214,30 @@ app.use('/api/v1/auth', authApiRoutes);
 // Express error middleware'i (err, req, res, next) 4 argümanlı imzayla
 // tanır ve throw/next(err) olanları buraya yönlendirir.
 app.use('/api', apiError);
+
+// ==============================================================
+// 404 — hiçbir route eşleşmedi. /api altında JSON, web'de 404 sayfası.
+// ==============================================================
+app.use((req, res) => {
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ error: 'Not found' });
+    }
+    res.status(404).render('errors/404', { title: 'Sayfa bulunamadı', layout: 'layouts/main' });
+});
+
+// ==============================================================
+// Web global hata yakalayıcı — controller'da yakalanmamış hata buraya düşer.
+// Hatayı sunucuda loglar; kullanıcıya ASLA stack trace göstermez, sade 500 sayfası döner.
+// (4 argümanlı imza şart — Express bunu error handler olarak tanır.)
+// ==============================================================
+app.use((err, req, res, next) => {
+    console.error('[web error]', req.method, req.originalUrl, '\n', err.stack || err);
+    if (res.headersSent) return next(err);
+    if (req.path.startsWith('/api')) {
+        return res.status(500).json({ error: 'Sunucu hatası' });
+    }
+    res.status(500).render('errors/500', { title: 'Bir şeyler ters gitti', layout: 'layouts/main' });
+});
 
 documentExpiryJob.register();
 

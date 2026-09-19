@@ -34,4 +34,22 @@ async function uploadVehicleDocument(req, res) {
   }
 }
 
-module.exports = { uploadDriverDocument, uploadVehicleDocument };
+// Yetkili belge görüntüleme — dosyayı tarayıcıda inline açar (PDF/JPG).
+async function viewFile(req, res) {
+  const viewer = {
+    userId: req.session.userId,
+    isSuperadmin: !!req.session.isSuperadmin,
+    companyId: req.session.currentCompanyId || null,
+  };
+  try {
+    const file = await DocumentService.getFileForViewer(parseInt(req.params.id, 10), viewer);
+    res.setHeader('Content-Type', file.mimeType);
+    // inline → tarayıcıda aç; indirilmek istenirse kullanıcı kaydeder
+    res.setHeader('Content-Disposition', `inline; filename*=UTF-8''${encodeURIComponent(file.filename)}`);
+    res.sendFile(file.absolutePath);
+  } catch (err) {
+    res.status(403).send('Belge görüntülenemedi. Yetkin olmayabilir ya da dosya bulunamadı.');
+  }
+}
+
+module.exports = { uploadDriverDocument, uploadVehicleDocument, viewFile };

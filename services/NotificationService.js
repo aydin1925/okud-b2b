@@ -91,7 +91,7 @@ async function notifyDocumentExpiring(doc, ownerUser, thresholdDays) {
      `${label} belgenin son geçerlilik tarihi: ${doc.expires_at}. \n` +
      `Belgeyi yenileyip yeni versiyonunu sisteme yüklemen gerekiyor. ` +
      `Aksi halde süresi dolduğunda profilin otomatik pasife düşecek.\n\n` +
-     `— OKUD`;
+     `— Filoskope`;
 
     const emailSentAt = await MailService.send({
         to: ownerUser.email, subject: title, body: message,
@@ -127,7 +127,7 @@ async function notifyDocumentExpired(doc, ownerUser) {
     `${label} belgenin son geçerlilik tarihi (${doc.expires_at}) geçti. ` +
     `Profilin "belge bekleniyor" durumuna düşürüldü ve yeni bir kuruma bağlanamayacaksın.\n` +
     `Yenilenmiş belgeyi sisteme yükledikten ve moderatör onayını aldıktan sonra profilin tekrar aktif olur.\n\n` +
-    `— OKUD`;
+    `— Filoskope`;
 
   const emailSentAt = await MailService.send({
     to: ownerUser.email, subject: title, body: message,
@@ -179,7 +179,7 @@ async function notifyCompanyManagersDocExpiring(doc, ownerUser, thresholdDays) {
         `son geçerlilik tarihi ${doc.expires_at}. \n` +
         `Belge yenilenmezse süresi dolduğunda ilgili şoför/araç filondan otomatik olarak pasife düşer. ` +
         `Filo panelinden takip edebilirsin.\n\n` +
-        `— OKUD`;
+        `— Filoskope`;
 
       const emailSentAt = await MailService.send({
         to: mgr.email, subject: title, body: message,
@@ -221,7 +221,7 @@ async function notifyCompanyManagersDocExpired(doc, ownerUser) {
         `${company.name} filondaki ${ownerLabel(doc, ownerUser)} için ${label} belgesinin ` +
         `son geçerlilik tarihi (${doc.expires_at}) geçti. ` +
         `İlgili profil "belge bekleniyor" durumuna düşürüldü ve operasyonel filoda görünmüyor.\n\n` +
-        `— OKUD`;
+        `— Filoskope`;
 
       const emailSentAt = await MailService.send({
         to: mgr.email, subject: title, body: message,
@@ -293,7 +293,7 @@ async function notifyPartnershipRejection(providerCompanyId, receiverCompany, re
       `Sebep: Filo belgeleri karşı tarafın gereksinim şablonuna uymuyor.\n\n` +
       `Eksikler:\n${summaryText}\n\n` +
       `Bu eksikleri giderdikten sonra yeni bir davet üretebilir veya karşı kurumu tekrar davet edebilirsiniz.\n\n` +
-      `— OKUD`;
+      `— Filoskope`;
 
     const emailSentAt = await MailService.send({
       to: mgr.email, subject: title, body: message,
@@ -396,7 +396,7 @@ async function notifyReceiverAboutReadinessGap(partnership, receiverCompany, pro
       `sizin belge kurallarınıza uymayan üyeler var.\n\n` +
       `Eksikler:\n${summaryText}\n\n` +
       `Detay için iş ortaklığı sayfasına bakabilirsiniz.\n\n` +
-      `— OKUD`;
+      `— Filoskope`;
 
     const emailSentAt = await MailService.send({
       to: mgr.email, subject: title, body: message,
@@ -444,7 +444,7 @@ async function notifyPartnershipTerminated({
     if (trimmedReason) {
       lines.push('', 'Gerekçe:', trimmedReason);
     }
-    lines.push('', 'İmzalanmış sözleşme snapshot\'ı sisteminizde saklı kalır.', '', '— OKUD');
+    lines.push('', 'İmzalanmış sözleşme snapshot\'ı sisteminizde saklı kalır.', '', '— Filoskope');
 
     const message = lines.join('\n');
     const emailSentAt = await MailService.send({

@@ -52,6 +52,7 @@ async function reject(req, res) {
     await PartnershipRedeemService.rejectByAdmin({
       code: req.body.code,
       userId: req.session.userId,
+      ipAddress: req.ip,
     });
     res.render('partnerships/redeem_rejected', { title: 'Davet Reddedildi' });
   } catch (err) {

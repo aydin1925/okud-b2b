@@ -1,16 +1,21 @@
 const fs = require('fs');
+const path = require('path');
 const DocumentModel = require('../models/DocumentModel');
 const DriverProfileModel = require('../models/DriverProfileModel');
 const VehicleProfileModel = require('../models/VehicleProfileModel');
 const HostessProfileModel = require('../models/HostessProfileModel');
+const FleetConnectionModel = require('../models/FleetConnectionModel');
+const { DOCUMENTS_DIR } = require('../config/upload');
 const DriverProfileService = require('./DriverProfileService');
 const VehicleProfileService = require('./VehicleProfileService');
 const HostessProfileService = require('./HostessProfileService');
+const AuditService = require('./AuditService');
 const {
   DRIVER_DOCUMENT_TYPES,
   VEHICLE_DOCUMENT_TYPES,
   HOSTESS_DOCUMENT_TYPES,
   OWNER_TYPES,
+  AUDIT_ACTIONS,
 } = require('../utils/constants');
 
 async function uploadDriverDocument({ file, document_type, expires_at }, userId) {
@@ -132,7 +137,71 @@ async function listPending() {
   return DocumentModel.findAllPending();
 }
 
-async function verifyDocument(documentId, verifierId) {
+// Belgenin sahibi olan kullanıcının id'sini çözer (owner_type'a göre).
+async function resolveOwnerUserId(doc) {
+  if (doc.owner_type === OWNER_TYPES.DRIVER_PROFILE) {
+    const p = await DriverProfileModel.findById(doc.owner_id);
+    return p ? p.user_id : null;
+  }
+  if (doc.owner_type === OWNER_TYPES.VEHICLE_PROFILE) {
+    const v = await VehicleProfileModel.findById(doc.owner_id);
+    return v ? v.owner_user_id : null;
+  }
+  if (doc.owner_type === OWNER_TYPES.HOSTESS_PROFILE) {
+    const h = await HostessProfileModel.findById(doc.owner_id);
+    return h ? h.managed_by_user_id : null;
+  }
+  return null;
+}
+
+// Bu kişi bu belgeyi görebilir mi?
+//  1. Sistem admini/moderatör → her belge
+//  2. Belgenin sahibi → kendi belgesi
+//  3. Aktif kurum yöneticisi → kurumun filosundaki üyenin belgesi
+async function canViewDocument(doc, viewer) {
+  if (viewer.isSuperadmin) return true;
+
+  const ownerUserId = await resolveOwnerUserId(doc);
+  if (ownerUserId && ownerUserId === viewer.userId) return true;
+
+  if (viewer.companyId) {
+    const conn = await FleetConnectionModel.findActiveByTarget(
+      viewer.companyId, doc.owner_type, doc.owner_id
+    );
+    if (conn) return true;
+  }
+  return false;
+}
+
+/**
+ * Yetkili görüntüleme için belgenin diskteki güvenli yolunu döndürür.
+ * Yetkisizse veya dosya yoksa hata fırlatır.
+ * path.basename ile çözülür → path traversal imkansız + sunucu taşınsa da çalışır.
+ */
+async function getFileForViewer(documentId, viewer) {
+  const doc = await DocumentModel.findById(documentId);
+  if (!doc) throw new Error('Belge bulunamadı');
+
+  const allowed = await canViewDocument(doc, viewer);
+  if (!allowed) throw new Error('Bu belgeyi görme yetkin yok');
+
+  // DB'deki file_path'in sadece dosya adını al, DOCUMENTS_DIR ile birleştir.
+  // Bu sayede başka makinede kaydedilmiş absolute path bile olsa güvenli çözülür.
+  const filename = path.basename(doc.file_path);
+  const absolutePath = path.join(DOCUMENTS_DIR, filename);
+
+  if (!fs.existsSync(absolutePath)) {
+    throw new Error('Dosya sunucuda bulunamadı');
+  }
+
+  return {
+    absolutePath,
+    mimeType: doc.mime_type || 'application/octet-stream',
+    filename: doc.original_filename || filename,
+  };
+}
+
+async function verifyDocument(documentId, verifierId, ipAddress) {
   const doc = await DocumentModel.findById(documentId);
   if (!doc) throw new Error('Belge bulunamadı');
   if (doc.verification_status !== 'pending') {
@@ -143,9 +212,18 @@ async function verifyDocument(documentId, verifierId) {
   if (!affected) throw new Error('Belge güncellenemedi (belki eş zamanlı işlem)');
 
   await triggerOwnerRecompute(doc);
+
+  AuditService.log({
+    actorUserId: verifierId,
+    action: AUDIT_ACTIONS.DOCUMENT_VERIFY,
+    entityType: 'document',
+    entityId: documentId,
+    metadata: { documentType: doc.document_type, ownerType: doc.owner_type, ownerId: doc.owner_id },
+    ipAddress,
+  });
 }
 
-async function rejectDocument(documentId, verifierId, reason) {
+async function rejectDocument(documentId, verifierId, reason, ipAddress) {
   if (!reason || !reason.trim()) {
     throw new Error('Reddetme gerekçesi zorunludur');
   }
@@ -160,6 +238,15 @@ async function rejectDocument(documentId, verifierId, reason) {
   if (!affected) throw new Error('Belge güncellenemedi (belki eş zamanlı işlem)');
 
   await triggerOwnerRecompute(doc);
+
+  AuditService.log({
+    actorUserId: verifierId,
+    action: AUDIT_ACTIONS.DOCUMENT_REJECT,
+    entityType: 'document',
+    entityId: documentId,
+    metadata: { documentType: doc.document_type, ownerType: doc.owner_type, ownerId: doc.owner_id, reason: reason.trim() },
+    ipAddress,
+  });
 }
 
 async function triggerOwnerRecompute(doc) {
@@ -201,4 +288,5 @@ module.exports = {
   listPending,
   verifyDocument,
   rejectDocument,
+  getFileForViewer,
 };

@@ -1,4 +1,4 @@
-/* OKUD kullanıcı dashboard sistemi — Palet 1 (Lacivert + Amber) */
+/* Filoskope kullanıcı dashboard sistemi — Palet 1 (Lacivert + Amber) */
 
 .user-view {
   /* Tokens — scope'lu ki superadmin --accent ile çakışmasın */
@@ -1327,8 +1327,8 @@
   display: flex; flex-direction: column; justify-content: center;
 }
 .auth-editorial .brand-side .ghost {
-  position: absolute; bottom: -100px; right: -60px;
-  font-size: 300px; font-weight: 900;
+  position: absolute; bottom: -40px; right: -30px;
+  font-size: 150px; font-weight: 900;
   color: rgba(245,158,11,0.06);
   letter-spacing: -0.05em; line-height: 0.8;
   pointer-events: none; user-select: none;

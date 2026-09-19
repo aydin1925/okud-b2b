@@ -1,7 +1,8 @@
 const express = require('express');
 const VehicleController = require('../../controllers/web/VehicleController');
 const DocumentController = require('../../controllers/web/DocumentController');
-const { documentUpload } = require('../../config/upload');
+const { documentUpload, verifyUploadedFile } = require('../../config/upload');
+const { csrfProtectionRaw } = require('../../config/csrf');
 
 // Mount: '/vehicles' + requireAuth (server.js'te)
 const router = express.Router();
@@ -23,6 +24,8 @@ router.post('/:id/deactivate', VehicleController.setActive);
 router.post(
   '/:id/documents/upload',
   documentUpload.single('file'),
+  csrfProtectionRaw,
+  verifyUploadedFile,
   DocumentController.uploadVehicleDocument
 );
 

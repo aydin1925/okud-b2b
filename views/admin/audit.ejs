@@ -1,0 +1,315 @@
+<style>
+  .au-note {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11px; color: var(--ink-4);
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 6px; padding: 6px 10px; margin-bottom: 12px;
+  }
+  .au-note svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+  /* Filtre çubuğu */
+  .au-filter {
+    display: flex; flex-wrap: wrap; align-items: flex-end; gap: 9px;
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); padding: 10px 12px; margin-bottom: 12px;
+  }
+  .au-fld { display: flex; flex-direction: column; gap: 4px; }
+  .au-fld label {
+    font-size: 9.5px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--ink-4);
+  }
+  .au-fld select, .au-fld input {
+    height: 30px; border: 1px solid var(--line); border-radius: 5px;
+    background: var(--surface); color: var(--ink);
+    font-size: 12px; padding: 0 9px; font-family: inherit;
+  }
+  .au-fld select { min-width: 175px; }
+  .au-btn {
+    height: 30px; padding: 0 14px; border-radius: 5px;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid transparent;
+  }
+  .au-btn.primary { background: var(--ink); color: #fff; }
+  .au-btn.ghost { background: var(--surface-2); color: var(--ink-3); border-color: var(--line); }
+
+  /* Tablo */
+  .au-wrap {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+  .au-scroll { overflow-x: auto; }
+  table.au { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  table.au th {
+    text-align: left; font-size: 9px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-4);
+    padding: 6px 12px; border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  table.au td {
+    padding: 4px 12px; border-bottom: 1px solid var(--line);
+    color: var(--ink); vertical-align: middle; line-height: 1.3; white-space: nowrap;
+  }
+  table.au tr:last-child td { border-bottom: none; }
+  table.au tbody tr { cursor: pointer; transition: background 120ms ease; }
+  table.au tbody tr:hover td { background: var(--surface-2); }
+  .au-time { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); }
+  .au-actor-n { font-weight: 500; color: var(--ink); font-size: 11.5px; }
+  .au-sys { font-style: italic; color: var(--ink-4); }
+  .au-chip {
+    display: inline-block; font-size: 10px; font-weight: 500;
+    padding: 1px 8px; border-radius: 20px;
+  }
+  .au-chip.doc { background: var(--amber-soft); color: var(--amber); }
+  .au-chip.company { background: var(--blue-soft); color: var(--blue); }
+  .au-chip.fleet { background: var(--good-soft); color: var(--good); }
+  .au-chip.partnership { background: var(--accent-soft); color: var(--accent); }
+  .au-chip.auth { background: var(--surface-3); color: var(--ink-3); }
+  .au-entity { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-3); }
+  .au-dash { color: var(--ink-4); }
+
+  /* Boş durum */
+  .au-empty { text-align: center; padding: 36px 20px; color: var(--ink-4); font-size: 12.5px; }
+  .au-empty svg { width: 28px; height: 28px; margin-bottom: 10px; opacity: 0.5; }
+
+  /* Sayfalama */
+  .au-page {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 8px 12px; flex-wrap: wrap; border-top: 1px solid var(--line);
+  }
+  .au-page .info { font-size: 11px; color: var(--ink-4); }
+  .au-page .nav { display: flex; gap: 5px; }
+  .au-page a, .au-page span.disabled {
+    height: 26px; min-width: 26px; padding: 0 9px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 5px; font-size: 11px; border: 1px solid var(--line);
+  }
+  .au-page a { color: var(--ink); background: var(--surface); }
+  .au-page a:hover { background: var(--surface-2); }
+  .au-page span.disabled { color: var(--ink-4); background: var(--surface-2); opacity: 0.6; }
+
+  /* ── Detay popup ── */
+  .aud-modal {
+    position: fixed; inset: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; opacity: 0; pointer-events: none;
+    transition: opacity 180ms ease;
+  }
+  .aud-modal.open { opacity: 1; pointer-events: auto; }
+  .aud-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,.45); backdrop-filter: blur(2px); }
+  .aud-panel {
+    position: relative; width: 100%; max-width: 460px;
+    background: var(--surface); border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(15,23,42,.28);
+    transform: translateY(8px) scale(.98); transition: transform 180ms ease;
+    max-height: 85vh; overflow-y: auto;
+  }
+  .aud-modal.open .aud-panel { transform: translateY(0) scale(1); }
+  .aud-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--surface);
+  }
+  .aud-head h3 { font-size: 14px; font-weight: 600; letter-spacing: -.01em; margin: 0; }
+  .aud-x {
+    width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink-3); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .aud-x:hover { background: var(--surface-2); }
+  .aud-x svg { width: 15px; height: 15px; }
+  .aud-body { padding: 6px 18px 18px; }
+  .aud-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .aud-row:last-child { border-bottom: none; }
+  .aud-k {
+    flex: 0 0 96px; font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .04em; color: var(--ink-4); padding-top: 2px;
+  }
+  .aud-v { flex: 1; font-size: 12.5px; color: var(--ink); word-break: break-word; }
+  .aud-v.mono { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
+  .aud-meta-box {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--ink); white-space: pre-wrap; word-break: break-word; line-height: 1.5;
+  }
+</style>
+
+<%
+  function chipClass(action) {
+    const p = String(action || '').split('.')[0];
+    if (p === 'document') return 'doc';
+    if (p === 'company') return 'company';
+    if (p === 'fleet') return 'fleet';
+    if (p === 'partnership') return 'partnership';
+    return 'auth';
+  }
+  function pageUrl(p) {
+    const q = new URLSearchParams();
+    if (filters.action) q.set('action', filters.action);
+    if (filters.from) q.set('from', filters.from);
+    if (filters.to) q.set('to', filters.to);
+    q.set('page', p);
+    return '/admin/audit?' + q.toString();
+  }
+%>
+
+<div class="au-note">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+  Bu kayıtlar salt-okunurdur. Bir satıra tıklayarak tüm detayını görebilirsin.
+</div>
+
+<form class="au-filter" method="GET" action="/admin/audit">
+  <div class="au-fld">
+    <label for="f-action">Eylem</label>
+    <select name="action" id="f-action">
+      <option value="">Tümü</option>
+      <% Object.keys(actionLabels).forEach(function(key) { %>
+        <option value="<%= key %>" <%= filters.action === key ? 'selected' : '' %>><%= actionLabels[key] %></option>
+      <% }); %>
+    </select>
+  </div>
+  <div class="au-fld">
+    <label for="f-from">Başlangıç</label>
+    <input type="date" name="from" id="f-from" value="<%= filters.from %>">
+  </div>
+  <div class="au-fld">
+    <label for="f-to">Bitiş</label>
+    <input type="date" name="to" id="f-to" value="<%= filters.to %>">
+  </div>
+  <button type="submit" class="au-btn primary">Filtrele</button>
+  <% if (filters.action || filters.from || filters.to) { %>
+    <a href="/admin/audit" class="au-btn ghost">Temizle</a>
+  <% } %>
+</form>
+
+<div class="au-wrap">
+  <% if (result.rows.length === 0) { %>
+    <div class="au-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25M21 5.25V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25"/></svg>
+      <div>Bu filtreye uyan denetim kaydı yok.</div>
+    </div>
+  <% } else { %>
+    <div class="au-scroll">
+      <table class="au">
+        <thead>
+          <tr>
+            <th>Zaman</th>
+            <th>Kim</th>
+            <th>Eylem</th>
+            <th>Nesne</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% result.rows.forEach(function(r) { %>
+            <tr data-id="<%= r.id %>">
+              <td class="au-time"><%= r.created_at %></td>
+              <td>
+                <% if (r.actor_user_id) { %>
+                  <span class="au-actor-n"><%= r.actor_name || ('#' + r.actor_user_id) %></span>
+                <% } else { %>
+                  <span class="au-sys">Sistem</span>
+                <% } %>
+              </td>
+              <td><span class="au-chip <%= chipClass(r.action) %>"><%= actionLabels[r.action] || r.action %></span></td>
+              <td>
+                <% if (r.entity_type) { %>
+                  <span class="au-entity"><%= r.entity_type %><%= r.entity_id ? ' #' + r.entity_id : '' %></span>
+                <% } else { %>
+                  <span class="au-dash">—</span>
+                <% } %>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="au-page">
+      <div class="info">
+        Toplam <strong><%= result.total %></strong> kayıt · Sayfa <%= result.page %>/<%= result.totalPages %>
+      </div>
+      <div class="nav">
+        <% if (result.page > 1) { %><a href="<%= pageUrl(result.page - 1) %>">‹ Önceki</a><% } else { %><span class="disabled">‹ Önceki</span><% } %>
+        <% if (result.page < result.totalPages) { %><a href="<%= pageUrl(result.page + 1) %>">Sonraki ›</a><% } else { %><span class="disabled">Sonraki ›</span><% } %>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<!-- Detay popup -->
+<div class="aud-modal" id="aud-modal" aria-hidden="true">
+  <div class="aud-backdrop" data-close></div>
+  <div class="aud-panel" role="dialog" aria-modal="true" aria-labelledby="aud-title">
+    <div class="aud-head">
+      <h3 id="aud-title">Kayıt Detayı</h3>
+      <button class="aud-x" type="button" data-close aria-label="Kapat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="aud-body" id="aud-body"></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    // Satır verisi (metadata model tarafında parse edilmiş obje olarak gelir)
+    var rows = <%- JSON.stringify(result.rows).replace(/</g, '\\u003c') %>;
+    var labels = <%- JSON.stringify(actionLabels).replace(/</g, '\\u003c') %>;
+    var byId = {};
+    rows.forEach(function (r) { byId[r.id] = r; });
+
+    var modal = document.getElementById('aud-modal');
+    var body = document.getElementById('aud-body');
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    function line(k, v, mono) {
+      if (v == null || v === '') return '';
+      return '<div class="aud-row"><div class="aud-k">' + k + '</div>' +
+             '<div class="aud-v' + (mono ? ' mono' : '') + '">' + v + '</div></div>';
+    }
+
+    function open(r) {
+      var actor = r.actor_user_id
+        ? esc(r.actor_name || ('#' + r.actor_user_id)) + (r.actor_email ? ' <span style="color:var(--ink-4);font-size:11px">' + esc(r.actor_email) + '</span>' : '')
+        : '<span style="font-style:italic;color:var(--ink-4)">Sistem</span>';
+      var entity = r.entity_type ? esc(r.entity_type) + (r.entity_id ? ' #' + r.entity_id : '') : '—';
+      var meta = (r.metadata && Object.keys(r.metadata).length)
+        ? '<div class="aud-meta-box">' + esc(JSON.stringify(r.metadata, null, 2)) + '</div>'
+        : '<span style="color:var(--ink-4)">—</span>';
+
+      var html = '';
+      html += line('Zaman', '<span class="mono">' + esc(r.created_at) + '</span>');
+      html += line('Kim', actor);
+      html += line('Eylem', esc(labels[r.action] || r.action) + ' <span style="color:var(--ink-4);font-size:10.5px">(' + esc(r.action) + ')</span>');
+      html += line('Nesne', '<span class="mono">' + entity + '</span>');
+      if (r.company_name) html += line('Kurum', esc(r.company_name));
+      html += line('IP', r.ip_address ? esc(r.ip_address) : '—', true);
+      html += '<div class="aud-row"><div class="aud-k">Detay</div><div class="aud-v">' + meta + '</div></div>';
+      body.innerHTML = html;
+
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+    function close() {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('table.au tbody tr').forEach(function (tr) {
+      tr.addEventListener('click', function () {
+        var r = byId[tr.getAttribute('data-id')];
+        if (r) open(r);
+      });
+    });
+    modal.querySelectorAll('[data-close]').forEach(function (el) {
+      el.addEventListener('click', close);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.classList.contains('open')) close();
+    });
+  })();
+</script>

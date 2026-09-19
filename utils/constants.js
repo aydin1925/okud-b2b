@@ -96,10 +96,16 @@ const OWNER_TYPES = {
 // target_type, owner_type ile aynı değer setini kullanır (DRY)
 const TARGET_TYPES = OWNER_TYPES;
 
+// Kombine davet türü — YALNIZCA connection_requests.target_type için geçerli.
+// fleet_connections satırları hâlâ driver_profile / vehicle_profile'dır;
+// bu tür redeem'de ikisine birden açılır (esnaf şoför = kendi aracının sahibi).
+const DRIVER_AND_VEHICLE = 'driver_and_vehicle';
+
 const TARGET_TYPE_LABELS = {
-  driver_profile:  'Şoför',
-  vehicle_profile: 'Araç',
-  hostess_profile: 'Hostes',
+  driver_profile:     'Şoför',
+  vehicle_profile:    'Araç',
+  hostess_profile:    'Hostes',
+  driver_and_vehicle: 'Şoför + Araç',
 };
 
 // OTP kod üretimi
@@ -304,6 +310,53 @@ const TOKEN_TTL_MINUTES = {
   email_verification: 60 * 48,
 };
 
+// ─────────── Denetim izi (audit_logs.action) ───────────
+// Loglanan eylemler. Noktalı gruplama (document.*, fleet.*) filtre için.
+// Yeni loglanacak eylem: buraya + AUDIT_ACTION_LABELS'a satır ekle, sonra
+// ilgili Service'te AuditService.log(...) çağır.
+const AUDIT_ACTIONS = {
+  // Belge onay akışı (admin/moderatör)
+  DOCUMENT_VERIFY:      'document.verify',
+  DOCUMENT_REJECT:      'document.reject',
+  // Kurum başvuru onayı (süperadmin)
+  COMPANY_APPROVE:      'company.approve',
+  COMPANY_REJECT:       'company.reject',
+  // Filo bağlantıları
+  FLEET_JOIN:           'fleet.join',
+  FLEET_REMOVE:         'fleet.remove',
+  FLEET_PAUSE:          'fleet.pause',
+  FLEET_RESUME:         'fleet.resume',
+  // Kurum-kurum iş ortaklığı
+  PARTNERSHIP_INVITE:   'partnership.invite',
+  PARTNERSHIP_REDEEM:   'partnership.redeem',
+  PARTNERSHIP_REJECT:   'partnership.reject',
+  PARTNERSHIP_TERMINATE:'partnership.terminate',
+  // Kimlik / hesap
+  AUTH_REGISTER:        'auth.register',
+  AUTH_LOGIN:           'auth.login',
+  AUTH_PASSWORD_CHANGE: 'auth.password_change',
+  AUTH_EMAIL_VERIFY:    'auth.email_verify',
+};
+
+const AUDIT_ACTION_LABELS = {
+  'document.verify':       'Belge onaylandı',
+  'document.reject':       'Belge reddedildi',
+  'company.approve':       'Kurum başvurusu onaylandı',
+  'company.reject':        'Kurum başvurusu reddedildi',
+  'fleet.join':            'Filoya katılım',
+  'fleet.remove':          'Filodan çıkarma',
+  'fleet.pause':           'Filo bağlantısı duraklatıldı',
+  'fleet.resume':          'Filo bağlantısı sürdürüldü',
+  'partnership.invite':    'İş ortaklığı daveti gönderildi',
+  'partnership.redeem':    'İş ortaklığı daveti kabul edildi',
+  'partnership.reject':    'İş ortaklığı daveti reddedildi',
+  'partnership.terminate': 'İş ortaklığı sonlandırıldı',
+  'auth.register':         'Yeni hesap oluşturuldu',
+  'auth.login':            'Giriş yapıldı',
+  'auth.password_change':  'Şifre değiştirildi',
+  'auth.email_verify':     'E-posta doğrulandı',
+};
+
 module.exports = {
   DOCUMENT_TYPES,
   DOCUMENT_TYPE_LABELS,
@@ -314,6 +367,7 @@ module.exports = {
   isPerpetual,
   OWNER_TYPES,
   TARGET_TYPES,
+  DRIVER_AND_VEHICLE,
   TARGET_TYPE_LABELS,
   OTP_CODE_LENGTH,
   OTP_ALPHABET,
@@ -332,4 +386,6 @@ module.exports = {
   CONTRACT_CONTENT_MAX,
   TOKEN_TYPES,
   TOKEN_TTL_MINUTES,
+  AUDIT_ACTIONS,
+  AUDIT_ACTION_LABELS,
 };

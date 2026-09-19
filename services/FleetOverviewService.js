@@ -12,7 +12,9 @@ const {
   DOCUMENT_TYPE_LABELS,
   OWNER_TYPES,
   DOC_EXPIRY_THRESHOLDS_DAYS,
+  AUDIT_ACTIONS,
 } = require('../utils/constants');
+const AuditService = require('./AuditService');
 
 const EXPIRING_SOON_DAYS = Math.max(...DOC_EXPIRY_THRESHOLDS_DAYS); // 30
 
@@ -287,7 +289,7 @@ async function getMemberDetail(companyId, type, memberId) {
  *   paused: true → pause, false → resume
  * Ownership: connection'ın bu kurumda olduğunu bulup üzerinden çalışır.
  */
-async function setPaused(companyId, type, memberId, paused, userId) {
+async function setPaused(companyId, type, memberId, paused, userId, ipAddress) {
   const targetType = type === 'driver' ? OWNER_TYPES.DRIVER_PROFILE : OWNER_TYPES.VEHICLE_PROFILE;
   const connection = await FleetConnectionModel.findActiveByTarget(companyId, targetType, memberId);
   if (!connection) throw new Error('Bu üye kurumun aktif filosunda değil');
@@ -297,6 +299,16 @@ async function setPaused(companyId, type, memberId, paused, userId) {
   } else {
     await FleetConnectionModel.resume(connection.id, companyId);
   }
+
+  AuditService.log({
+    actorUserId: userId,
+    companyId,
+    action: paused ? AUDIT_ACTIONS.FLEET_PAUSE : AUDIT_ACTIONS.FLEET_RESUME,
+    entityType: 'fleet_connection',
+    entityId: connection.id,
+    metadata: { memberType: targetType, memberId },
+    ipAddress,
+  });
 }
 
 module.exports = { listDrivers, listVehicles, getMemberDetail, setPaused };

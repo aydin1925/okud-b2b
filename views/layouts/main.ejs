@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %> — OKUD</title>
+  <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+  <title><%= title %> — Filoskope</title>
 
   <!-- Fonts: Inter (marka fontu) + JetBrains Mono (utility) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -76,7 +77,7 @@
     ::-webkit-scrollbar-thumb { background: rgb(203 213 225); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: rgb(148 163 184); }
 
-    /* ═══════ NAVBAR — OKUD (Palet 1) ═══════ */
+    /* ═══════ NAVBAR — Filoskope (Palet 1) ═══════ */
     .okud-nav {
       background: white;
       border-radius: 14px;
@@ -321,6 +322,7 @@
 
     .okud-burger {
       display: none;
+      margin-left: auto;
       width: 38px; height: 38px; border-radius: 9px;
       background: rgba(15,42,74,0.06); color: #0F2A4A;
       border: none; cursor: pointer;
@@ -439,8 +441,8 @@
         <nav class="okud-nav">
           <!-- Marka -->
           <a href="/dashboard" class="okud-brand">
-            <span class="logo">O</span>
-            <span class="name">OKUD</span>
+            <span class="logo">F</span>
+            <span class="name">Filoskope</span>
           </a>
 
           <!-- Orta linkler -->
@@ -567,8 +569,8 @@
         <!-- Auth öncesi (login/register) -->
         <nav class="okud-nav">
           <a href="/" class="okud-brand">
-            <span class="logo">O</span>
-            <span class="name">OKUD</span>
+            <span class="logo">F</span>
+            <span class="name">Filoskope</span>
           </a>
           <div class="okud-actions">
             <a href="/register" class="okud-link">Kayıt Ol</a>
@@ -597,7 +599,7 @@
   <% } %>
 <% } %>
 
-  <main class="<%= locals.hideChrome ? 'w-full flex-1' : 'max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 flex-1' %>">
+  <main class="<%= locals.hideChrome ? 'w-full flex-1 animate-fade-up' : 'max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 flex-1 animate-fade-up' %>">
     <%- body %>
   </main>
 
@@ -605,10 +607,10 @@
   <footer class="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 mt-4 sm:mt-8">
     <div class="flex items-center justify-center gap-3 text-xs" style="color:#94A3B8;">
       <span style="position:relative; display:inline-flex; width:18px; height:18px; background:#0F2A4A; border-radius:5px; color:white; align-items:center; justify-content:center; font-weight:800; font-size:10px;">
-        O
+        F
         <span style="position:absolute; bottom:-2px; right:-2px; width:6px; height:6px; background:#F59E0B; border-radius:50%; box-shadow:0 0 0 1.5px #FAFAF9;"></span>
       </span>
-      <span style="font-weight:600; color:#0F2A4A;">OKUD</span>
+      <span style="font-weight:600; color:#0F2A4A;">Filoskope</span>
       <span style="color:#CBD5E1;">·</span>
       <span>Kurumsal Ulaşım ve Belge Denetim</span>
       <span style="color:#CBD5E1;">·</span>
@@ -853,6 +855,25 @@
           if (e.key === 'Escape') closeBell();
         });
       }
+    })();
+  </script>
+
+  <!-- CSRF: her POST formuna gizli _csrf alanını otomatik ekle.
+       Böylece 80+ formu tek tek düzenlemeye gerek kalmaz; SweetAlert'in
+       form.submit() ile gönderdiği formlar da kapsanır (alan zaten DOM'da). -->
+  <script>
+    (function () {
+      var meta = document.querySelector('meta[name="csrf-token"]');
+      var token = meta ? meta.getAttribute('content') : '';
+      if (!token) return;
+      document.querySelectorAll('form').forEach(function (form) {
+        var m = (form.getAttribute('method') || '').toLowerCase();
+        if (m !== 'post') return;
+        if (form.querySelector('input[name="_csrf"]')) return;
+        var i = document.createElement('input');
+        i.type = 'hidden'; i.name = '_csrf'; i.value = token;
+        form.appendChild(i);
+      });
     })();
   </script>
 

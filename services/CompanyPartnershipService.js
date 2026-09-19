@@ -4,7 +4,8 @@ const CompanyModel = require('../models/CompanyModel');
 const PartnershipInvitationModel = require('../models/PartnershipInvitationModel');
 const NotificationModel = require('../models/NotificationModel');
 const UserModel = require('../models/UserModel');
-const { NOTIFICATION_TYPES } = require('../utils/constants');
+const AuditService = require('./AuditService');
+const { NOTIFICATION_TYPES, AUDIT_ACTIONS } = require('../utils/constants');
 
 // Kurumun aktif iş birlikleri — karşı taraf bilgisi türetilmiş şekilde UI'a hazır dizi.
 async function listActiveForCompany(companyId) {
@@ -143,7 +144,7 @@ async function buildTimeline(partnership, counterparty) {
   return items;
 }
 
-async function terminate(partnershipId, companyId, userId, reason) {
+async function terminate(partnershipId, companyId, userId, reason, ipAddress) {
   const p = await CompanyPartnershipModel.findById(partnershipId);
   if (!p) throw new Error('İş ortaklığı bulunamadı');
 
@@ -154,6 +155,16 @@ async function terminate(partnershipId, companyId, userId, reason) {
 
   const affected = await CompanyPartnershipModel.terminate(partnershipId, userId);
   if (!affected) throw new Error('Fesih işlemi başarısız (belki eş zamanlı işlem)');
+
+  AuditService.log({
+    actorUserId: userId,
+    companyId,
+    action: AUDIT_ACTIONS.PARTNERSHIP_TERMINATE,
+    entityType: 'partnership',
+    entityId: partnershipId,
+    metadata: { reason: reason || null },
+    ipAddress,
+  });
 
   // Fesih başarılı — karşı taraf manager'larına bildirim (bloklamaz, hata olsa da fesih kalır)
   try {

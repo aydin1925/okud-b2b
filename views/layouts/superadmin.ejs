@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %> · OKUD SuperAdmin</title>
+  <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+  <title><%= title %> · Filoskope SuperAdmin</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,9 +43,9 @@
   <aside class="sidebar" id="sa-sidebar">
     <div class="sb-brand">
       <a href="/admin" style="display:flex; align-items:center; gap:10px;">
-        <span class="sb-logo">O</span>
+        <span class="sb-logo">F</span>
         <div class="sb-brand-text">
-          <div class="name">OKUD</div>
+          <div class="name">Filoskope</div>
           <div class="role">SuperAdmin</div>
         </div>
       </a>
@@ -70,16 +71,6 @@
         Onay Merkezi
         <% if (counts.total > 0) { %><span class="badge"><%= counts.total %></span><% } %>
       </a>
-      <a href="/mockup/activity.html" class="sb-link" target="_self">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        Etkinlik Akışı
-        <span class="badge mock">Mock</span>
-      </a>
-      <a href="/mockup/ai-rapor.html" class="sb-link" target="_self">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg>
-        Aylık Rapor
-        <span class="badge mock">Mock</span>
-      </a>
     </nav>
 
     <div class="sb-group">Yönetim</div>
@@ -104,7 +95,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         Sağlık
       </a>
-      <a class="sb-link disabled">
+      <a href="/admin/audit" class="sb-link<%= isActive('/admin/audit') ? ' active' : '' %>">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25M21 5.25V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25"/></svg>
         Denetim İzleri
       </a>
@@ -243,6 +234,21 @@
           form.submit();
         }
       });
+    });
+  })();
+
+  // CSRF: her POST formuna gizli _csrf alanını otomatik ekle.
+  (function () {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    var token = meta ? meta.getAttribute('content') : '';
+    if (!token) return;
+    document.querySelectorAll('form').forEach(function (form) {
+      var m = (form.getAttribute('method') || '').toLowerCase();
+      if (m !== 'post') return;
+      if (form.querySelector('input[name="_csrf"]')) return;
+      var i = document.createElement('input');
+      i.type = 'hidden'; i.name = '_csrf'; i.value = token;
+      form.appendChild(i);
     });
   })();
 </script>

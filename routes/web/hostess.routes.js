@@ -1,6 +1,7 @@
 const express = require('express');
 const HostessController = require('../../controllers/web/HostessController');
-const { documentUpload } = require('../../config/upload');
+const { documentUpload, verifyUploadedFile } = require('../../config/upload');
+const { csrfProtectionRaw } = require('../../config/csrf');
 
 // Mount: '/hostess' + requireAuth (server.js'te)
 const router = express.Router();
@@ -19,6 +20,8 @@ router.post('/:id/deactivate', HostessController.setActive);
 router.post(
   '/:id/documents/upload',
   documentUpload.single('file'),
+  csrfProtectionRaw,
+  verifyUploadedFile,
   HostessController.uploadDocument
 );
 

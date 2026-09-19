@@ -4,7 +4,8 @@ const FleetConnectionModel = require('../models/FleetConnectionModel');
 const CompanyModel = require('../models/CompanyModel');
 const db = require('../config/db');
 const { generateCode } = require('../utils/otp');
-const { PARTNERSHIP_INVITATION_EXPIRY_MINUTES } = require('../utils/constants');
+const AuditService = require('./AuditService');
+const { PARTNERSHIP_INVITATION_EXPIRY_MINUTES, AUDIT_ACTIONS } = require('../utils/constants');
 
 const MAX_CODE_ATTEMPTS = 5;
 
@@ -47,7 +48,7 @@ async function getFleetForInvitation(companyId, companyType) {
 }
 
 // Kurum admin'i partnership daveti üretir. Provider ise scope ekler.
-async function create({ label, driverIds, vehicleIds }, { companyId, userId }) {
+async function create({ label, driverIds, vehicleIds }, { companyId, userId, ipAddress }) {
   if (!companyId) {
     throw new Error('Aktif bir çalışma alanı seçili değil');
   }
@@ -135,6 +136,20 @@ async function create({ label, driverIds, vehicleIds }, { companyId, userId }) {
   } finally {
     conn.release();
   }
+
+  AuditService.log({
+    actorUserId: userId,
+    companyId,
+    action: AUDIT_ACTIONS.PARTNERSHIP_INVITE,
+    entityType: 'partnership_invitation',
+    entityId: invitationId,
+    metadata: {
+      targetType,
+      driversCount:  cleanDriverIds.length,
+      vehiclesCount: cleanVehicleIds.length,
+    },
+    ipAddress,
+  });
 
   return {
     id: invitationId,

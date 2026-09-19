@@ -43,7 +43,7 @@ async function create(req, res) {
   try {
     const result = await PartnershipInvitationService.create(
       { label: req.body.label, driverIds, vehicleIds },
-      { companyId: company.id, userId: req.session.userId }
+      { companyId: company.id, userId: req.session.userId, ipAddress: req.ip }
     );
     res.render('partnerships/invitations/created', {
       title: 'Davet Kodu Oluşturuldu',

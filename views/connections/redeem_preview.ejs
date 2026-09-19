@@ -126,7 +126,7 @@
       </form>
     <% } %>
 
-  <% } else { %>
+  <% } else if (preview.target_type === 'vehicle_profile') { %>
 
     <% if (preview.vehicles.length === 0) { %>
       <div class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-6">
@@ -211,30 +211,126 @@
       </form>
     <% } %>
 
+  <% } else if (preview.target_type === 'driver_and_vehicle') { %>
+
+    <% if (!preview.driverProfile || preview.driverProfile.status !== 'active') { %>
+      <div class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-6">
+        <div class="rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm mb-4">
+          Bu davet hem <strong>şoför profili</strong> hem <strong>araç</strong> gerektiriyor. Önce şoför profilini oluşturup belgelerini onaylatmalısın.
+        </div>
+        <a href="/driver/profile" class="inline-flex items-center gap-1 text-sm text-slate-900 font-semibold hover:underline underline-offset-4">Şoför profilim →</a>
+      </div>
+
+    <% } else if (preview.vehicles.length === 0) { %>
+      <div class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-6">
+        <div class="rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm mb-4">
+          Şoför profilin hazır ama <strong>aktif bir aracın yok</strong>. Bu davet aracını da bağlıyor; önce araç ekleyip belgelerini onaylatmalısın.
+        </div>
+        <a href="/vehicles" class="inline-flex items-center gap-1 text-sm text-slate-900 font-semibold hover:underline underline-offset-4">Araçlarım →</a>
+      </div>
+
+    <% } else { %>
+      <form action="/connections/redeem/confirm" method="POST" class="bg-white rounded-3xl shadow-soft ring-1 ring-slate-900/5 p-6 space-y-5">
+        <input type="hidden" name="code" value="<%= preview.request.code %>">
+
+        <div class="rounded-2xl bg-slate-50 ring-1 ring-slate-200 px-4 py-3 text-sm text-slate-600">
+          Bu davet seni hem <strong class="text-slate-900">şoför</strong> hem <strong class="text-slate-900">araç sahibi</strong> olarak filoya ekler. İki sözleşme grubunu da onaylaman gerekir.
+        </div>
+
+        <!-- Araç seçimi -->
+        <div>
+          <label for="vehicle_id" class="block text-xs font-bold uppercase tracking-widest text-slate-600 mb-2">Hangi aracını bağlıyorsun?</label>
+          <select id="vehicle_id" name="vehicle_id" required
+                  class="w-full rounded-xl border-0 ring-1 ring-slate-200 bg-white px-4 py-3 text-slate-900 focus:ring-2 focus:ring-slate-900 focus:outline-none transition">
+            <option value="">Araç seç</option>
+            <% preview.vehicles.forEach(function(v) { %>
+              <option value="<%= v.id %>"><%= v.plate_number %> — <%= v.brand %> <%= v.model %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <!-- Şoför sözleşme grubu -->
+        <div class="rounded-2xl ring-1 ring-slate-200 p-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-3">Şoför tarafı</p>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button type="button" onclick="document.getElementById('dKvkkDialog').showModal()" class="inline-flex items-center gap-1.5 rounded-lg ring-1 ring-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
+              <%= preview.driver.kvkk.title %>
+            </button>
+            <button type="button" onclick="document.getElementById('dContractDialog').showModal()" class="inline-flex items-center gap-1.5 rounded-lg ring-1 ring-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
+              <%= preview.driver.contract.title %>
+            </button>
+          </div>
+          <label class="flex items-start gap-2 text-sm text-slate-700 pt-3 border-t border-slate-100">
+            <input type="checkbox" name="driver_consent" class="mt-0.5 accent-slate-900">
+            <span>Şoför sözleşmesi ve KVKK metnini okudum, onaylıyorum.</span>
+          </label>
+        </div>
+
+        <!-- Araç sözleşme grubu -->
+        <div class="rounded-2xl ring-1 ring-slate-200 p-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-sky-600 mb-3">Araç tarafı</p>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button type="button" onclick="document.getElementById('vKvkkDialog').showModal()" class="inline-flex items-center gap-1.5 rounded-lg ring-1 ring-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
+              <%= preview.vehicle.kvkk.title %>
+            </button>
+            <button type="button" onclick="document.getElementById('vContractDialog').showModal()" class="inline-flex items-center gap-1.5 rounded-lg ring-1 ring-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
+              <%= preview.vehicle.contract.title %>
+            </button>
+          </div>
+          <label class="flex items-start gap-2 text-sm text-slate-700 pt-3 border-t border-slate-100">
+            <input type="checkbox" name="vehicle_consent" class="mt-0.5 accent-slate-900">
+            <span>Araç sahibi sözleşmesi ve KVKK metnini okudum, onaylıyorum.</span>
+          </label>
+        </div>
+
+        <button type="submit"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3.5 text-sm font-bold text-white hover:bg-emerald-500 transition shadow-lg shadow-emerald-500/25">
+          Onayla ve Filoya Katıl
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+        </button>
+      </form>
+
+      <form action="/connections/redeem/reject" method="POST"
+            data-confirm="Bu filo katılım davetini reddetmek üzeresin. Kod bir daha kullanılamaz."
+            data-confirm-title="Daveti Reddet"
+            data-confirm-button="Evet, reddet"
+            data-confirm-danger>
+        <input type="hidden" name="code" value="<%= preview.request.code %>">
+        <button type="submit" class="w-full inline-flex items-center justify-center gap-1 rounded-xl bg-white ring-1 ring-red-200 text-red-600 hover:bg-red-50 px-5 py-3 text-sm font-semibold transition">
+          Daveti Reddet
+        </button>
+      </form>
+    <% } %>
+
   <% } %>
 </div>
 
 <!-- Modals -->
-<dialog id="kvkkDialog" class="rounded-3xl p-0 w-full max-w-2xl backdrop:bg-slate-900/60">
-  <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 sticky top-0 bg-white rounded-t-3xl">
-    <h3 class="text-lg font-bold text-slate-900"><%= preview.kvkk.title %></h3>
-    <button type="button" onclick="document.getElementById('kvkkDialog').close()" class="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-    </button>
-  </div>
-  <div class="px-6 py-5 max-h-[70vh] overflow-auto whitespace-pre-line text-sm text-slate-700 leading-relaxed font-serif">
-<%= preview.kvkk.content %>
-  </div>
-</dialog>
-
-<dialog id="contractDialog" class="rounded-3xl p-0 w-full max-w-2xl backdrop:bg-slate-900/60">
-  <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 sticky top-0 bg-white rounded-t-3xl">
-    <h3 class="text-lg font-bold text-slate-900"><%= preview.contract.title %></h3>
-    <button type="button" onclick="document.getElementById('contractDialog').close()" class="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-    </button>
-  </div>
-  <div class="px-6 py-5 max-h-[70vh] overflow-auto whitespace-pre-line text-sm text-slate-700 leading-relaxed font-serif">
-<%= preview.contract.content %>
-  </div>
-</dialog>
+<%
+  // Gösterilecek sözleşme metinleri — türe göre liste
+  let dialogs;
+  if (preview.target_type === 'driver_and_vehicle') {
+    dialogs = [
+      { id: 'dKvkkDialog',     title: preview.driver.kvkk.title,     content: preview.driver.kvkk.content },
+      { id: 'dContractDialog', title: preview.driver.contract.title, content: preview.driver.contract.content },
+      { id: 'vKvkkDialog',     title: preview.vehicle.kvkk.title,     content: preview.vehicle.kvkk.content },
+      { id: 'vContractDialog', title: preview.vehicle.contract.title, content: preview.vehicle.contract.content },
+    ];
+  } else {
+    dialogs = [
+      { id: 'kvkkDialog',     title: preview.kvkk.title,     content: preview.kvkk.content },
+      { id: 'contractDialog', title: preview.contract.title, content: preview.contract.content },
+    ];
+  }
+%>
+<% dialogs.forEach(function(d) { %>
+  <dialog id="<%= d.id %>" class="rounded-3xl p-0 w-full max-w-2xl backdrop:bg-slate-900/60">
+    <div class="flex items-center justify-between border-b border-slate-100 px-6 py-4 sticky top-0 bg-white rounded-t-3xl">
+      <h3 class="text-lg font-bold text-slate-900"><%= d.title %></h3>
+      <button type="button" onclick="document.getElementById('<%= d.id %>').close()" class="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+    <div class="px-6 py-5 max-h-[70vh] overflow-auto whitespace-pre-line text-sm text-slate-700 leading-relaxed font-serif"><%= d.content %></div>
+  </dialog>
+<% }); %>

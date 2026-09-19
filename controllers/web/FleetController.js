@@ -59,7 +59,7 @@ async function pauseMember(req, res) {
   const memberId = parseInt(req.params.id, 10);
   try {
     await FleetOverviewService.setPaused(
-      res.locals.currentCompany.id, type, memberId, true, req.session.userId
+      res.locals.currentCompany.id, type, memberId, true, req.session.userId, req.ip
     );
     res.redirect(`/company/fleet/${req.params.type}/${memberId}`);
   } catch (err) {
@@ -72,7 +72,7 @@ async function resumeMember(req, res) {
   const memberId = parseInt(req.params.id, 10);
   try {
     await FleetOverviewService.setPaused(
-      res.locals.currentCompany.id, type, memberId, false, req.session.userId
+      res.locals.currentCompany.id, type, memberId, false, req.session.userId, req.ip
     );
     res.redirect(`/company/fleet/${req.params.type}/${memberId}`);
   } catch (err) {

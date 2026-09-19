@@ -65,7 +65,8 @@ async function terminate(req, res) {
       parseInt(req.params.id, 10),
       res.locals.currentCompany.id,
       req.session.userId,
-      reason
+      reason,
+      req.ip
     );
     res.redirect('/company/partnerships');
   } catch (err) {

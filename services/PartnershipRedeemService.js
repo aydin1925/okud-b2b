@@ -4,7 +4,8 @@ const CompanyModel = require('../models/CompanyModel');
 const ContractTemplateService = require('./ContractTemplateService');
 const FleetReadinessService = require('./FleetReadinessService');
 const NotificationService = require('./NotificationService');
-const { CONTRACT_TYPES } = require('../utils/constants');
+const AuditService = require('./AuditService');
+const { CONTRACT_TYPES, AUDIT_ACTIONS } = require('../utils/constants');
 
 function normalizeCode(code) {
   return String(code || '').trim().toUpperCase();
@@ -122,15 +123,37 @@ async function redeem({ code, currentCompanyId, acceptingUserId, contractConsent
     ipAddress,
   });
 
+  AuditService.log({
+    actorUserId: acceptingUserId,
+    companyId: currentCompanyId,
+    action: AUDIT_ACTIONS.PARTNERSHIP_REDEEM,
+    entityType: 'partnership',
+    entityId: partnershipId,
+    metadata: {
+      providerCompanyId: ctx.roles.providerCompanyId,
+      receiverCompanyId: ctx.roles.receiverCompanyId,
+    },
+    ipAddress,
+  });
+
   return { partnershipId, initiator: ctx.initiator };
 }
 
-async function rejectByAdmin({ code, userId }) {
+async function rejectByAdmin({ code, userId, ipAddress }) {
   const invitation = await PartnershipInvitationModel.findActiveByCode(normalizeCode(code));
   if (!invitation) throw new Error('Davet kodu geçersiz veya süresi dolmuş');
 
   const affected = await PartnershipInvitationModel.rejectByAdmin(invitation.id, userId);
   if (!affected) throw new Error('Davet artık geçerli değil');
+
+  AuditService.log({
+    actorUserId: userId,
+    action: AUDIT_ACTIONS.PARTNERSHIP_REJECT,
+    entityType: 'partnership_invitation',
+    entityId: invitation.id,
+    metadata: { initiatorCompanyId: invitation.initiator_company_id },
+    ipAddress,
+  });
 
   return { initiator_company_id: invitation.initiator_company_id };
 }

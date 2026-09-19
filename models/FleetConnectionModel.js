@@ -90,6 +90,78 @@ async function createFromRequestWithAcceptances({ request, target_id, userId, ac
   }
 }
 
+// Feature B: Kombine davet (driver_and_vehicle) — tek transaction'da
+//   1) OTP kodunu consumed yap
+//   2) ŞOFÖR fleet_connection'ı ekle
+//   3) ARAÇ fleet_connection'ı ekle
+//   4) Tüm kabul kayıtlarını (4 adet: şoför kvkk+sözleşme, araç kvkk+sözleşme) ekle
+// Herhangi biri patlarsa hepsi rollback.
+async function createDriverAndVehicleFromRequest({
+  request, driverProfileId, vehicleId, userId, acceptances, ipAddress,
+}) {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // 1) Kodu consumed yap (yarış korumalı)
+    const [upd] = await conn.query(
+      `UPDATE connection_requests
+          SET status = 'consumed', consumed_by = ?, consumed_at = NOW()
+        WHERE id = ? AND status = 'pending' AND expires_at > NOW() AND deleted_at IS NULL`,
+      [userId, request.id]
+    );
+    if (upd.affectedRows === 0) {
+      throw new Error('Kod artık geçerli değil (kullanılmış veya süresi dolmuş olabilir)');
+    }
+
+    // 2) Şoför bağlantısı
+    const [drvIns] = await conn.query(
+      `INSERT INTO fleet_connections
+         (company_id, target_type, target_id, connection_request_id)
+       VALUES (?, 'driver_profile', ?, ?)`,
+      [request.company_id, driverProfileId, request.id]
+    );
+    const driverConnId = drvIns.insertId;
+
+    // 3) Araç bağlantısı
+    const [vhcIns] = await conn.query(
+      `INSERT INTO fleet_connections
+         (company_id, target_type, target_id, connection_request_id)
+       VALUES (?, 'vehicle_profile', ?, ?)`,
+      [request.company_id, vehicleId, request.id]
+    );
+    const vehicleConnId = vhcIns.insertId;
+
+    // 4) Kabul kayıtları — her biri hangi bağlantıya ait olduğuyla
+    for (const acc of acceptances) {
+      await conn.query(
+        `INSERT INTO contract_acceptances
+           (user_id, company_id, fleet_connection_id, contract_type,
+            template_id, title_snapshot, content_snapshot, ip_address)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          userId,
+          request.company_id,
+          acc.fleet_connection_id === 'driver' ? driverConnId : vehicleConnId,
+          acc.contract_type,
+          acc.template_id || null,
+          acc.title_snapshot,
+          acc.content_snapshot,
+          ipAddress || null,
+        ]
+      );
+    }
+
+    await conn.commit();
+    return { driverConnId, vehicleConnId };
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
+}
+
 // Kurumun aktif filodaki şoförleri (JOIN driver_profiles + users)
 async function findActiveDriversForCompany(companyId) {
   const [rows] = await db.query(
@@ -259,6 +331,7 @@ module.exports = {
   create,
   findActiveByCompany,
   createFromRequestWithAcceptances,
+  createDriverAndVehicleFromRequest,
   findActiveDriversForCompany,
   findActiveVehiclesForCompany,
   findActiveCompaniesByOwner,

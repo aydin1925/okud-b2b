@@ -2,14 +2,16 @@ const bcrypt = require('bcrypt');
 const UserModel = require('../models/UserModel');
 const TokenService = require('./TokenService');
 const MailService = require('./MailService');
-const { TOKEN_TYPES } = require('../utils/constants');
+const AuditService = require('./AuditService');
+const { assertStrongPassword } = require('../utils/password');
+const { TOKEN_TYPES, AUDIT_ACTIONS } = require('../utils/constants');
 
 const BCRYPT_COST = 10;
 
 // =====================================================================
 // LOGIN
 // =====================================================================
-async function login({email, password}) {
+async function login({email, password}, ipAddress) {
     if(!email || !password) {
         throw new Error('Email ve şifre zorunludur');
     }
@@ -24,6 +26,14 @@ async function login({email, password}) {
     if(!match) {
         throw new Error('Email veya şifre yanlış');
     }
+
+    AuditService.log({
+        actorUserId: user.id,
+        action: AUDIT_ACTIONS.AUTH_LOGIN,
+        entityType: 'user',
+        entityId: user.id,
+        ipAddress,
+    });
 
     const {password_hash, ...safeUser} = user;
     return safeUser;
@@ -56,14 +66,14 @@ async function requestPasswordReset(email) {
 
     await MailService.send({
         to: user.email,
-        subject: 'OKUD — Şifreni sıfırla',
+        subject: 'Filoskope — Şifreni sıfırla',
         body:
             `Merhaba ${user.first_name},\n\n` +
             `Hesabın için şifre sıfırlama isteği aldık. Şu linke tıklayarak yeni şifreni belirleyebilirsin:\n\n` +
             `${link}\n\n` +
             `Link ${ttlText} içinde geçerlidir ve tek kullanımlıktır.\n\n` +
             `Bu isteği sen yapmadıysan bu maili yok sayabilirsin — şifren değişmez.\n\n` +
-            `— OKUD`,
+            `— Filoskope`,
         html: mailShell({
             title: 'Şifreni sıfırla',
             greeting: `Merhaba ${escapeHtml(user.first_name)},`,
@@ -79,10 +89,8 @@ async function requestPasswordReset(email) {
  * Kullanıcı reset formundaki yeni şifreyi kaydediyor.
  * Token'ı consume et → şifreyi bcrypt'le → users tablosunda güncelle.
  */
-async function resetPasswordWithToken(rawToken, newPassword, confirmPassword) {
-    if (!newPassword || newPassword.length < 8) {
-        throw new Error('Yeni şifre en az 8 karakter olmalı.');
-    }
+async function resetPasswordWithToken(rawToken, newPassword, confirmPassword, ipAddress) {
+    assertStrongPassword(newPassword);
     if (newPassword !== confirmPassword) {
         throw new Error('Yeni şifre ile tekrarı eşleşmiyor.');
     }
@@ -90,6 +98,15 @@ async function resetPasswordWithToken(rawToken, newPassword, confirmPassword) {
     const { userId } = await TokenService.consume(rawToken, TOKEN_TYPES.PASSWORD_RESET);
     const password_hash = await bcrypt.hash(newPassword, BCRYPT_COST);
     await UserModel.updatePasswordHash(userId, password_hash);
+
+    AuditService.log({
+        actorUserId: userId,
+        action: AUDIT_ACTIONS.AUTH_PASSWORD_CHANGE,
+        entityType: 'user',
+        entityId: userId,
+        metadata: { via: 'reset_token' },
+        ipAddress,
+    });
 }
 
 // =====================================================================
@@ -115,17 +132,17 @@ async function sendEmailVerification(userId) {
 
     await MailService.send({
         to: user.email,
-        subject: 'OKUD — E-posta adresini doğrula',
+        subject: 'Filoskope — E-posta adresini doğrula',
         body:
             `Merhaba ${user.first_name},\n\n` +
-            `OKUD hesabına hoş geldin! E-posta adresini doğrulamak için şu linke tıkla:\n\n` +
+            `Filoskope hesabına hoş geldin! E-posta adresini doğrulamak için şu linke tıkla:\n\n` +
             `${link}\n\n` +
             `Link 48 saat içinde geçerlidir.\n\n` +
-            `— OKUD`,
+            `— Filoskope`,
         html: mailShell({
             title: 'E-posta adresini doğrula',
             greeting: `Merhaba ${escapeHtml(user.first_name)},`,
-            body: `OKUD'a hoş geldin! E-posta adresini doğrulamak için aşağıdaki butona tıklaman yeterli. Link <b>48 saat</b> içinde geçerlidir.`,
+            body: `Filoskope'a hoş geldin! E-posta adresini doğrulamak için aşağıdaki butona tıklaman yeterli. Link <b>48 saat</b> içinde geçerlidir.`,
             ctaText: 'E-postamı doğrula',
             ctaLink: link,
             footer: 'Bu maili beklemiyorsan yok sayabilirsin.',
@@ -134,12 +151,53 @@ async function sendEmailVerification(userId) {
 }
 
 /**
+ * Enumeration korumalı kayıt akışının ikinci yolu:
+ * Birisi ZATEN kayıtlı bir e-posta ile kayıt olmaya çalıştığında, o adrese
+ * "hesabın zaten var" bilgisi gönderilir. Kayıt formu ise nötr mesaj gösterir,
+ * böylece dışarıdan adresin var olup olmadığı ayırt edilemez. Best-effort.
+ */
+async function sendDuplicateRegisterNotice(email) {
+    const clean = String(email || '').trim().toLowerCase();
+    if (!clean) return;
+    const user = await UserModel.findByEmail(clean);
+    if (!user) return; // adres yoksa hiçbir şey yapma (zaten controller nötr mesaj gösterecek)
+
+    const appUrl = process.env.APP_URL || 'http://localhost:3000';
+    await MailService.send({
+        to: user.email,
+        subject: 'Filoskope — Hesabın zaten mevcut',
+        body:
+            `Merhaba ${user.first_name},\n\n` +
+            `Bu e-posta ile Filoskope'ta bir kayıt denemesi yapıldı, ancak hesabın zaten mevcut. ` +
+            `Giriş yapmakta sorun yaşıyorsan şifreni sıfırlayabilirsin:\n\n` +
+            `${appUrl}/forgot-password\n\n` +
+            `Bu denemeyi sen yapmadıysan bu maili yok sayabilirsin.\n\n— Filoskope`,
+        html: mailShell({
+            title: 'Hesabın zaten mevcut',
+            greeting: `Merhaba ${escapeHtml(user.first_name)},`,
+            body: `Bu e-posta ile bir kayıt denemesi yapıldı ama hesabın zaten mevcut. Giriş yapamıyorsan aşağıdan şifreni sıfırlayabilirsin.`,
+            ctaText: 'Şifremi sıfırla',
+            ctaLink: `${appUrl}/forgot-password`,
+            footer: 'Bu denemeyi sen yapmadıysan bu maili yok sayabilirsin.',
+        }),
+    });
+}
+
+/**
  * Kullanıcı verify linkine tıkladı.
  * Token'ı consume et → users.email_verified_at = NOW.
  */
-async function verifyEmailWithToken(rawToken) {
+async function verifyEmailWithToken(rawToken, ipAddress) {
     const { userId } = await TokenService.consume(rawToken, TOKEN_TYPES.EMAIL_VERIFICATION);
     await UserModel.setEmailVerified(userId);
+
+    AuditService.log({
+        actorUserId: userId,
+        action: AUDIT_ACTIONS.AUTH_EMAIL_VERIFY,
+        entityType: 'user',
+        entityId: userId,
+        ipAddress,
+    });
     return { userId };
 }
 
@@ -159,8 +217,8 @@ function mailShell({ title, greeting, body, ctaText, ctaLink, footer }) {
   <div style="max-width:520px; margin:0 auto; padding:32px 24px;">
     <div style="background:white; border-radius:14px; padding:32px 28px; box-shadow:0 1px 3px rgba(15,42,74,0.06);">
       <div style="display:inline-flex; align-items:center; gap:8px; margin-bottom:24px;">
-        <span style="position:relative; display:inline-block; width:32px; height:32px; background:#0F2A4A; border-radius:9px; color:white; text-align:center; line-height:32px; font-weight:800; font-size:14px;">O</span>
-        <span style="font-weight:700; font-size:16px; color:#0F2A4A; letter-spacing:-0.02em;">OKUD</span>
+        <span style="position:relative; display:inline-block; width:32px; height:32px; background:#0F2A4A; border-radius:9px; color:white; text-align:center; line-height:32px; font-weight:800; font-size:14px;">F</span>
+        <span style="font-weight:700; font-size:16px; color:#0F2A4A; letter-spacing:-0.02em;">Filoskope</span>
       </div>
       <h1 style="font-size:20px; color:#0F172A; margin:0 0 16px; letter-spacing:-0.01em;">${escapeHtml(title)}</h1>
       <p style="font-size:14px; color:#475569; margin:0 0 8px;">${greeting}</p>
@@ -170,7 +228,7 @@ function mailShell({ title, greeting, body, ctaText, ctaLink, footer }) {
       <hr style="border:none; border-top:1px solid #E5E7EB; margin:24px 0;">
       <p style="font-size:12px; color:#94A3B8; margin:0;">${footer}</p>
     </div>
-    <p style="text-align:center; font-size:11px; color:#94A3B8; margin:16px 0 0;">OKUD · Kurumsal Ulaşım ve Belge Denetim</p>
+    <p style="text-align:center; font-size:11px; color:#94A3B8; margin:16px 0 0;">Filoskope · Kurumsal Ulaşım ve Belge Denetim</p>
   </div>
 </body></html>`;
 }
@@ -185,5 +243,6 @@ module.exports = {
     requestPasswordReset,
     resetPasswordWithToken,
     sendEmailVerification,
+    sendDuplicateRegisterNotice,
     verifyEmailWithToken,
 };

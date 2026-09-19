@@ -36,6 +36,8 @@ async function confirm(req, res) {
       userId: req.session.userId,
       kvkkConsent: req.body.kvkk_consent === 'on',
       contractConsent: req.body.contract_consent === 'on',
+      driverConsent: req.body.driver_consent === 'on',
+      vehicleConsent: req.body.vehicle_consent === 'on',
       vehicleId: req.body.vehicle_id,
       ipAddress: req.ip,
     });

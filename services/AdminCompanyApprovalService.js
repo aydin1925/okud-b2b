@@ -2,17 +2,28 @@ const CompanyModel = require('../models/CompanyModel');
 const DocumentModel = require('../models/DocumentModel');
 const DriverProfileUpdateRequestModel = require('../models/DriverProfileUpdateRequestModel');
 const VehicleProfileUpdateRequestModel = require('../models/VehicleProfileUpdateRequestModel');
+const AuditService = require('./AuditService');
+const { AUDIT_ACTIONS } = require('../utils/constants');
 
 async function listPending() {
   return CompanyModel.findPendingApproval();
 }
 
-async function approve(companyId) {
+async function approve(companyId, actorUserId, ipAddress) {
   const affected = await CompanyModel.activate(companyId);
   if (!affected) throw new Error('Kurum bulunamadı veya zaten aktif');
+
+  AuditService.log({
+    actorUserId,
+    companyId,
+    action: AUDIT_ACTIONS.COMPANY_APPROVE,
+    entityType: 'company',
+    entityId: companyId,
+    ipAddress,
+  });
 }
 
-async function reject(companyId, reason) {
+async function reject(companyId, reason, actorUserId, ipAddress) {
   if (!reason || !reason.trim()) throw new Error('Reddetme gerekçesi zorunludur');
   const company = await CompanyModel.findById(companyId);
   if (!company) throw new Error('Kurum bulunamadı');
@@ -21,6 +32,16 @@ async function reject(companyId, reason) {
   if (!affected) throw new Error('Kurum silinemedi');
   // NOT: gerekçe şimdilik konsola loglanır (ileride companies.rejection_reason kolonu eklenebilir)
   console.log(`[admin] company ${companyId} reddedildi. Gerekçe: ${reason.trim()}`);
+
+  AuditService.log({
+    actorUserId,
+    companyId,
+    action: AUDIT_ACTIONS.COMPANY_REJECT,
+    entityType: 'company',
+    entityId: companyId,
+    metadata: { reason: reason.trim(), companyName: company.name },
+    ipAddress,
+  });
 }
 
 // Admin hub'da sayı gösterimi için toplu bekleyen sayıları

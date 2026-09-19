@@ -32,7 +32,9 @@ async function switchCompany(req, res) {
     req.session.currentCompanyId = companyId;
     res.redirect('/dashboard');
   } catch (err) {
-    res.status(403).send(`Kurum değiştirilemedi: ${err.message}`);
+    // Ham HTML basmak yerine (reflected-XSS/enjeksiyon riski) güvenli yönlendirme.
+    // Yetkisiz kurum değişimi zaten olmadı; kullanıcı dashboard'a döner.
+    res.redirect('/dashboard?err=company-switch');
   }
 }
 

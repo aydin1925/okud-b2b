@@ -1,6 +1,7 @@
 const express = require('express');
 const AuthController = require('../../controllers/web/AuthController');
 const requireAuth = require('../../middlewares/requireAuth');
+const { loginLimiter, registerLimiter, forgotLimiter } = require('../../config/rateLimit');
 
 const router = express.Router();
 
@@ -11,16 +12,16 @@ const hideChrome = (req, res, next) => { res.locals.hideChrome = true; next(); }
 
 // Kayıt / Giriş
 router.get('/register', hideChrome, AuthController.showRegisterForm);
-router.post('/register', hideChrome, AuthController.register);
+router.post('/register', registerLimiter, hideChrome, AuthController.register);
 
 router.get('/login', hideChrome, AuthController.showLoginForm);
-router.post('/login', hideChrome, AuthController.login);
+router.post('/login', loginLimiter, hideChrome, AuthController.login);
 
 router.post('/logout', AuthController.logout);
 
 // Şifremi unuttum (public)
 router.get('/forgot-password', hideChrome, AuthController.showForgotForm);
-router.post('/forgot-password', hideChrome, AuthController.sendForgot);
+router.post('/forgot-password', forgotLimiter, hideChrome, AuthController.sendForgot);
 
 router.get('/reset-password', hideChrome, AuthController.showResetForm);
 router.post('/reset-password', hideChrome, AuthController.doReset);

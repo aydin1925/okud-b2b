@@ -1,7 +1,8 @@
 const express = require('express');
 const DriverController = require('../../controllers/web/DriverController');
 const DocumentController = require('../../controllers/web/DocumentController');
-const { documentUpload } = require('../../config/upload');
+const { documentUpload, verifyUploadedFile } = require('../../config/upload');
+const { csrfProtectionRaw } = require('../../config/csrf');
 
 // Mount: '/driver' + requireAuth (server.js'te)
 const router = express.Router();
@@ -21,6 +22,8 @@ router.post('/profile/deactivate', DriverController.setActive);
 router.post(
   '/documents/upload',
   documentUpload.single('file'),
+  csrfProtectionRaw,           // multipart body parse edildi → _csrf artık okunur
+  verifyUploadedFile,
   DocumentController.uploadDriverDocument
 );
 

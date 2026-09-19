@@ -32,14 +32,6 @@
     font-size: 11.5px; color: var(--ink-3); font-weight: 500;
   }
   .m-card .note.good { color: var(--good); }
-  .m-card .mock-tag {
-    position: absolute; top: 10px; right: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.08em;
-    color: var(--ink-5); font-weight: 600;
-    padding: 1px 5px; border: 1px solid var(--line-2); border-radius: 3px;
-  }
-  .m-card .mini-spark { width: 60px; height: 20px; }
 
   /* Priorities */
   .prio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -169,55 +161,47 @@
 
 <div class="section">
   <div class="section-head">
-    <h2>Sistem Ölçeği <span class="count">örnek veriler</span></h2>
+    <h2>Sistem Ölçeği <span class="count">gerçek veri</span></h2>
   </div>
   <div class="metrics">
     <div class="m-card">
-      <span class="mock-tag">Örnek</span>
       <div class="head-row">
         <div class="lbl">Aktif Kurum</div>
         <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 18V9a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9M9 22V12M15 22V12"/></svg></span>
       </div>
-      <div class="val">47</div>
+      <div class="val"><%= stats.metrics.companies.value %></div>
       <div class="footer">
-        <span class="note good">+3 bu ay</span>
-        <svg class="mini-spark" viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,15 L12,13 L24,10 L36,7 L48,5 L60,2" fill="none" stroke="#059669" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="note<%= stats.metrics.companies.delta > 0 ? ' good' : '' %>"><%= stats.metrics.companies.delta > 0 ? '+' + stats.metrics.companies.delta + ' bu ay' : 'bu ay yeni yok' %></span>
       </div>
     </div>
     <div class="m-card">
-      <span class="mock-tag">Örnek</span>
       <div class="head-row">
         <div class="lbl">Kullanıcı</div>
         <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
       </div>
-      <div class="val">312</div>
+      <div class="val"><%= stats.metrics.users.value %></div>
       <div class="footer">
-        <span class="note good">+18 bu hafta</span>
-        <svg class="mini-spark" viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,16 L12,14 L24,11 L36,9 L48,5 L60,2" fill="none" stroke="#059669" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="note<%= stats.metrics.users.delta > 0 ? ' good' : '' %>"><%= stats.metrics.users.delta > 0 ? '+' + stats.metrics.users.delta + ' bu hafta' : 'bu hafta yeni yok' %></span>
       </div>
     </div>
     <div class="m-card">
-      <span class="mock-tag">Örnek</span>
       <div class="head-row">
         <div class="lbl">Yüklü Evrak</div>
         <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
       </div>
-      <div class="val">1.847</div>
+      <div class="val"><%= stats.metrics.documents.value %></div>
       <div class="footer">
-        <span class="note">+42 bugün</span>
-        <svg class="mini-spark" viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,14 L12,12 L24,13 L36,10 L48,7 L60,5" fill="none" stroke="#8B8B8E" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="note"><%= stats.metrics.documents.delta > 0 ? '+' + stats.metrics.documents.delta + ' bugün' : 'bugün yeni yok' %></span>
       </div>
     </div>
     <div class="m-card">
-      <span class="mock-tag">Örnek</span>
       <div class="head-row">
-        <div class="lbl">Uptime · 30g</div>
-        <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+        <div class="lbl">Aktif İş Ortaklığı</div>
+        <span class="icn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
       </div>
-      <div class="val">99.98<span class="u">%</span></div>
+      <div class="val"><%= stats.metrics.partnerships.value %></div>
       <div class="footer">
-        <span class="note good">SLA 99.9%</span>
-        <svg class="mini-spark" viewBox="0 0 60 20" preserveAspectRatio="none"><path d="M0,4 L60,4" fill="none" stroke="#059669" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="note<%= stats.metrics.partnerships.delta > 0 ? ' good' : '' %>"><%= stats.metrics.partnerships.delta > 0 ? '+' + stats.metrics.partnerships.delta + ' bu ay' : 'bu ay yeni yok' %></span>
       </div>
     </div>
   </div>
@@ -243,23 +227,24 @@
         <% } %>
       </div>
     </a>
-    <a href="/mockup/ai-rapor.html" class="prio-card good">
+    <div class="prio-card good">
       <span class="icn-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 6 23 6 23 12"/><path d="M23 6l-9.5 9.5-5-5L1 18"/></svg></span>
       <div class="top-row">
-        <span class="lbl">Bu Ayın Büyümesi <span class="mock-tag" style="position:static; margin-left:4px;">Mock</span></span>
-        <span class="go-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+        <span class="lbl">Bu Ayın Büyümesi</span>
       </div>
-      <div class="value">+21%</div>
-      <div class="desc">kurum sayısı · geçen ay <strong>39</strong>'du</div>
-    </a>
-    <a href="/mockup/activity.html" class="prio-card blue">
+      <div class="value"><%= stats.growth.pct >= 0 ? '+' : '' %><%= stats.growth.pct %>%</div>
+      <div class="desc">
+        yeni kurum · bu ay <strong><%= stats.growth.thisMonth %></strong>, geçen ay <strong><%= stats.growth.lastMonth %></strong>
+      </div>
+    </div>
+    <a href="/admin/audit" class="prio-card blue">
       <span class="icn-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
       <div class="top-row">
-        <span class="lbl">Son 24 Saat <span class="mock-tag" style="position:static; margin-left:4px;">Mock</span></span>
+        <span class="lbl">Son 24 Saat</span>
         <span class="go-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
       </div>
-      <div class="value">27 <span style="color:var(--ink-4);font-weight:500;">·</span> 3</div>
-      <div class="desc">onay · ret · aksiyon ritmi <strong>normal</strong></div>
+      <div class="value"><%= stats.last24h.verified %> <span style="color:var(--ink-4);font-weight:500;">·</span> <%= stats.last24h.rejected %></div>
+      <div class="desc">belge onay · ret · denetim izine <strong>git</strong></div>
     </a>
   </div>
 </div>
@@ -268,47 +253,38 @@
   <div class="row-split">
     <div class="card">
       <div class="card-head">
-        <h3>Bu Ayın Özeti <span class="ai-tag">AI · Mock</span></h3>
-        <span class="stamp">Eylül 2026</span>
+        <h3>Bu Ayın Özeti</h3>
+        <span class="stamp">bu ay</span>
       </div>
       <div class="brief-lead">
-        Sisteme <span class="num">8</span> yeni kurum katıldı <span class="u">↑ +33%</span> ve aralarında <span class="num">14</span> yeni iş birliği kuruldu.
+        Sisteme <span class="num"><%= stats.monthly.newCompanies %></span> yeni kurum katıldı ve <span class="num"><%= stats.monthly.newPartnerships %></span> yeni iş birliği kuruldu.
       </div>
       <p class="brief-para">
-        Bu ay <span class="num">3.240</span> evrak işlendi (+34%), sisteme <span class="num">82</span> yeni kullanıcı dahil oldu. Sistem <span class="num">%99.98</span> uptime ile hiç kesinti yaşamadı; ortalama belge işlem süresi <span class="num">8sa</span>'ten <span class="num">5sa</span>'e indi.
+        Bu ay <span class="num"><%= stats.monthly.newDocuments %></span> yeni evrak yüklendi ve sisteme <span class="num"><%= stats.monthly.newUsers %></span> yeni kullanıcı dahil oldu.
       </p>
-      <a href="/mockup/ai-rapor.html" class="brief-cta">
-        Aylık raporun tamamı
+      <a href="/admin/audit" class="brief-cta">
+        Denetim izlerine git
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
     </div>
 
     <div class="card">
       <div class="card-head">
-        <h3>Son Etkinlik <span class="ai-tag" style="background:transparent; color:var(--ink-4); border:1px solid var(--line-2); font-size:8.5px;">Mock</span></h3>
-        <span class="stamp">son 4</span>
+        <h3>Son Etkinlik</h3>
+        <span class="stamp">son <%= stats.recentActivity.length %></span>
       </div>
-      <div class="act">
-        <span class="ts">14:27</span>
-        <div class="body"><div class="t">Ehliyet onaylandı</div><div class="m">Ali Demir · Kayseri Kooperatifi</div></div>
-        <span class="ago">5dk</span>
-      </div>
-      <div class="act">
-        <span class="ts">14:12</span>
-        <div class="body"><div class="t">Kurum aktifleştirildi</div><div class="m">OkulX Vakfı</div></div>
-        <span class="ago">20dk</span>
-      </div>
-      <div class="act bad">
-        <span class="ts">13:31</span>
-        <div class="body"><div class="t">Psikoteknik reddedildi</div><div class="m">Fatma Yıldız · süresi dolmuş</div></div>
-        <span class="ago">1sa</span>
-      </div>
-      <div class="act info">
-        <span class="ts">04:00</span>
-        <div class="body"><div class="t">Cron tarama tamamlandı</div><div class="m">187 evrak · 3 uyarı</div></div>
-        <span class="ago">10sa</span>
-      </div>
-      <a href="/mockup/activity.html" class="act-more">
+      <% if (stats.recentActivity.length === 0) { %>
+        <div style="padding:24px 0; text-align:center; color:var(--ink-4); font-size:13px;">Henüz kayıtlı etkinlik yok.</div>
+      <% } else { %>
+        <% stats.recentActivity.forEach(function(a) { %>
+          <div class="act <%= a.kind === 'bad' ? 'bad' : (a.kind === 'info' ? 'info' : '') %>">
+            <span class="ts"><%= a.time %></span>
+            <div class="body"><div class="t"><%= a.title %></div><% if (a.meta) { %><div class="m"><%= a.meta %></div><% } %></div>
+            <span class="ago"><%= a.ago %></span>
+          </div>
+        <% }); %>
+      <% } %>
+      <a href="/admin/audit" class="act-more">
         Tümünü aç
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </a>
@@ -318,7 +294,7 @@
 
 <div class="section">
   <div class="section-head">
-    <h2>Hızlı Erişim <span class="count">gerçek + mock</span></h2>
+    <h2>Hızlı Erişim</h2>
   </div>
   <div class="nav-grid">
     <a class="nav-card" href="/admin/approvals">
@@ -346,9 +322,9 @@
       <div class="l"><div class="t">Araç Değişiklikleri</div><div class="d"><%= pendingCounts.vehicleUpdates %> talep</div></div>
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
     </a>
-    <a class="nav-card" href="/mockup/ai-rapor.html">
-      <span class="n-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></span>
-      <div class="l"><div class="t">Aylık Rapor <span style="color:var(--ink-5); font-size:11px;">· mock</span></div><div class="d">Eylül 2026</div></div>
+    <a class="nav-card" href="/admin/audit">
+      <span class="n-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25M21 5.25V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25"/></svg></span>
+      <div class="l"><div class="t">Denetim İzleri</div><div class="d">tüm sistem kayıtları</div></div>
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
     </a>
   </div>

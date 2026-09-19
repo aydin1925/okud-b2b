@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const UserModel = require('../models/UserModel');
+const { assertStrongPassword } = require('../utils/password');
 
 const BCRYPT_COST = 10;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -9,14 +10,15 @@ async function register({first_name, last_name, email, password}) {
     if(!first_name || !last_name || !email || !password) {
         throw new Error("Tüm alanların doldurulması zorunludur.");
     }
-    if(password.length < 8) {
-        throw new Error("Şifre en az 8 karakter olmalıdır.");
-    }
+    assertStrongPassword(password);
 
-    // email tekilliği
+    // email tekilliği — ENUMERATION KORUMASI:
+    // "zaten kayıtlı" hatası fırlatmıyoruz (bu, saldırgana e-postanın sistemde
+    // olduğunu doğrular). Bunun yerine sessizce { duplicate: true } dönüyoruz;
+    // controller her iki durumda da AYNI başarı ekranını gösterir.
     const existing = await UserModel.findByEmail(email);
     if(existing) {
-        throw new Error('Bu email adresi zaten kayıtlı');
+        return { duplicate: true, email };
     }
 
     // Şifre hashleme
@@ -30,7 +32,7 @@ async function register({first_name, last_name, email, password}) {
         password_hash
     });
 
-    return {id: userId, email};
+    return {id: userId, email, duplicate: false};
 }
 
 // ============================================================

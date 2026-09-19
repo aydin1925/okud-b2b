@@ -2,10 +2,15 @@ const ConnectionRequestModel = require('../models/ConnectionRequestModel');
 const { generateCode } = require('../utils/otp');
 const {
   TARGET_TYPES,
+  DRIVER_AND_VEHICLE,
   OTP_EXPIRY_MINUTES,
 } = require('../utils/constants');
 
-const VALID_TARGET_TYPES = [TARGET_TYPES.DRIVER_PROFILE, TARGET_TYPES.VEHICLE_PROFILE];
+const VALID_TARGET_TYPES = [
+  TARGET_TYPES.DRIVER_PROFILE,
+  TARGET_TYPES.VEHICLE_PROFILE,
+  DRIVER_AND_VEHICLE,
+];
 const MAX_CODE_ATTEMPTS = 5;
 
 // Kurum adına yeni OTP kodu üretir.

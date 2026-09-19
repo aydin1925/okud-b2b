@@ -20,16 +20,16 @@ async function main() {
 
   const at = await MailService.send({
     to,
-    subject: 'OKUD test — SMTP çalışıyor',
+    subject: 'Filoskope test — SMTP çalışıyor',
     body:
       'Bu bir test mailidir.\n\n' +
       'Eğer bu maili görüyorsan Brevo SMTP kurulumu düzgün çalışıyor.\n\n' +
-      '— OKUD',
+      '— Filoskope',
     html:
       '<div style="font-family:Inter,system-ui,sans-serif; max-width:520px; margin:0 auto; padding:24px;">' +
       '<h2 style="color:#0F2A4A; margin:0 0 10px;">SMTP kurulumu çalışıyor 🎉</h2>' +
       '<p style="color:#475569; line-height:1.6;">Bu bir test mailidir. Brevo üzerinden başarıyla gönderildi.</p>' +
-      '<p style="font-size:12px; color:#94A3B8; margin-top:24px;">— OKUD</p>' +
+      '<p style="font-size:12px; color:#94A3B8; margin-top:24px;">— Filoskope</p>' +
       '</div>',
   });
 

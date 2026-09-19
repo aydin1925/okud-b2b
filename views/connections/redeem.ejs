@@ -104,7 +104,7 @@
     Swal.fire({
       icon: 'error',
       title: 'Katılım tamamlanamadı',
-      text: <%- JSON.stringify(error) %>,
+      text: <%- JSON.stringify(String(error)).replace(/</g, '\\u003c') %>,
       confirmButtonText: 'Anladım',
     }).then(function () {
       // URL'i temizle — sayfa yenilenirse popup tekrar açılmasın
