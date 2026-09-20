@@ -1,18 +1,141 @@
-<div class="min-h-[60vh] flex items-center justify-center px-4 py-16">
-  <div class="text-center max-w-md">
-    <div class="text-7xl font-black tracking-tight text-slate-900">404</div>
-    <h1 class="mt-4 text-xl font-bold text-slate-900">Sayfa bulunamadı</h1>
-    <p class="mt-2 text-sm text-slate-500 leading-relaxed">
-      Aradığın sayfa taşınmış, silinmiş ya da hiç var olmamış olabilir.
-      Adresi kontrol et veya panele geri dön.
-    </p>
-    <div class="mt-6 flex items-center justify-center gap-3">
-      <a href="/dashboard" class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 transition">
-        Panele dön
-      </a>
-      <a href="/" class="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-slate-600 hover:text-slate-900 transition">
-        Anasayfa
-      </a>
+<style>
+  .err-hero {
+    position: relative; min-height: 100vh; width: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 88px 24px 40px; overflow: hidden;
+    background-color: #FAFAF9;
+    background-image:
+      radial-gradient(60% 50% at 85% 15%, rgba(245,158,11,0.08), transparent 60%),
+      radial-gradient(55% 55% at 15% 90%, rgba(15,42,74,0.07), transparent 60%),
+      radial-gradient(rgba(15,42,74,0.05) 1px, transparent 1px);
+    background-size: auto, auto, 24px 24px;
+  }
+  .err-brand {
+    position: absolute; top: 28px; left: 32px;
+    display: flex; align-items: center; gap: 10px;
+    font-weight: 800; font-size: 17px; letter-spacing: -0.02em; color: #0F2A4A;
+  }
+  .err-brand .mark {
+    width: 30px; height: 30px; border-radius: 9px; background: #0F2A4A; color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 14px; position: relative;
+  }
+  .err-brand .mark::after {
+    content: ''; position: absolute; right: 4px; bottom: 4px;
+    width: 5px; height: 5px; border-radius: 999px; background: #F59E0B;
+  }
+  .err-grid {
+    position: relative; width: 100%; max-width: 1040px;
+    display: grid; grid-template-columns: 1fr; gap: 32px; align-items: center;
+    text-align: center;
+  }
+  /* Görsel taraf: 4 [pin=O] 4 — entegre rakam */
+  .err-visual { display: flex; align-items: center; justify-content: center; }
+  .err-404 { display: inline-flex; align-items: center; gap: clamp(2px, 1vw, 10px); }
+  .err-digit {
+    font-weight: 900; letter-spacing: -0.07em; line-height: 1;
+    font-size: clamp(72px, 17vw, 200px); color: #0F2A4A;
+  }
+  .err-o { width: clamp(66px, 15.5vw, 182px); height: clamp(66px, 15.5vw, 182px); flex: 0 0 auto; }
+  .err-o svg { width: 100%; height: 100%; display: block; }
+  .err-content { max-width: 460px; margin: 0 auto; }
+  .err-eyebrow {
+    font-size: 12px; font-weight: 800; letter-spacing: 0.22em;
+    text-transform: uppercase; color: #D97706; margin-bottom: 12px;
+  }
+  .err-title {
+    font-size: clamp(30px, 5vw, 46px); line-height: 1.04; font-weight: 800;
+    letter-spacing: -0.03em; color: #0F2A4A; margin: 0;
+  }
+  .err-desc { margin: 16px auto 0; font-size: 15.5px; line-height: 1.6; color: #64748B; max-width: 420px; }
+  .err-actions { margin-top: 28px; display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+  .err-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 13px 22px; border-radius: 12px; font-size: 14.5px; font-weight: 600;
+    transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+  .err-btn svg { width: 16px; height: 16px; }
+  .err-btn.primary { background: #0F2A4A; color: #fff; box-shadow: 0 12px 26px -12px rgba(15,42,74,0.6); }
+  .err-btn.primary:hover { background: #143659; transform: translateY(-1px); }
+  .err-btn.ghost { color: #475569; }
+  .err-btn.ghost:hover { color: #0F172A; background: rgba(15,23,42,0.05); }
+  .err-links { margin-top: 26px; }
+  .err-links-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: #94A3B8; margin-bottom: 12px;
+  }
+  .err-links-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .err-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 500;
+    color: #334155; background: #fff; border: 1px solid rgba(15,23,42,0.08);
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+    transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+  }
+  .err-chip:hover { background: #0F2A4A; color: #fff; border-color: #0F2A4A; }
+  .err-chip svg { width: 14px; height: 14px; }
+
+  @media (min-width: 860px) {
+    .err-grid { grid-template-columns: 1.05fr 1fr; gap: 48px; text-align: left; }
+    .err-content { margin: 0; }
+    .err-actions { flex-direction: row; align-items: center; }
+    .err-links-row { justify-content: flex-start; }
+    .err-btn { flex: 0 0 auto; }
+  }
+</style>
+
+<div class="err-hero">
+  <a href="/" class="err-brand"><span class="mark">F</span> Filoskope</a>
+
+  <div class="err-grid">
+    <div class="err-visual">
+      <div class="err-404">
+        <span class="err-digit">4</span>
+        <span class="err-o">
+          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- O halkası (rakamla aynı ağırlıkta) -->
+            <circle cx="50" cy="50" r="40" stroke="#0F2A4A" stroke-width="15"/>
+            <!-- içeride amber konum pini -->
+            <g transform="translate(50,45) scale(0.92)">
+              <path d="M0 -15 C 8.3 -15, 13.5 -9, 13.5 -1.5 C 13.5 7.5, 0 19.5, 0 19.5 C 0 19.5, -13.5 7.5, -13.5 -1.5 C -13.5 -9, -8.3 -15, 0 -15 Z" fill="#F59E0B"/>
+              <circle cx="0" cy="-1.5" r="4.8" fill="#fff"/>
+            </g>
+          </svg>
+        </span>
+        <span class="err-digit">4</span>
+      </div>
+    </div>
+
+    <div class="err-content">
+      <div class="err-eyebrow">Hata 404</div>
+      <h1 class="err-title">Aradığın sayfa<br>bulunamadı</h1>
+      <p class="err-desc">Sayfa taşınmış, silinmiş ya da hiç var olmamış olabilir. Adresi kontrol et ya da aşağıdan devam et.</p>
+
+      <div class="err-actions">
+        <a href="/dashboard" class="err-btn primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+          Panele dön
+        </a>
+        <a href="/" class="err-btn ghost">Anasayfa</a>
+      </div>
+
+      <div class="err-links">
+        <div class="err-links-label">Belki bunları arıyordun</div>
+        <div class="err-links-row">
+          <a href="/dashboard" class="err-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+            Panel
+          </a>
+          <a href="/notifications" class="err-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path stroke-linecap="round" stroke-linejoin="round" d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            Bildirimler
+          </a>
+          <a href="/profile" class="err-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path stroke-linecap="round" stroke-linejoin="round" d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg>
+            Profil
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </div>

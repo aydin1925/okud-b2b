@@ -222,7 +222,7 @@ app.use((req, res) => {
     if (req.path.startsWith('/api')) {
         return res.status(404).json({ error: 'Not found' });
     }
-    res.status(404).render('errors/404', { title: 'Sayfa bulunamadı', layout: 'layouts/main' });
+    res.status(404).render('errors/404', { title: 'Sayfa bulunamadı', layout: 'layouts/main', hideChrome: true });
 });
 
 // ==============================================================
@@ -236,7 +236,7 @@ app.use((err, req, res, next) => {
     if (req.path.startsWith('/api')) {
         return res.status(500).json({ error: 'Sunucu hatası' });
     }
-    res.status(500).render('errors/500', { title: 'Bir şeyler ters gitti', layout: 'layouts/main' });
+    res.status(500).render('errors/500', { title: 'Bir şeyler ters gitti', layout: 'layouts/main', hideChrome: true });
 });
 
 documentExpiryJob.register();
